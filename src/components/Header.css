@@ -1,0 +1,85 @@
+.header {
+  background: linear-gradient(90deg, #ff6b35, #ff9a3c);
+  color: #fff;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Bên trái */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.home-icon {
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+.logo h1 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+.logo p {
+  margin: 0;
+  font-size: 0.85rem;
+  font-style: italic;
+}
+.main-nav {
+  display: flex;
+  gap: 16px;
+}
+.main-nav a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+}
+.main-nav a:hover {
+  text-decoration: underline;
+}
+
+/* Bên phải */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.icon {
+  position: relative;
+  cursor: pointer;
+  font-size: 1.3rem;
+}
+
+/* Dropdown */
+.dropdown {
+  position: absolute;
+  top: 36px;
+  right: 0;
+  background: white;
+  color: #222;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 10px;
+  min-width: 200px;
+  z-index: 100;
+}
+.dropdown a {
+  display: block;
+  padding: 6px 10px;
+  text-decoration: none;
+  color: #333;
+}
+.dropdown a:hover {
+  background: #f1f1f1;
+}
+.dropdown p {
+  margin: 4px 0;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+.dropdown hr {
+  margin: 8px 0;
+  border: 0;
+  border-top: 1px solid #ddd;
+}
