@@ -5,6 +5,7 @@ import Footer from "./components/Footer";
 import Cart from "./components/Cart";
 import HomePage from "./pages/HomePage";
 import CategoryPage from "./pages/CategoryPage";
+import CheckoutPage from "./pages/CheckoutPage";
 import { categories as categoryData, menuItems } from "./data/menuData";
 import { contentByLanguage } from "./i18n/translations";
 
@@ -199,6 +200,14 @@ function App() {
     setCart((prevCart) => prevCart.filter((c) => c.id !== id));
   };
 
+  const updateCartQuantity = (id, quantity) => {
+    setCart((prevCart) =>
+      prevCart.map((item) =>
+        item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item
+      )
+    );
+  };
+
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleCheckout = () => {
@@ -231,16 +240,20 @@ function App() {
       return [];
     }
 
-   return translatedMenuItems.filter(
+    return translatedMenuItems.filter(
       (item) => item.categoryId === activeCategory.id
     );
   }, [activeCategory, translatedMenuItems]);
 
   useEffect(() => {
-    if (view.type === "category") {
+    if (view.type === "category" || view.type === "checkout") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [view]);
+
+  const handlePlaceOrder = () => {
+    setCart([]);
+  };
 
   return (
     <div className="app">
@@ -249,7 +262,7 @@ function App() {
         onCartOpen={() => setIsCartOpen(true)}
         onNavigateHome={handleNavigateHome}
         onNavigateSection={handleNavigateSection}
-         texts={content.header}
+        texts={content.header}
         brandTagline={
           content.header?.brandTagline ??
           content.footer?.description ??
@@ -258,14 +271,23 @@ function App() {
         language={language}
         onLanguageChange={setLanguage}
       />
-      {view.type === "category" && activeCategory ? (
+      {view.type === "checkout" ? (
+        <CheckoutPage
+          cart={cart}
+          texts={content.checkout}
+          removeFromCart={removeFromCart}
+          onUpdateQuantity={updateCartQuantity}
+          onContinueShopping={handleNavigateHome}
+          onPlaceOrder={handlePlaceOrder}
+        />
+      ) : view.type === "category" && activeCategory ? (
         <CategoryPage
           category={activeCategory}
           items={categoryItems}
           addToCart={addToCart}
           onNavigateHome={handleNavigateHome}
           onNavigateMenu={() => handleNavigateSection("menu")}
-            texts={content.categoryPage}
+          texts={content.categoryPage}
           menuLabels={content.menuLabels}
         />
       ) : (
@@ -278,7 +300,7 @@ function App() {
           promotions={promotions}
           addToCart={addToCart}
           onSelectCategory={handleSelectCategory}
-               texts={content.home}
+          texts={content.home}
           menuLabels={content.menuLabels}
         />
       )}
