@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
@@ -14,9 +13,48 @@ const heroBackground =
 function App() {
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
   const pendingSectionRef = useRef(null);
+  const [view, setView] = useState(() => {
+    if (typeof window === "undefined") {
+      return { type: "home" };
+    }
+
+    const hash = window.location.hash.replace(/^#/, "");
+    const match = hash.match(/^\/category\/([\w-]+)/);
+
+    if (match && match[1]) {
+      return { type: "category", slug: match[1] };
+    }
+
+    return { type: "home" };
+  });
+
+  const parseHash = useCallback(() => {
+    if (typeof window === "undefined") {
+      return { type: "home" };
+    }
+
+    const hash = window.location.hash.replace(/^#/, "");
+    const match = hash.match(/^\/category\/([\w-]+)/);
+
+    if (match && match[1]) {
+      return { type: "category", slug: match[1] };
+    }
+
+    return { type: "home" };
+  }, []);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      setView(parseHash());
+    };
+
+    window.addEventListener("hashchange", handleHashChange);
+
+    return () => {
+      window.removeEventListener("hashchange", handleHashChange);
+    };
+  }, [parseHash]);
 
   const bestSellers = useMemo(
     () => menuItems.filter((item) => item.isBestSeller),
@@ -79,27 +117,44 @@ function App() {
     }
   };
 
+  const redirectToHome = useCallback(() => {
+    if (typeof window !== "undefined") {
+      window.location.hash = "/";
+    }
+  }, []);
+
   const handleNavigateHome = () => {
     pendingSectionRef.current = null;
-    navigate("/");
+    if (view.type !== "home") {
+      redirectToHome();
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const handleNavigateSection = (sectionId) => {
-    if (location.pathname !== "/") {
+    if (view.type !== "home") {
       pendingSectionRef.current = sectionId;
-      navigate("/");
+      redirectToHome();
     } else {
       scrollToSection(sectionId);
     }
   };
 
   useEffect(() => {
-    if (location.pathname === "/" && pendingSectionRef.current) {
+    if (view.type === "home" && pendingSectionRef.current) {
       const sectionId = pendingSectionRef.current;
       pendingSectionRef.current = null;
       requestAnimationFrame(() => scrollToSection(sectionId));
     }
-  }, [location.pathname]);
+  }, [view]);
+
+  const handleSelectCategory = (slug) => {
+    pendingSectionRef.current = null;
+    if (typeof window !== "undefined") {
+      window.location.hash = `/category/${slug}`;
+    }
+  };
 
   const addToCart = (item) => {
     const exists = cart.find((c) => c.id === item.id);
@@ -127,6 +182,34 @@ function App() {
     setIsCartOpen(false);
   };
 
+  const activeCategory = useMemo(() => {
+    if (view.type !== "category") {
+      return null;
+    }
+
+    return categoryData.find((category) => category.slug === view.slug) ?? null;
+  }, [view]);
+
+  useEffect(() => {
+    if (view.type === "category" && !activeCategory) {
+      redirectToHome();
+    }
+  }, [view, activeCategory, redirectToHome]);
+
+  const categoryItems = useMemo(() => {
+    if (!activeCategory) {
+      return [];
+    }
+
+    return menuItems.filter((item) => item.categoryId === activeCategory.id);
+  }, [activeCategory]);
+
+  useEffect(() => {
+    if (view.type === "category") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [view]);
+
   return (
     <div className="app">
       <Header
@@ -135,34 +218,26 @@ function App() {
         onNavigateHome={handleNavigateHome}
         onNavigateSection={handleNavigateSection}
       />
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <HomePage
-              heroBackground={heroBackground}
-              stats={stats}
-              categories={categoryData}
-              bestSellers={bestSellers}
-              combos={combos}
-              promotions={promotions}
-              addToCart={addToCart}
-            />
-          }
+      {view.type === "category" && activeCategory ? (
+        <CategoryPage
+          category={activeCategory}
+          items={categoryItems}
+          addToCart={addToCart}
+          onNavigateHome={handleNavigateHome}
+          onNavigateMenu={() => handleNavigateSection("menu")}
         />
-        <Route
-          path="/category/:slug"
-          element={
-            <CategoryPage
-              categories={categoryData}
-              menuItems={menuItems}
-              addToCart={addToCart}
-              onNavigateSection={handleNavigateSection}
-            />
-          }
+      ) : (
+        <HomePage
+          heroBackground={heroBackground}
+          stats={stats}
+          categories={categoryData}
+          bestSellers={bestSellers}
+          combos={combos}
+          promotions={promotions}
+          addToCart={addToCart}
+          onSelectCategory={handleSelectCategory}
         />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      )}
       <Footer />
       {isCartOpen && (
         <Cart

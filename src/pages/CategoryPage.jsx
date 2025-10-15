@@ -1,31 +1,17 @@
-import { useMemo } from "react";
-import { Navigate, useParams } from "react-router-dom";
 import Menu from "../components/Menu";
 
-function CategoryPage({ categories, menuItems, addToCart, onNavigateSection = () => {} }) {
-  const { slug } = useParams();
-  const category = categories.find((cat) => cat.slug === slug);
-
-  const items = useMemo(() => {
-    if (!category) {
-      return [];
-    }
-    return menuItems.filter((item) => item.categoryId === category.id);
-  }, [category, menuItems]);
-
-  if (!category) {
-    return <Navigate to="/" replace />;
-  }
-
-  const handleBackToMenu = () => {
-    onNavigateSection("menu");
-  };
-
+function CategoryPage({
+  category,
+  items,
+  addToCart,
+  onNavigateHome = () => {},
+  onNavigateMenu = () => {},
+}) {
   return (
     <main className="category-page">
       <section className="category-hero">
         <div className="breadcrumb">
-          <button type="button" onClick={handleBackToMenu}>
+          <button type="button" onClick={onNavigateHome}>
             Trang chủ
           </button>
           <span>/</span>
@@ -36,7 +22,7 @@ function CategoryPage({ categories, menuItems, addToCart, onNavigateSection = ()
           <h2>{category.heroTitle ?? category.title}</h2>
           <p>{category.heroDescription ?? category.description}</p>
           <div className="category-hero__actions">
-            <button type="button" onClick={handleBackToMenu}>
+            <button type="button" onClick={onNavigateMenu}>
               ← Trở lại danh mục
             </button>
           </div>
@@ -57,7 +43,7 @@ function CategoryPage({ categories, menuItems, addToCart, onNavigateSection = ()
         ) : (
           <div className="category-empty">
             <p>Danh mục đang được cập nhật món ăn. Vui lòng quay lại sau.</p>
-            <button type="button" onClick={handleBackToMenu}>
+            <button type="button" onClick={onNavigateMenu}>
               Quay về danh mục chính
             </button>
           </div>

@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import Menu from "../components/Menu";
 
 function HomePage({
@@ -9,6 +8,7 @@ function HomePage({
   combos,
   promotions,
   addToCart,
+  onSelectCategory = () => {},
 }) {
   return (
     <main>
@@ -59,7 +59,15 @@ function HomePage({
               <span className="category-icon">{category.icon}</span>
               <h3>{category.title}</h3>
               <p>{category.description}</p>
-              <Link to={`/category/${category.slug}`}>Xem món</Link>
+              <a
+                href={`#/category/${category.slug}`}
+                onClick={(event) => {
+                  event.preventDefault();
+                  onSelectCategory(category.slug);
+                }}
+              >
+                Xem món
+              </a>
             </article>
           ))}
         </div>
