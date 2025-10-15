@@ -5,9 +5,7 @@ import Footer from "./components/Footer";
 import Cart from "./components/Cart";
 import HomePage from "./pages/HomePage";
 import CategoryPage from "./pages/CategoryPage";
-import CheckoutPage from "./pages/CheckoutPage";
 import { categories as categoryData, menuItems } from "./data/menuData";
-import { contentByLanguage } from "./i18n/translations";
 
 const heroBackground =
   "https://images.unsplash.com/photo-1550317138-10000687a72b?auto=format&fit=crop&w=1600&q=80";
@@ -63,9 +61,35 @@ function App() {
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const pendingSectionRef = useRef(null);
-  const [view, setView] = useState(() => parseViewFromHash());
+  const [view, setView] = useState(() => {
+    if (typeof window === "undefined") {
+      return { type: "home" };
+    }
 
-  const parseHash = useCallback(() => parseViewFromHash(), []);
+    const hash = window.location.hash.replace(/^#/, "");
+    const match = hash.match(/^\/category\/([\w-]+)/);
+
+    if (match && match[1]) {
+      return { type: "category", slug: match[1] };
+    }
+
+    return { type: "home" };
+  });
+
+  const parseHash = useCallback(() => {
+    if (typeof window === "undefined") {
+      return { type: "home" };
+    }
+
+    const hash = window.location.hash.replace(/^#/, "");
+    const match = hash.match(/^\/category\/([\w-]+)/);
+
+    if (match && match[1]) {
+      return { type: "category", slug: match[1] };
+    }
+
+    return { type: "home" };
+  }, []);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -79,11 +103,9 @@ function App() {
     };
   }, [parseHash]);
 
-  const content = contentByLanguage[language] ?? contentByLanguage.vi;
-
-  const translatedCategories = useMemo(
-    () => translateCategories(categoryData, language),
-    [language]
+  const bestSellers = useMemo(
+    () => menuItems.filter((item) => item.isBestSeller),
+    []
   );
 
   const translatedMenuItems = useMemo(
@@ -165,6 +187,43 @@ function App() {
   };
 
   const addToCart = (item) => {
+    const exists = cart.find((c) => c.id === item.id);
+    if (exists) {
+      setCart(
+        cart.map((c) =>
+          c.id === item.id ? { ...c, quantity: c.quantity + 1 } : c
+        )
+      );
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const handleNavigateSection = (sectionId) => {
+    if (view.type !== "home") {
+      pendingSectionRef.current = sectionId;
+      redirectToHome();
+    } else {
+      scrollToSection(sectionId);
+    }
+  };
+
+  useEffect(() => {
+    if (view.type === "home" && pendingSectionRef.current) {
+      const sectionId = pendingSectionRef.current;
+      pendingSectionRef.current = null;
+      requestAnimationFrame(() => scrollToSection(sectionId));
+    }
+  }, [view]);
+
+  const handleSelectCategory = (slug) => {
+    pendingSectionRef.current = null;
+    if (typeof window !== "undefined") {
+      window.location.hash = `/category/${slug}`;
+    }
+  };
+
+  const addToCart = (item) => {
     setCart((prevCart) => {
       const exists = prevCart.find((c) => c.id === item.id);
       if (exists) {
@@ -193,26 +252,13 @@ function App() {
     }
   };
 
-  const handleConfirmOrder = () => {
-    if (content.checkout?.successMessage) {
-      window.alert(content.checkout.successMessage);
-    } else {
-      window.alert("Order received!");
-    }
-    setCart([]);
-    pendingSectionRef.current = null;
-    redirectToHome();
-  };
-
   const activeCategory = useMemo(() => {
     if (view.type !== "category") {
       return null;
     }
 
-    return (
-      translatedCategories.find((category) => category.slug === view.slug) ?? null
-    );
-  }, [view, translatedCategories]);
+    return categoryData.find((category) => category.slug === view.slug) ?? null;
+  }, [view]);
 
   useEffect(() => {
     if (view.type === "category" && !activeCategory) {
@@ -225,13 +271,11 @@ function App() {
       return [];
     }
 
-    return translatedMenuItems.filter(
-      (item) => item.categoryId === activeCategory.id
-    );
-  }, [activeCategory, translatedMenuItems]);
+    return menuItems.filter((item) => item.categoryId === activeCategory.id);
+  }, [activeCategory]);
 
   useEffect(() => {
-    if (view.type === "category" || view.type === "checkout") {
+    if (view.type === "category") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [view]);
@@ -243,9 +287,6 @@ function App() {
         onCartOpen={() => setIsCartOpen(true)}
         onNavigateHome={handleNavigateHome}
         onNavigateSection={handleNavigateSection}
-        language={language}
-        onLanguageChange={setLanguage}
-        texts={content.header}
       />
       {view.type === "category" && activeCategory ? (
         <CategoryPage
@@ -254,32 +295,20 @@ function App() {
           addToCart={addToCart}
           onNavigateHome={handleNavigateHome}
           onNavigateMenu={() => handleNavigateSection("menu")}
-          texts={content.categoryPage}
-          menuLabels={content.menuLabels}
-        />
-      ) : view.type === "checkout" ? (
-        <CheckoutPage
-          cart={cart}
-          texts={content.checkout}
-          onBackToMenu={() => handleNavigateSection("menu")}
-          onConfirm={handleConfirmOrder}
-          removeFromCart={removeFromCart}
         />
       ) : (
         <HomePage
           heroBackground={heroBackground}
           stats={stats}
-          categories={translatedCategories}
+          categories={categoryData}
           bestSellers={bestSellers}
           combos={combos}
           promotions={promotions}
           addToCart={addToCart}
           onSelectCategory={handleSelectCategory}
-          texts={content.home}
-          menuLabels={content.menuLabels}
         />
       )}
-      <Footer texts={content.footer} />
+      <Footer />
       {isCartOpen && (
         <Cart
           cart={cart}

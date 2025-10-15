@@ -6,20 +6,13 @@ function CategoryPage({
   addToCart,
   onNavigateHome = () => {},
   onNavigateMenu = () => {},
-  texts = {},
-  menuLabels,
 }) {
-  const formatText = (template) =>
-    (template ?? "")
-      .replace("{category}", category.title)
-      .replace("{categoryLower}", category.title.toLowerCase());
-
   return (
     <main className="category-page">
       <section className="category-hero">
         <div className="breadcrumb">
           <button type="button" onClick={onNavigateHome}>
-            {texts.breadcrumbHome}
+            Trang chủ
           </button>
           <span>/</span>
           <span>{category.title}</span>
@@ -30,7 +23,7 @@ function CategoryPage({
           <p>{category.heroDescription ?? category.description}</p>
           <div className="category-hero__actions">
             <button type="button" onClick={onNavigateMenu}>
-              {texts.backToMenu}
+              ← Trở lại danh mục
             </button>
           </div>
         </div>
@@ -38,17 +31,20 @@ function CategoryPage({
 
       <section className="category-results">
         <div className="section-heading">
-          <h2>{formatText(texts.listHeading)}</h2>
-          <p>{formatText(texts.listDescription)}</p>
+          <h2>Danh sách món {category.title.toLowerCase()}</h2>
+          <p>
+            Thưởng thức những món {category.title.toLowerCase()} được đội ngũ FCO
+            lựa chọn kỹ càng cho từng khẩu vị.
+          </p>
         </div>
 
         {items.length > 0 ? (
-          <Menu items={items} addToCart={addToCart} labels={menuLabels} />
+          <Menu items={items} addToCart={addToCart} />
         ) : (
           <div className="category-empty">
-            <p>{texts.emptyMessage}</p>
+            <p>Danh mục đang được cập nhật món ăn. Vui lòng quay lại sau.</p>
             <button type="button" onClick={onNavigateMenu}>
-              {texts.emptyCta}
+              Quay về danh mục chính
             </button>
           </div>
         )}

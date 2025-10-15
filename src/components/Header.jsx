@@ -8,32 +8,8 @@ function Header({
   onCartOpen = () => {},
   onNavigateHome = () => {},
   onNavigateSection = () => {},
-  language = "vi",
-  onLanguageChange = () => {},
-  texts,
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
-
-  const languageOptions = useMemo(
-    () => [
-      {
-        id: "vi",
-        label: texts?.language?.options?.vi?.label ?? "Tiếng Việt",
-        icon: vnFlag,
-      },
-      {
-        id: "en",
-        label: texts?.language?.options?.en?.label ?? "English",
-        icon: ukFlag,
-      },
-    ],
-    [texts]
-  );
-
-  const brandTagline =
-    language === "vi"
-      ? "Ăn ngon chuẩn vị - giao tận nơi siêu tốc"
-      : "Food crafted fresh · Delivered fast";
 
   const handleSectionClick = (event, sectionId) => {
     event.preventDefault();
@@ -80,15 +56,24 @@ function Header({
         </div>
 
         <nav className={`nav-links ${menuOpen ? "open" : ""}`}>
-          {(texts?.navLinks ?? []).map((link) => (
-            <a
-              key={link.id}
-              href={`/#${link.id}`}
-              onClick={(event) => handleSectionClick(event, link.id)}
-            >
-              {link.label}
-            </a>
-          ))}
+          <a href="/#menu" onClick={(event) => handleSectionClick(event, "menu")}>
+            Danh mục món
+          </a>
+          <a
+            href="/#best-seller"
+            onClick={(event) => handleSectionClick(event, "best-seller")}
+          >
+            Bán chạy
+          </a>
+          <a href="/#combo" onClick={(event) => handleSectionClick(event, "combo")}>
+            Combo ưu đãi
+          </a>
+          <a href="/#promo" onClick={(event) => handleSectionClick(event, "promo")}>
+            Khuyến mãi
+          </a>
+          <a href="/#about" onClick={(event) => handleSectionClick(event, "about")}>
+            Về FCO
+          </a>
         </nav>
 
         <div className="nav-actions">
