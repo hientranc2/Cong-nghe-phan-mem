@@ -10,6 +10,7 @@ const heroBackground =
 
 function App() {
   const [cart, setCart] = useState([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   const bestSellers = useMemo(
     () => [
@@ -28,7 +29,7 @@ function App() {
         name: "Pizza Phô Mai Lava",
         description: "Đế mỏng kiểu Ý, phủ phô mai mozzarella lava và pepperoni cay.",
         price: 119,
-        img: "https://images.unsplash.com/photo-1548365328-9f5473428b37?auto=format&fit=crop&w=800&q=80",
+        img: "https://images.unsplash.com/photo-1600628422019-90c75f062526?auto=format&fit=crop&w=800&q=80",
         calories: 730,
         time: 15,
         tag: "FCO Signature",
@@ -48,7 +49,7 @@ function App() {
         name: "Taco Fiesta Mexico",
         description: "Taco bò kéo sợi, salsa xoài và sốt kem chua đặc biệt của FCO.",
         price: 65,
-        img: "https://images.unsplash.com/photo-1612874478396-5d81e27e4d11?auto=format&fit=crop&w=800&q=80",
+        img: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80",
         calories: 450,
         time: 9,
         tag: "Món mới",
@@ -148,6 +149,8 @@ function App() {
     } else {
       setCart([...cart, { ...item, quantity: 1 }]);
     }
+
+    setIsCartOpen(true);
   };
 
   // Xóa sản phẩm
@@ -157,9 +160,14 @@ function App() {
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
+  const handleCheckout = () => {
+    window.alert("Đi đến trang thanh toán!");
+    setIsCartOpen(false);
+  };
+
   return (
     <div className="app">
-      <Header cartCount={cartCount} />
+      <Header cartCount={cartCount} onCartOpen={() => setIsCartOpen(true)} />
       <main>
         <section className="hero" style={{ backgroundImage: `url(${heroBackground})` }}>
           <div className="hero-overlay" />
@@ -275,7 +283,7 @@ function App() {
           </div>
           <div className="about-visual">
             <img
-              src="https://images.unsplash.com/photo-1528198020673-6cbb3a68bd33?auto=format&fit=crop&w=900&q=80"
+              src="https://images.unsplash.com/photo-1555992336-cbf3a2862171?auto=format&fit=crop&w=900&q=80"
               alt="FCO Kitchen"
               loading="lazy"
             />
@@ -286,15 +294,16 @@ function App() {
           </div>
         </section>
 
-        <section className="cart-section" id="cart">
-          <div className="section-heading">
-            <h2>Giỏ hàng FCO của bạn</h2>
-            <p>Kiểm tra lại món và hoàn tất đơn ngay.</p>
-          </div>
-          <Cart cart={cart} removeFromCart={removeFromCart} />
-        </section>
       </main>
       <Footer />
+      {isCartOpen && (
+        <Cart
+          cart={cart}
+          removeFromCart={removeFromCart}
+          onClose={() => setIsCartOpen(false)}
+          onCheckout={handleCheckout}
+        />
+      )}
     </div>
   );
 }
