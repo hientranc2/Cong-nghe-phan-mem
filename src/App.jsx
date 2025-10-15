@@ -6,6 +6,8 @@ import Cart from "./components/Cart";
 import HomePage from "./pages/HomePage";
 import CategoryPage from "./pages/CategoryPage";
 import { categories as categoryData, menuItems } from "./data/menuData";
+import { contentByLanguage } from "./i18n/translations";
+
 
 const heroBackground =
   "https://images.unsplash.com/photo-1550317138-10000687a72b?auto=format&fit=crop&w=1600&q=80";
@@ -37,22 +39,32 @@ const translateCategories = (categories, language) =>
 
     return {
       ...category,
-      title: translation.title ?? "",
-      description: translation.description ?? "",
-      heroTitle: translation.heroTitle ?? translation.title ?? "",
-      heroDescription: translation.heroDescription ?? translation.description ?? "",
+      title: translation.title ?? category.title ?? "",
+      description: translation.description ?? category.description ?? "",
+      heroTitle:
+        translation.heroTitle ??
+        translation.title ??
+        category.heroTitle ??
+        category.title ??
+        "",
+      heroDescription:
+        translation.heroDescription ??
+        translation.description ??
+        category.heroDescription ??
+        category.description ??
+        "",
     };
   });
 
 const translateMenuItems = (items, language) =>
   items.map((item) => {
-    const translation = item.translations?.[language] ?? item.translations?.vi ?? {};
-
+const translation =
+      item.translations?.[language] ?? item.translations?.vi ?? {};
     return {
       ...item,
-      name: translation.name ?? "",
-      description: translation.description ?? "",
-      tag: translation.tag ?? null,
+      name: translation.name ?? item.name ?? "",
+      description: translation.description ?? item.description ?? "",
+      tag: translation.tag ?? item.tag ?? null,
     };
   });
 
@@ -61,35 +73,10 @@ function App() {
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const pendingSectionRef = useRef(null);
-  const [view, setView] = useState(() => {
-    if (typeof window === "undefined") {
-      return { type: "home" };
-    }
+  const [view, setView] = useState(() => parseViewFromHash());
+  const parseHash = useCallback(() => parseViewFromHash(), []);
 
-    const hash = window.location.hash.replace(/^#/, "");
-    const match = hash.match(/^\/category\/([\w-]+)/);
 
-    if (match && match[1]) {
-      return { type: "category", slug: match[1] };
-    }
-
-    return { type: "home" };
-  });
-
-  const parseHash = useCallback(() => {
-    if (typeof window === "undefined") {
-      return { type: "home" };
-    }
-
-    const hash = window.location.hash.replace(/^#/, "");
-    const match = hash.match(/^\/category\/([\w-]+)/);
-
-    if (match && match[1]) {
-      return { type: "category", slug: match[1] };
-    }
-
-    return { type: "home" };
-  }, []);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -103,9 +90,14 @@ function App() {
     };
   }, [parseHash]);
 
-  const bestSellers = useMemo(
-    () => menuItems.filter((item) => item.isBestSeller),
-    []
+  const content = useMemo(
+    () => contentByLanguage[language] ?? contentByLanguage.vi,
+    [language]
+  );
+
+  const translatedCategories = useMemo(
+    () => translateCategories(categoryData, language),
+    [language]
   );
 
   const translatedMenuItems = useMemo(
@@ -186,42 +178,7 @@ function App() {
     }
   };
 
-  const addToCart = (item) => {
-    const exists = cart.find((c) => c.id === item.id);
-    if (exists) {
-      setCart(
-        cart.map((c) =>
-          c.id === item.id ? { ...c, quantity: c.quantity + 1 } : c
-        )
-      );
-    } else {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
-
-  const handleNavigateSection = (sectionId) => {
-    if (view.type !== "home") {
-      pendingSectionRef.current = sectionId;
-      redirectToHome();
-    } else {
-      scrollToSection(sectionId);
-    }
-  };
-
-  useEffect(() => {
-    if (view.type === "home" && pendingSectionRef.current) {
-      const sectionId = pendingSectionRef.current;
-      pendingSectionRef.current = null;
-      requestAnimationFrame(() => scrollToSection(sectionId));
-    }
-  }, [view]);
-
-  const handleSelectCategory = (slug) => {
-    pendingSectionRef.current = null;
-    if (typeof window !== "undefined") {
-      window.location.hash = `/category/${slug}`;
-    }
-  };
+  
 
   const addToCart = (item) => {
     setCart((prevCart) => {
@@ -257,8 +214,11 @@ function App() {
       return null;
     }
 
-    return categoryData.find((category) => category.slug === view.slug) ?? null;
-  }, [view]);
+    return (
+      translatedCategories.find((category) => category.slug === view.slug) ??
+      null
+    );
+  }, [view, translatedCategories]);
 
   useEffect(() => {
     if (view.type === "category" && !activeCategory) {
@@ -271,8 +231,10 @@ function App() {
       return [];
     }
 
-    return menuItems.filter((item) => item.categoryId === activeCategory.id);
-  }, [activeCategory]);
+   return translatedMenuItems.filter(
+      (item) => item.categoryId === activeCategory.id
+    );
+  }, [activeCategory, translatedMenuItems]);
 
   useEffect(() => {
     if (view.type === "category") {
@@ -287,6 +249,14 @@ function App() {
         onCartOpen={() => setIsCartOpen(true)}
         onNavigateHome={handleNavigateHome}
         onNavigateSection={handleNavigateSection}
+         texts={content.header}
+        brandTagline={
+          content.header?.brandTagline ??
+          content.footer?.description ??
+          ""
+        }
+        language={language}
+        onLanguageChange={setLanguage}
       />
       {view.type === "category" && activeCategory ? (
         <CategoryPage
@@ -295,20 +265,24 @@ function App() {
           addToCart={addToCart}
           onNavigateHome={handleNavigateHome}
           onNavigateMenu={() => handleNavigateSection("menu")}
+            texts={content.categoryPage}
+          menuLabels={content.menuLabels}
         />
       ) : (
         <HomePage
           heroBackground={heroBackground}
           stats={stats}
-          categories={categoryData}
+          categories={translatedCategories}
           bestSellers={bestSellers}
           combos={combos}
           promotions={promotions}
           addToCart={addToCart}
           onSelectCategory={handleSelectCategory}
+               texts={content.home}
+          menuLabels={content.menuLabels}
         />
       )}
-      <Footer />
+      <Footer texts={content.footer} />
       {isCartOpen && (
         <Cart
           cart={cart}

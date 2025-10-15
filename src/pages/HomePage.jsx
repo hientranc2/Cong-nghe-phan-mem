@@ -2,36 +2,71 @@ import Menu from "../components/Menu";
 
 function HomePage({
   heroBackground,
-  stats,
-  categories,
-  bestSellers,
-  combos,
-  promotions,
+   stats = [],
+  categories = [],
+  bestSellers = [],
+  combos = [],
+  promotions = [],
   addToCart,
   onSelectCategory = () => {},
+   texts = {},
+  menuLabels = {},
 }) {
+   const heroHighlights = texts.heroHighlights ?? [
+    "⚡ Miễn phí giao nhanh nội thành",
+    "💳 Thanh toán online & COD",
+  ];
+  const heroPrimaryCta = texts.heroPrimaryCta ?? "Đặt món bán chạy";
+  const heroSecondaryCta = texts.heroSecondaryCta ?? "Xem combo ưu đãi";
+  const categoryHeading = texts.categoryHeading ?? "Khám phá danh mục nổi bật";
+  const categoryDescription =
+    texts.categoryDescription ??
+    "Nguyên liệu tuyển chọn mỗi sáng, chế biến tại bếp trung tâm và giao đến bạn trong thời gian nhanh nhất.";
+  const categoryCta = texts.categoryCta ?? "Xem món";
+  const bestSellerHeading = texts.bestSellerHeading ?? "Món bán chạy tại FCO";
+  const bestSellerDescription =
+    texts.bestSellerDescription ?? "Chọn món yêu thích và thêm vào giỏ trong một chạm.";
+  const comboHeading = texts.comboHeading ?? "Combo chia sẻ siêu tiết kiệm";
+  const comboDescription =
+    texts.comboDescription ??
+    "Thiết kế riêng cho từng bữa ăn của bạn: gia đình, hẹn hò hay văn phòng.";
+  const comboButton = texts.comboButton ?? "Đặt combo";
+  const promotionHeading = texts.promotionHeading ?? "Ưu đãi & chương trình thành viên";
+  const promotionDescription =
+    texts.promotionDescription ?? "Tham gia FCO Rewards để không bỏ lỡ bất kỳ deal nào.";
+  const promotionCta = texts.promotionCta ?? "Tìm hiểu thêm →";
+  const aboutHeading =
+    texts.aboutHeading ?? "FCO - FoodFast Delivery chuẩn chuyên nghiệp";
+  const aboutDescription =
+    texts.aboutDescription ??
+    "Thành lập từ 2015, FCO mang tới trải nghiệm ẩm thực nhanh chóng nhưng vẫn giữ nguyên sự chỉn chu của một nhà hàng chuyên nghiệp. Hệ thống bếp trung tâm và đội ngũ giao nhận nội bộ giúp chúng tôi kiểm soát chất lượng từng đơn hàng.";
+  const aboutList = texts.aboutList ?? [
+    "🌟 Chứng nhận vệ sinh an toàn thực phẩm quốc tế HACCP",
+    "🥗 90% nguyên liệu nhập khẩu, truy xuất nguồn gốc rõ ràng",
+    "🛵 Đội ngũ giao nhận chuyên nghiệp, đồng phục nhận diện FCO",
+  ];
+  const aboutBadgeValue = texts.aboutBadgeValue ?? "98%";
+  const aboutBadgeLabel =
+    texts.aboutBadgeLabel ?? "Khách hàng quay lại lần 2";
   return (
     <main>
       <section className="hero" style={{ backgroundImage: `url(${heroBackground})` }}>
         <div className="hero-overlay" />
         <div className="hero-content">
-          <h2>FoodFast Delivery chuẩn vị FCO</h2>
-          <p>
-            Đặt món nóng hổi từ FCO và nhận ngay trong 15 phút. Các đầu bếp của
-            chúng tôi luôn sẵn sàng phục vụ burger bò Mỹ, pizza phô mai, taco
-            Mexico và đồ uống mixology chuẩn vị.
-          </p>
+          <h2>{texts.heroTitle ?? "FoodFast Delivery chuẩn vị FCO"}</h2>
+          <p>{texts.heroDescription ?? "Đặt món nóng hổi từ FCO và nhận ngay trong 15 phút. Các đầu bếp của chúng tôi luôn sẵn sàng phục vụ burger bò Mỹ, pizza phô mai, taco Mexico và đồ uống mixology chuẩn vị."}</p>
           <div className="hero-actions">
             <a href="#best-seller" className="btn-primary">
-              Đặt món bán chạy
+              {heroPrimaryCta}
             </a>
             <a href="#combo" className="btn-secondary">
-              Xem combo ưu đãi
+              {heroSecondaryCta}
             </a>
           </div>
           <div className="hero-extra">
-            <span>⚡ Miễn phí giao nhanh nội thành</span>
-            <span>💳 Thanh toán online & COD</span>
+            {heroHighlights.map((highlight) => (
+              <span key={highlight}>{highlight}</span>
+            ))}
           </div>
         </div>
       </section>
@@ -47,11 +82,8 @@ function HomePage({
 
       <section className="category" id="menu">
         <div className="section-heading">
-          <h2>Khám phá danh mục nổi bật</h2>
-          <p>
-            Nguyên liệu tuyển chọn mỗi sáng, chế biến tại bếp trung tâm và giao
-            đến bạn trong thời gian nhanh nhất.
-          </p>
+         <h2>{categoryHeading}</h2>
+          <p>{categoryDescription}</p>
         </div>
         <div className="category-grid">
           {categories.map((category) => (
@@ -66,7 +98,7 @@ function HomePage({
                   onSelectCategory(category.slug);
                 }}
               >
-                Xem món
+                {categoryCta}
               </a>
             </article>
           ))}
@@ -75,16 +107,16 @@ function HomePage({
 
       <section className="best-seller" id="best-seller">
         <div className="section-heading">
-          <h2>Món bán chạy tại FCO</h2>
-          <p>Chọn món yêu thích và thêm vào giỏ trong một chạm.</p>
+          <h2>{bestSellerHeading}</h2>
+          <p>{bestSellerDescription}</p>
         </div>
-        <Menu items={bestSellers} addToCart={addToCart} />
+        <Menu items={bestSellers} addToCart={addToCart} labels={menuLabels} />
       </section>
 
       <section className="combo" id="combo">
         <div className="section-heading">
-          <h2>Combo chia sẻ siêu tiết kiệm</h2>
-          <p>Thiết kế riêng cho từng bữa ăn của bạn: gia đình, hẹn hò hay văn phòng.</p>
+           <h2>{comboHeading}</h2>
+          <p>{comboDescription}</p>
         </div>
         <div className="combo-grid">
           {combos.map((combo) => (
@@ -94,7 +126,7 @@ function HomePage({
               <p>{combo.desc}</p>
               <div className="combo-footer">
                 <span>{combo.price}k</span>
-                <button type="button">Đặt combo</button>
+                <button type="button">{comboButton}</button>
               </div>
             </article>
           ))}
@@ -103,15 +135,15 @@ function HomePage({
 
       <section className="promotion" id="promo">
         <div className="section-heading">
-          <h2>Ưu đãi & chương trình thành viên</h2>
-          <p>Tham gia FCO Rewards để không bỏ lỡ bất kỳ deal nào.</p>
+           <h2>{promotionHeading}</h2>
+          <p>{promotionDescription}</p>
         </div>
         <div className="promotion-grid">
           {promotions.map((promo) => (
             <article key={promo.title} className="promotion-card">
               <h3>{promo.title}</h3>
               <p>{promo.content}</p>
-              <a href="#">Tìm hiểu thêm →</a>
+              <a href="#">{promotionCta}</a>
             </article>
           ))}
         </div>
@@ -119,17 +151,12 @@ function HomePage({
 
       <section className="about" id="about">
         <div className="about-content">
-          <h2>FCO - FoodFast Delivery chuẩn chuyên nghiệp</h2>
-          <p>
-            Thành lập từ 2015, FCO mang tới trải nghiệm ẩm thực nhanh chóng nhưng
-            vẫn giữ nguyên sự chỉn chu của một nhà hàng chuyên nghiệp. Hệ thống
-            bếp trung tâm và đội ngũ giao nhận nội bộ giúp chúng tôi kiểm soát
-            chất lượng từng đơn hàng.
-          </p>
+           <h2>{aboutHeading}</h2>
+          <p>{aboutDescription}</p>
           <ul>
-            <li>🌟 Chứng nhận vệ sinh an toàn thực phẩm quốc tế HACCP</li>
-            <li>🥗 90% nguyên liệu nhập khẩu, truy xuất nguồn gốc rõ ràng</li>
-            <li>🛵 Đội ngũ giao nhận chuyên nghiệp, đồng phục nhận diện FCO</li>
+           {aboutList.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
           </ul>
         </div>
         <div className="about-visual">
@@ -139,8 +166,8 @@ function HomePage({
             loading="lazy"
           />
           <div className="about-badge">
-            <strong>98%</strong>
-            <span>Khách hàng quay lại lần 2</span>
+             <strong>{aboutBadgeValue}</strong>
+            <span>{aboutBadgeLabel}</span>
           </div>
         </div>
       </section>

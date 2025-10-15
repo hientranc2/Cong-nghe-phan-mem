@@ -3,13 +3,64 @@ import vnFlag from "../assets/flags/vietnam.svg";
 import ukFlag from "../assets/flags/united-kingdom.svg";
 import "./Header.css";
 
+const DEFAULT_NAV_LINKS = [
+  { id: "menu", label: "Danh mục món" },
+  { id: "best-seller", label: "Bán chạy" },
+  { id: "combo", label: "Combo ưu đãi" },
+  { id: "promo", label: "Khuyến mãi" },
+  { id: "about", label: "Về FCO" },
+];
+
+const LANGUAGE_ICONS = {
+  vi: vnFlag,
+  en: ukFlag,
+};
+
 function Header({
   cartCount = 0,
   onCartOpen = () => {},
   onNavigateHome = () => {},
   onNavigateSection = () => {},
+
+   texts = {},
+  brandTagline = "",
+  language = "vi",
+  onLanguageChange = () => {},
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const navLinks = useMemo(
+    () => texts?.navLinks ?? DEFAULT_NAV_LINKS,
+    [texts]
+  );
+
+  const languageOptions = useMemo(() => {
+    const options = texts?.language?.options ?? {};
+
+    if (Object.keys(options).length === 0) {
+      return [
+        { id: "vi", label: "Tiếng Việt", icon: vnFlag },
+        { id: "en", label: "English", icon: ukFlag },
+      ];
+    }
+
+    return Object.entries(options).map(([id, option]) => ({
+      id,
+      label: option.label ?? id,
+      icon: LANGUAGE_ICONS[id] ?? LANGUAGE_ICONS.vi,
+    }));
+  }, [texts]);
+
+  const topbarMessage =
+    texts?.topbarMessage ?? "FCO giao nhanh trong 15 phút · Freeship đơn từ 199k";
+  const topbarActions = texts?.topbarActions ?? [];
+  const locationPrefix = texts?.locationPrefix ?? "📍 Giao đến:";
+  const locationHighlight = texts?.locationHighlight ?? "TP. Hồ Chí Minh";
+  const loginLabel = texts?.loginLabel ?? "👤 Đăng nhập";
+  const cartLabel = texts?.cartLabel ?? "Giỏ hàng";
+  const cartAriaLabel = texts?.cartAriaLabel ?? "Giỏ hàng";
+  const menuToggleLabel = texts?.menuToggleLabel ?? "Mở menu điều hướng";
+  const languageAriaLabel = texts?.language?.ariaLabel ?? "Chọn ngôn ngữ";
 
   const handleSectionClick = (event, sectionId) => {
     event.preventDefault();
@@ -25,9 +76,9 @@ function Header({
   return (
     <header className="fco-header">
       <div className="fco-topbar">
-        <span>{texts?.topbarMessage}</span>
+        <span>{topbarMessage}</span>
         <div className="topbar-actions">
-          {(texts?.topbarActions ?? []).map((action) => (
+          {topbarActions.map((action) => (
             <a key={action.href} href={action.href}>
               {action.label}
             </a>
@@ -56,28 +107,19 @@ function Header({
         </div>
 
         <nav className={`nav-links ${menuOpen ? "open" : ""}`}>
-          <a href="/#menu" onClick={(event) => handleSectionClick(event, "menu")}>
-            Danh mục món
-          </a>
-          <a
-            href="/#best-seller"
-            onClick={(event) => handleSectionClick(event, "best-seller")}
-          >
-            Bán chạy
-          </a>
-          <a href="/#combo" onClick={(event) => handleSectionClick(event, "combo")}>
-            Combo ưu đãi
-          </a>
-          <a href="/#promo" onClick={(event) => handleSectionClick(event, "promo")}>
-            Khuyến mãi
-          </a>
-          <a href="/#about" onClick={(event) => handleSectionClick(event, "about")}>
-            Về FCO
-          </a>
+          {navLinks.map((link) => (
+            <a
+              key={link.id}
+              href={`/#${link.id}`}
+              onClick={(event) => handleSectionClick(event, link.id)}
+            >
+              {link.label}
+            </a>
+          ))}
         </nav>
 
         <div className="nav-actions">
-          <div className="language-switch" aria-label={texts?.language?.ariaLabel}>
+          <div className="language-switch" aria-label={languageAriaLabel}>
             {languageOptions.map((option) => (
               <button
                 key={option.id}
@@ -97,25 +139,25 @@ function Header({
             ))}
           </div>
           <button className="location-btn" type="button">
-            {texts?.locationPrefix} <strong>{texts?.locationHighlight}</strong>
+            {locationPrefix} <strong>{locationHighlight}</strong>
           </button>
           <button className="login-btn" type="button">
-            {texts?.loginLabel}
+            {loginLabel}
           </button>
           <button
             className="cart-btn"
             type="button"
-            aria-label={texts?.cartAriaLabel}
+            aria-label={cartAriaLabel}
             onClick={onCartOpen}
           >
-            🛒<span className="cart-label">{texts?.cartLabel}</span>
+            🛒<span className="cart-label">{cartLabel}</span>
             <span className="cart-count">{cartCount}</span>
           </button>
           <button
             className="menu-toggle"
             type="button"
             aria-expanded={menuOpen}
-            aria-label={texts?.menuToggleLabel}
+            aria-label={menuToggleLabel}
             onClick={() => setMenuOpen(!menuOpen)}
           >
             ☰
