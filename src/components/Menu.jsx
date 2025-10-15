@@ -1,20 +1,26 @@
-const items = [
-  { id: 1, name: "Burger", price: 50, img: "https://picsum.photos/200?1" },
-  { id: 2, name: "Pizza", price: 80, img: "https://picsum.photos/200?2" },
-  { id: 3, name: "Fried Chicken", price: 70, img: "https://picsum.photos/200?3" },
-  { id: 4, name: "French Fries", price: 30, img: "https://picsum.photos/200?4" },
-];
-
-function Menu({ addToCart }) {
+function Menu({ items = [], addToCart }) {
   return (
-    <div className="menu">
+    <div className="menu-grid">
       {items.map((item) => (
-        <div key={item.id} className="menu-item">
-          <img src={item.img} alt={item.name} />
-          <h3>{item.name}</h3>
-          <p>{item.price}k VND</p>
-          <button onClick={() => addToCart(item)}>Thêm vào giỏ</button>
-        </div>
+        <article key={item.id} className="menu-card">
+          <div className="menu-card__media">
+            <img src={item.img} alt={item.name} loading="lazy" />
+            {item.tag && <span className="menu-card__tag">{item.tag}</span>}
+          </div>
+          <div className="menu-card__body">
+            <div className="menu-card__heading">
+              <h3>{item.name}</h3>
+              <span className="menu-card__price">{item.price}k</span>
+            </div>
+            <p className="menu-card__desc">{item.description}</p>
+            <div className="menu-card__footer">
+              <span className="menu-card__info">{item.calories} kcal · {item.time} phút</span>
+              <button type="button" onClick={() => addToCart(item)}>
+                Thêm vào giỏ
+              </button>
+            </div>
+          </div>
+        </article>
       ))}
     </div>
   );
