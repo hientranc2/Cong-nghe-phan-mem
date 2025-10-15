@@ -142,6 +142,8 @@
   text-decoration: none;
   box-shadow: 0 8px 18px rgba(255, 255, 255, 0.25);
   transition: transform 0.2s ease;
+  border: none;
+  cursor: pointer;
 }
 
 .cart-btn:hover {

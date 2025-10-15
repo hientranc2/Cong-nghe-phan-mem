@@ -14,7 +14,9 @@ function Menu({ items = [], addToCart }) {
             </div>
             <p className="menu-card__desc">{item.description}</p>
             <div className="menu-card__footer">
-              <span className="menu-card__info">{item.calories} kcal · {item.time} phút</span>
+              <span className="menu-card__info">
+                🔥 {item.calories} kcal · ⏱ {item.time} phút chế biến
+              </span>
               <button type="button" onClick={() => addToCart(item)}>
                 Thêm vào giỏ
               </button>

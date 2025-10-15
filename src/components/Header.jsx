@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./Header.css";
 
-function Header({ cartCount = 0 }) {
+function Header({ cartCount = 0, onCartOpen = () => {} }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -38,10 +38,15 @@ function Header({ cartCount = 0 }) {
           <button className="login-btn" type="button">
             👤 Đăng nhập
           </button>
-          <a className="cart-btn" href="#cart" aria-label="Giỏ hàng">
+          <button
+            className="cart-btn"
+            type="button"
+            aria-label="Giỏ hàng"
+            onClick={onCartOpen}
+          >
             🛒<span className="cart-label">Giỏ hàng</span>
             <span className="cart-count">{cartCount}</span>
-          </a>
+          </button>
           <button
             className="menu-toggle"
             type="button"
