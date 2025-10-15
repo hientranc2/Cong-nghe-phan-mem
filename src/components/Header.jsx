@@ -1,8 +1,24 @@
 import { useState } from "react";
 import "./Header.css";
 
-function Header({ cartCount = 0, onCartOpen = () => {} }) {
+function Header({
+  cartCount = 0,
+  onCartOpen = () => {},
+  onNavigateHome = () => {},
+  onNavigateSection = () => {},
+}) {
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const handleSectionClick = (event, sectionId) => {
+    event.preventDefault();
+    onNavigateSection(sectionId);
+    setMenuOpen(false);
+  };
+
+  const handleHomeNavigation = () => {
+    setMenuOpen(false);
+    onNavigateHome();
+  };
 
   return (
     <header className="fco-header">
@@ -15,7 +31,18 @@ function Header({ cartCount = 0, onCartOpen = () => {} }) {
       </div>
 
       <div className="fco-mainbar">
-        <div className="brand" onClick={() => (window.location.href = "/") }>
+        <div
+          className="brand"
+          role="button"
+          tabIndex={0}
+          onClick={handleHomeNavigation}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              handleHomeNavigation();
+            }
+          }}
+        >
           <div className="brand-logo">FCO</div>
           <div className="brand-text">
             <h1>FCO FoodFast Delivery</h1>
@@ -24,11 +51,24 @@ function Header({ cartCount = 0, onCartOpen = () => {} }) {
         </div>
 
         <nav className={`nav-links ${menuOpen ? "open" : ""}`}>
-          <a href="#menu">Danh mục món</a>
-          <a href="#best-seller">Bán chạy</a>
-          <a href="#combo">Combo ưu đãi</a>
-          <a href="#promo">Khuyến mãi</a>
-          <a href="#about">Về FCO</a>
+          <a href="/#menu" onClick={(event) => handleSectionClick(event, "menu")}>
+            Danh mục món
+          </a>
+          <a
+            href="/#best-seller"
+            onClick={(event) => handleSectionClick(event, "best-seller")}
+          >
+            Bán chạy
+          </a>
+          <a href="/#combo" onClick={(event) => handleSectionClick(event, "combo")}>
+            Combo ưu đãi
+          </a>
+          <a href="/#promo" onClick={(event) => handleSectionClick(event, "promo")}>
+            Khuyến mãi
+          </a>
+          <a href="/#about" onClick={(event) => handleSectionClick(event, "about")}>
+            Về FCO
+          </a>
         </nav>
 
         <div className="nav-actions">
