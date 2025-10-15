@@ -1,4 +1,8 @@
-function Menu({ items = [], addToCart }) {
+function Menu({ items = [], addToCart, labels = {} }) {
+  const caloriesUnit = labels.caloriesUnit ?? "kcal";
+  const prepTimeSuffix = labels.prepTimeSuffix ?? "phút chế biến";
+  const addToCartLabel = labels.addToCart ?? "Thêm vào giỏ";
+
   return (
     <div className="menu-grid">
       {items.map((item) => (
@@ -15,10 +19,10 @@ function Menu({ items = [], addToCart }) {
             <p className="menu-card__desc">{item.description}</p>
             <div className="menu-card__footer">
               <span className="menu-card__info">
-                🔥 {item.calories} kcal · ⏱ {item.time} phút chế biến
+                🔥 {item.calories} {caloriesUnit} · ⏱ {item.time} {prepTimeSuffix}
               </span>
               <button type="button" onClick={() => addToCart(item)}>
-                Thêm vào giỏ
+                {addToCartLabel}
               </button>
             </div>
           </div>

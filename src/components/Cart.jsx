@@ -1,19 +1,34 @@
-function Cart({ cart, removeFromCart, onClose, onCheckout }) {
+function Cart({ cart, removeFromCart, onClose, onCheckout, texts = {} }) {
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtitle =
+    cart.length === 0
+      ? texts.subtitleEmpty ?? "Chưa có sản phẩm"
+      : (texts.subtitleWithCount ?? "{count} sản phẩm trong giỏ").replace(
+          "{count}",
+          String(cart.length)
+        );
+  const quantityLabel = texts.quantityLabel ?? "Số lượng";
+  const removeLabel = texts.removeItem ?? "Xóa";
+  const emptyMessage =
+    texts.emptyMessage ?? "Thêm món yêu thích để bắt đầu đơn hàng của bạn nhé!";
+  const subtotalLabel = texts.subtotalLabel ?? "Tạm tính";
+  const continueLabel = texts.continueButton ?? "Mua thêm món";
+  const checkoutLabel = texts.checkoutButton ?? "Đi đến thanh toán";
+  const title = texts.title ?? "🛒 Giỏ hàng của bạn";
 
   return (
     <div
       className="cart-modal"
       role="dialog"
       aria-modal="true"
-      aria-label="Giỏ hàng FCO"
+      aria-label={texts.title ?? "Giỏ hàng FCO"}
       onClick={onClose}
     >
       <aside className="cart-panel" onClick={(e) => e.stopPropagation()}>
         <header className="cart-panel__header">
           <div>
-            <h2>🛒 Giỏ hàng của bạn</h2>
-            <p>{cart.length === 0 ? "Chưa có sản phẩm" : `${cart.length} sản phẩm trong giỏ`}</p>
+            <h2>{title}</h2>
+            <p>{subtitle}</p>
           </div>
           <button type="button" className="cart-close" onClick={onClose}>
             ×
@@ -23,7 +38,7 @@ function Cart({ cart, removeFromCart, onClose, onCheckout }) {
         <div className="cart-content">
           {cart.length === 0 ? (
             <div className="cart-empty">
-              <p>Thêm món yêu thích để bắt đầu đơn hàng của bạn nhé!</p>
+              <p>{emptyMessage}</p>
             </div>
           ) : (
             <ul className="cart-list">
@@ -32,7 +47,9 @@ function Cart({ cart, removeFromCart, onClose, onCheckout }) {
                   <img src={item.img} alt={item.name} />
                   <div className="cart-item__info">
                     <p className="cart-item__name">{item.name}</p>
-                    <p className="cart-item__meta">Số lượng: x{item.quantity}</p>
+                    <p className="cart-item__meta">
+                      {quantityLabel}: x{item.quantity}
+                    </p>
                   </div>
                   <p className="cart-item__price">{item.price * item.quantity}k</p>
                   <button
@@ -40,7 +57,7 @@ function Cart({ cart, removeFromCart, onClose, onCheckout }) {
                     className="cart-item__remove"
                     onClick={() => removeFromCart(item.id)}
                   >
-                    Xóa
+                    {removeLabel}
                   </button>
                 </li>
               ))}
@@ -50,7 +67,7 @@ function Cart({ cart, removeFromCart, onClose, onCheckout }) {
 
         <footer className="cart-footer">
           <div className="cart-total">
-            <span>Tạm tính</span>
+            <span>{subtotalLabel}</span>
             <strong>{total}k</strong>
           </div>
           <div className="cart-actions">
@@ -59,7 +76,7 @@ function Cart({ cart, removeFromCart, onClose, onCheckout }) {
               className="cart-continue"
               onClick={onClose}
             >
-              Mua thêm món
+              {continueLabel}
             </button>
             <button
               type="button"
@@ -67,7 +84,7 @@ function Cart({ cart, removeFromCart, onClose, onCheckout }) {
               onClick={onCheckout}
               disabled={cart.length === 0}
             >
-              Đi đến thanh toán
+              {checkoutLabel}
             </button>
           </div>
         </footer>

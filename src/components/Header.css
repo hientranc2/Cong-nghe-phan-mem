@@ -110,6 +110,45 @@
   gap: 16px;
 }
 
+.language-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+}
+
+.language-option {
+  border: none;
+  padding: 6px;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.language-option img {
+  width: 24px;
+  height: 16px;
+  object-fit: cover;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+
+.language-option.active {
+  background: #fff;
+  transform: translateY(-1px);
+}
+
+.language-option.active img {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.24);
+}
+
 .location-btn,
 .login-btn,
 .menu-toggle {
