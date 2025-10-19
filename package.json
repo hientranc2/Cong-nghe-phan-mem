@@ -17,5 +17,10 @@
   },
   "engines": {
     "node": ">=18.18"
+  },
+  "dependencies": {
+    "expo-status-bar": "~1.12.1",
+    "react-native": "0.74.5",
+    "react-native-svg": "15.2.0"
   }
 }
