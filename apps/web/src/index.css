@@ -1,0 +1,17 @@
+/* index.css - chỉ reset cơ bản, giữ nguyên chủ đề thương hiệu */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  background: var(--background, #fdf4ef);
+  color: var(--text, #1f1f1f);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}

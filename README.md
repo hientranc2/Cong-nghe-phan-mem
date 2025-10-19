@@ -1,49 +1,56 @@
-# React + Vite
+# Công Nghệ Phần Mềm – Monorepo
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Monorepo này chứa cả ứng dụng web (React + Vite) và ứng dụng di động (React Native với Expo) sử dụng chung bộ nhận diện thương hiệu của FCO.
 
-Currently, two official plugins are available:
+## Cấu trúc thư mục
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-
-## Resolving merge conflicts in this project
-
-When Git reports conflicts in files such as `src/App.jsx` or `src/pages/HomePage.jsx`, follow these steps to get back to a clean working tree:
-
-1. **Update your local branch**
-   ```bash
-   git fetch origin
-   git checkout your-feature-branch
-   git merge origin/main
-   ```
-   Git will pause the merge if conflicting edits exist.
-
-2. **Open each conflicted file** and look for markers like `<<<<<<<`, `=======`, and `>>>>>>>`. Decide which parts from each side you want to keep and edit the file until the markers disappear. Use the latest version of the bilingual components from this branch as the source of truth when unsure.
-
-3. **Mark the conflicts as resolved** once the files look correct.
-   ```bash
-   git add src/App.jsx src/components/Header.jsx src/data/menuData.js src/pages/CategoryPage.jsx src/pages/HomePage.jsx
-   ```
-
-4. **Complete the merge** by committing the resolution.
-   ```bash
-   git commit
-   ```
-
-5. **Verify the app still builds** before pushing.
-   ```bash
-   npm install
-   npm run build
-   ```
-
-If you prefer to discard your local changes and take the version from this branch, you can replace a conflicted file with the current one using:
-```bash
-git checkout --theirs path/to/file
 ```
-and then run `git add` on it. Repeat for every file you want to overwrite. After resolving all files, run `git status` to ensure no conflicts remain, then create the merge commit.
+apps/
+  mobile/   # Ứng dụng React Native dùng Expo
+  web/      # Ứng dụng web React + Vite
+packages/
+  theme/    # Gói chia sẻ bảng màu, khoảng cách, typography
+```
 
+## Bắt đầu
+
+> **Yêu cầu:** Node.js >= 18.18 và npm >= 8 (hỗ trợ npm workspaces).
+
+Cài đặt toàn bộ dependencies cho cả monorepo:
+
+```bash
+npm install
+```
+
+> Nếu gặp lỗi khi cài đặt Expo do giới hạn mạng nội bộ, hãy thử lại trên môi trường có quyền truy cập npm đầy đủ.
+
+## Các lệnh hữu ích
+
+### Web (React + Vite)
+
+```bash
+npm run dev:web      # chạy dev server với HMR
+npm run build:web    # build production
+npm run preview:web  # chạy bản build đã tạo
+npm run lint:web     # kiểm tra lint theo cấu hình ESLint
+```
+
+### Mobile (React Native + Expo)
+
+```bash
+npm run start:mobile   # khởi động Expo Metro bundler
+npm run android:mobile # chạy trên thiết bị/giả lập Android (thông qua Expo)
+npm run ios:mobile     # chạy trên thiết bị/giả lập iOS (thông qua Expo)
+```
+
+Ứng dụng di động và web cùng nhập bảng màu từ `@cong/theme` nên giữ được trải nghiệm thương hiệu thống nhất.
+
+## Chia sẻ chủ đề
+
+Gói `@cong/theme` cung cấp:
+
+- `palette`: Bảng màu chính (`primary`, `primary-dark`, `background`, ...)
+- `spacing` & `radii`: Giá trị dùng chung cho layout
+- `typography`: font mặc định
+
+Ứng dụng web tự động gán các giá trị này thành CSS variables, trong khi ứng dụng mobile sử dụng trực tiếp trong `StyleSheet` của React Native.

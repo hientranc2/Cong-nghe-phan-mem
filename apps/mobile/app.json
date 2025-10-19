@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Cong Nghe Phan Mem",
+    "slug": "cong-nghe-phan-mem-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "congnghephanmem",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFFFF"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
