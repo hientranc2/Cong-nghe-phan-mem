@@ -7,6 +7,7 @@
   z-index: 999;
 }
 
+/* ===== Topbar ===== */
 .fco-topbar {
   display: flex;
   justify-content: space-between;
@@ -35,6 +36,7 @@
   white-space: nowrap;
 }
 
+/* ===== Main bar ===== */
 .fco-mainbar {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -76,6 +78,7 @@
   opacity: 0.85;
 }
 
+/* ===== Nav links ===== */
 .nav-links {
   display: flex;
   justify-content: center;
@@ -107,12 +110,17 @@
   width: 100%;
 }
 
+/* ===== Nav actions (flags + search + login + cart + menu) ===== */
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+  margin-left: auto;         /* đẩy cụm sang phải, tránh đè menu */
+  flex-wrap: nowrap;         /* không cho chồng khi hẹp */
+  white-space: nowrap;
 }
 
+/* ===== Language switch ===== */
 .language-switch {
   display: inline-flex;
   align-items: center;
@@ -121,6 +129,8 @@
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(4px);
+  margin-left: 16px;         /* tách khỏi chữ “Khuyến mãi” */
+  flex-shrink: 0;            /* không bị co khi thiếu không gian */
 }
 
 .language-option {
@@ -152,7 +162,7 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.24);
 }
 
-.location-btn,
+/* ===== Buttons ===== */
 .login-btn,
 .menu-toggle {
   background: rgba(255, 255, 255, 0.2);
@@ -173,6 +183,40 @@
   transform: translateY(-1px);
 }
 
+/* ===== Search ===== */
+.location-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  padding: 6px 12px;         /* gọn hơn */
+  backdrop-filter: blur(4px);
+  max-width: 200px;          /* giới hạn chiều rộng tổng thể */
+  flex-shrink: 0;            /* tránh co quá nhỏ */
+}
+
+.location-search input {
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-weight: 500;
+  outline: none;
+  width: 140px;              /* rút ngắn ô nhập */
+  min-width: unset;
+  font-size: 0.9rem;
+}
+
+.location-search input::placeholder {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.search-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* ===== Cart ===== */
 .cart-btn {
   display: inline-flex;
   align-items: center;
@@ -208,6 +252,7 @@
   font-size: 0.8rem;
 }
 
+/* ===== Menu toggle ===== */
 .menu-toggle {
   display: none;
   font-size: 1.2rem;
@@ -216,6 +261,7 @@
   padding: 0;
 }
 
+/* ===== Responsive ===== */
 @media (max-width: 1080px) {
   .fco-mainbar {
     grid-template-columns: 1fr;
@@ -283,4 +329,10 @@
     width: 100%;
     order: 1;
   }
+}
+
+/* (tuỳ chọn) co ngắn search hơn trên màn vừa */
+@media (max-width: 1024px) {
+  .location-search { max-width: 160px; }
+  .location-search input { width: 120px; }
 }

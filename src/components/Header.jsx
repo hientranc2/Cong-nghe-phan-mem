@@ -53,8 +53,8 @@ function Header({
   const topbarMessage =
     texts?.topbarMessage ?? "FCO giao nhanh trong 15 phút · Freeship đơn từ 199k";
   const topbarActions = texts?.topbarActions ?? [];
-  const locationPrefix = texts?.locationPrefix ?? "📍 Giao đến:";
-  const locationHighlight = texts?.locationHighlight ?? "TP. Hồ Chí Minh";
+  const locationSearchPlaceholder =
+    texts?.locationSearchPlaceholder ?? "Tìm kiếm ...";
   const loginLabel = texts?.loginLabel ?? "👤 Đăng nhập";
   const cartLabel = texts?.cartLabel ?? "Giỏ hàng";
   const cartAriaLabel = texts?.cartAriaLabel ?? "Giỏ hàng";
@@ -137,9 +137,17 @@ function Header({
               </button>
             ))}
           </div>
-          <button className="location-btn" type="button">
-            {locationPrefix} <strong>{locationHighlight}</strong>
-          </button>
+         <label className="location-search" htmlFor="header-location-search">
+            <span className="search-icon" aria-hidden="true">
+              🔍
+            </span>
+            <input
+              id="header-location-search"
+              type="search"
+              placeholder={locationSearchPlaceholder}
+              aria-label={locationSearchPlaceholder}
+            />
+          </label>
           <button className="login-btn" type="button">
             {loginLabel}
           </button>
