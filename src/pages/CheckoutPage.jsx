@@ -88,14 +88,34 @@ function CheckoutPage({
       <ol className="checkout-steps" aria-label="Checkout progress">
         {steps.map((step, index) => {
           const status = index === steps.length - 1 ? "current" : "done";
+          const isFirstStep = index === 0;
+
+          const stepContent = (
+            <>
+              <span className="checkout-step__index">{index + 1}</span>
+              <span className="checkout-step__label">{step}</span>
+            </>
+          );
+
           return (
             <li
               key={step}
-              className={`checkout-step ${status}`}
+              className={`checkout-step ${status} ${
+                isFirstStep ? "clickable" : ""
+              }`}
               aria-current={status === "current" ? "step" : undefined}
             >
-              <span className="checkout-step__index">{index + 1}</span>
-              <span className="checkout-step__label">{step}</span>
+              {isFirstStep ? (
+                <button
+                  type="button"
+                  className="checkout-step__button"
+                  onClick={onContinueShopping}
+                >
+                  {stepContent}
+                </button>
+              ) : (
+                stepContent
+              )}
             </li>
           );
         })}

@@ -20,6 +20,7 @@
 .fco-topbar span {
   font-weight: 600;
   letter-spacing: 0.3px;
+  white-space: nowrap;
 }
 
 .topbar-actions {
@@ -31,6 +32,7 @@
   color: #fff;
   text-decoration: none;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .fco-mainbar {
@@ -66,12 +68,14 @@
   margin: 0;
   font-size: 1.65rem;
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 .brand-text p {
   margin: 4px 0 0;
   font-size: 0.95rem;
   opacity: 0.85;
+  white-space: nowrap;
 }
 
 .nav-links {
@@ -87,6 +91,7 @@
   text-decoration: none;
   padding-bottom: 4px;
   position: relative;
+  white-space: nowrap;
 }
 
 .nav-links a::after {
@@ -160,6 +165,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.2s ease;
+  white-space: nowrap;
 }
 
 .location-btn:hover,
@@ -183,6 +189,7 @@
   transition: transform 0.2s ease;
   border: none;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .cart-btn:hover {

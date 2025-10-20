@@ -106,7 +106,7 @@ export const contentByLanguage = {
     menuLabels: {
       caloriesUnit: "kcal",
       prepTimeSuffix: "phút chế biến",
-      addToCart: "Thêm vào giỏ",
+      addToCart: "Thêm vào giỏ hàng",
     },
     categoryPage: {
       breadcrumbHome: "Trang chủ",

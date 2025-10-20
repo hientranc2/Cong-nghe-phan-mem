@@ -1,7 +1,7 @@
 function Menu({ items = [], addToCart, labels = {} }) {
   const caloriesUnit = labels.caloriesUnit ?? "kcal";
   const prepTimeSuffix = labels.prepTimeSuffix ?? "phút chế biến";
-  const addToCartLabel = labels.addToCart ?? "Thêm vào giỏ";
+  const addToCartLabel = labels.addToCart ?? "Thêm vào giỏ hàng";
 
   return (
     <div className="menu-grid">
