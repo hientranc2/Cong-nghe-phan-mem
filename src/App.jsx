@@ -6,6 +6,7 @@ import Cart from "./components/Cart";
 import HomePage from "./pages/HomePage";
 import CategoryPage from "./pages/CategoryPage";
 import CheckoutPage from "./pages/CheckoutPage";
+import ProductDetailPage from "./pages/ProductDetailPage";
 import { categories as categoryData, menuItems } from "./data/menuData";
 import { contentByLanguage } from "./i18n/translations";
 
@@ -28,6 +29,12 @@ const parseViewFromHash = () => {
 
   if (match && match[1]) {
     return { type: "category", slug: match[1] };
+  }
+
+  const productMatch = hash.match(/^\/product\/([\w-]+)/);
+
+  if (productMatch && productMatch[1]) {
+    return { type: "product", id: productMatch[1] };
   }
 
   return { type: "home" };
@@ -59,7 +66,7 @@ const translateCategories = (categories, language) =>
 
 const translateMenuItems = (items, language) =>
   items.map((item) => {
-const translation =
+    const translation =
       item.translations?.[language] ?? item.translations?.vi ?? {};
     return {
       ...item,
@@ -245,14 +252,57 @@ function App() {
     );
   }, [activeCategory, translatedMenuItems]);
 
+  const activeProduct = useMemo(() => {
+    if (view.type !== "product") {
+      return null;
+    }
+
+    return (
+      translatedMenuItems.find((item) => item.id === view.id) ?? null
+    );
+  }, [view, translatedMenuItems]);
+
+  const activeProductCategory = useMemo(() => {
+    if (!activeProduct) {
+      return null;
+    }
+
+    return (
+      translatedCategories.find(
+        (category) => category.id === activeProduct.categoryId
+      ) ?? null
+    );
+  }, [activeProduct, translatedCategories]);
+
   useEffect(() => {
-    if (view.type === "category" || view.type === "checkout") {
+    if (
+      view.type === "category" ||
+      view.type === "checkout" ||
+      view.type === "product"
+    ) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [view]);
 
+  useEffect(() => {
+    if (view.type === "product" && !activeProduct) {
+      redirectToHome();
+    }
+  }, [view, activeProduct, redirectToHome]);
+
   const handlePlaceOrder = () => {
     setCart([]);
+  };
+
+  const handleViewProduct = (item) => {
+    if (!item?.id) {
+      return;
+    }
+
+    pendingSectionRef.current = null;
+    if (typeof window !== "undefined") {
+      window.location.hash = `/product/${item.id}`;
+    }
   };
 
   return (
@@ -280,6 +330,16 @@ function App() {
           onContinueShopping={handleNavigateHome}
           onPlaceOrder={handlePlaceOrder}
         />
+      ) : view.type === "product" && activeProduct ? (
+        <ProductDetailPage
+          item={activeProduct}
+          category={activeProductCategory}
+          addToCart={addToCart}
+          onNavigateHome={handleNavigateHome}
+          onNavigateCategory={handleSelectCategory}
+          texts={content.productDetail}
+          menuLabels={content.menuLabels}
+        />
       ) : view.type === "category" && activeCategory ? (
         <CategoryPage
           category={activeCategory}
@@ -289,6 +349,7 @@ function App() {
           onNavigateMenu={() => handleNavigateSection("menu")}
           texts={content.categoryPage}
           menuLabels={content.menuLabels}
+          onViewProduct={handleViewProduct}
         />
       ) : (
         <HomePage
@@ -300,6 +361,7 @@ function App() {
           promotions={promotions}
           addToCart={addToCart}
           onSelectCategory={handleSelectCategory}
+          onViewProduct={handleViewProduct}
           texts={content.home}
           menuLabels={content.menuLabels}
         />

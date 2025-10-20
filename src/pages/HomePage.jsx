@@ -2,17 +2,18 @@ import Menu from "../components/Menu";
 
 function HomePage({
   heroBackground,
-   stats = [],
+  stats = [],
   categories = [],
   bestSellers = [],
   combos = [],
   promotions = [],
   addToCart,
   onSelectCategory = () => {},
-   texts = {},
+  onViewProduct = () => {},
+  texts = {},
   menuLabels = {},
 }) {
-   const heroHighlights = texts.heroHighlights ?? [
+  const heroHighlights = texts.heroHighlights ?? [
     "⚡ Miễn phí giao nhanh nội thành",
     "💳 Thanh toán online & COD",
   ];
@@ -82,7 +83,7 @@ function HomePage({
 
       <section className="category" id="menu">
         <div className="section-heading">
-         <h2>{categoryHeading}</h2>
+          <h2>{categoryHeading}</h2>
           <p>{categoryDescription}</p>
         </div>
         <div className="category-grid">
@@ -110,12 +111,17 @@ function HomePage({
           <h2>{bestSellerHeading}</h2>
           <p>{bestSellerDescription}</p>
         </div>
-        <Menu items={bestSellers} addToCart={addToCart} labels={menuLabels} />
+        <Menu
+          items={bestSellers}
+          addToCart={addToCart}
+          labels={menuLabels}
+          onViewItem={onViewProduct}
+        />
       </section>
 
       <section className="combo" id="combo">
         <div className="section-heading">
-           <h2>{comboHeading}</h2>
+          <h2>{comboHeading}</h2>
           <p>{comboDescription}</p>
         </div>
         <div className="combo-grid">
@@ -135,7 +141,7 @@ function HomePage({
 
       <section className="promotion" id="promo">
         <div className="section-heading">
-           <h2>{promotionHeading}</h2>
+          <h2>{promotionHeading}</h2>
           <p>{promotionDescription}</p>
         </div>
         <div className="promotion-grid">
@@ -151,7 +157,7 @@ function HomePage({
 
       <section className="about" id="about">
         <div className="about-content">
-           <h2>{aboutHeading}</h2>
+          <h2>{aboutHeading}</h2>
           <p>{aboutDescription}</p>
           <ul>
            {aboutList.map((item) => (
