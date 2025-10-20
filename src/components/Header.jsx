@@ -8,7 +8,6 @@ const DEFAULT_NAV_LINKS = [
   { id: "best-seller", label: "Bán chạy" },
   { id: "combo", label: "Combo ưu đãi" },
   { id: "promo", label: "Khuyến mãi" },
-  { id: "about", label: "Về FCO" },
 ];
 
 const LANGUAGE_ICONS = {
