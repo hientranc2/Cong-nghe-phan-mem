@@ -21,7 +21,11 @@ function Menu({ items = [], addToCart, labels = {} }) {
               <span className="menu-card__info">
                 🔥 {item.calories} {caloriesUnit} · ⏱ {item.time} {prepTimeSuffix}
               </span>
-              <button type="button" onClick={() => addToCart(item)}>
+              <button
+                type="button"
+                className="menu-card__button"
+                onClick={() => addToCart(item)}
+              >
                 {addToCartLabel}
               </button>
             </div>
