@@ -786,6 +786,175 @@ main {
   color: #fff;
 }
 
+.process {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.process-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.process-card {
+  position: relative;
+  background: var(--surface);
+  border-radius: 28px;
+  padding: 32px 28px 28px;
+  box-shadow: 0 24px 50px rgba(31, 31, 31, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.process-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
+  background: rgba(255, 90, 31, 0.12);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.process-index {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  font-weight: 700;
+  color: rgba(31, 31, 31, 0.2);
+  font-size: 1.25rem;
+}
+
+.process-card h3 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.process-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.testimonial {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.testimonial-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+}
+
+.testimonial-card {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 26px;
+  padding: 28px;
+  box-shadow: 0 20px 45px rgba(31, 31, 31, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.testimonial-card blockquote {
+  margin: 0;
+  font-size: 1.05rem;
+  color: #1f1f1f;
+  line-height: 1.6;
+}
+
+.testimonial-card figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--muted);
+}
+
+.testimonial-card figcaption strong {
+  color: var(--text);
+}
+
+.app-download {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 36px;
+  align-items: center;
+}
+
+.app-download-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.app-download-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.app-download-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--muted);
+}
+
+.app-download-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-download-list li::before {
+  content: "✔";
+  color: var(--primary);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+}
+
+.app-download-visual {
+  position: relative;
+}
+
+.app-download-visual img {
+  width: 100%;
+  border-radius: 32px;
+  box-shadow: 0 30px 60px rgba(31, 31, 31, 0.2);
+}
+
+.app-download-badge {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 16px 22px;
+  box-shadow: 0 20px 45px rgba(255, 90, 31, 0.2);
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.app-download-badge strong {
+  font-size: 1.3rem;
+  color: var(--primary);
+}
+
 .promotion-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));

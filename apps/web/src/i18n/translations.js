@@ -10,7 +10,9 @@ export const contentByLanguage = {
         { id: "menu", label: "Danh mục món" },
         { id: "best-seller", label: "Bán chạy" },
         { id: "combo", label: "Combo ưu đãi" },
+        { id: "process", label: "Quy trình" },
         { id: "promo", label: "Khuyến mãi" },
+        { id: "app", label: "Ứng dụng" },
         { id: "about", label: "Về FCO" },
       ],
       locationPrefix: "📍 Giao đến:",
@@ -47,9 +49,66 @@ export const contentByLanguage = {
       comboDescription:
         "Thiết kế riêng cho từng bữa ăn của bạn: gia đình, hẹn hò hay văn phòng.",
       comboButton: "Đặt combo",
+      processHeading: "3 bước giao món chuẩn chuyên nghiệp",
+      processDescription:
+        "Mỗi đơn hàng được xử lý qua quy trình khép kín từ bếp trung tâm tới đội ngũ giao nhận nội bộ.",
+      processSteps: [
+        {
+          title: "Đặt món trong 1 chạm",
+          description: "Chọn combo hoặc món lẻ, ghi chú khẩu vị và thời gian giao mong muốn.",
+          icon: "🛒",
+        },
+        {
+          title: "Bếp trung tâm chế biến",
+          description: "Đơn hàng chuyển thẳng đến bếp FCO, đầu bếp bắt đầu chế biến và đóng gói giữ nhiệt.",
+          icon: "🍳",
+        },
+        {
+          title: "Tài xế FCO giao tận nơi",
+          description: "Tài xế nội bộ nhận đơn, bạn theo dõi lộ trình realtime và nhận món chỉ sau 15 phút.",
+          icon: "🛵",
+        },
+      ],
       promotionHeading: "Ưu đãi & chương trình thành viên",
       promotionDescription: "Tham gia FCO Rewards để không bỏ lỡ bất kỳ deal nào.",
       promotionCta: "Tìm hiểu thêm →",
+      testimonialHeading: "Khách hàng nói gì về FCO",
+      testimonialDescription:
+        "Từ khách hàng doanh nghiệp đến gia đình, tất cả đều yêu thích trải nghiệm giao món chuẩn nhà hàng.",
+      testimonials: [
+        {
+          quote:
+            "FCO luôn giao đúng giờ ngay cả trong giờ cao điểm. Burger và pizza đến tay vẫn nóng hổi.",
+          name: "Thu Minh",
+          role: "Trưởng phòng Marketing",
+        },
+        {
+          quote:
+            "Đặt combo cho team 20 người chỉ mất vài phút. Đồ ăn được đóng gói khoa học và cực kỳ sạch sẽ.",
+          name: "Anh Tài",
+          role: "Founder Coworking Space",
+        },
+        {
+          quote:
+            "App FCO giúp mình theo dõi tài xế real-time, thanh toán cũng rất linh hoạt.",
+          name: "Bích Ngọc",
+          role: "Food Blogger",
+        },
+      ],
+      appHeading: "Đặt món mọi lúc với ứng dụng FCO",
+      appDescription:
+        "Nhận thông báo khi bếp bắt đầu chế biến, theo dõi tài xế và tích điểm đổi voucher độc quyền.",
+      appPrimaryCta: "Tải ứng dụng FCO",
+      appSecondaryCta: "Đăng ký nhận ưu đãi",
+      appHighlights: [
+        "Gợi ý món theo lịch sử đặt hàng cá nhân",
+        "Theo dõi trạng thái đơn và tài xế realtime",
+        "Thanh toán ví điện tử, thẻ hoặc COD linh hoạt",
+      ],
+      appBadgeValue: "4.8★",
+      appBadgeLabel: "Hơn 12.000 lượt đánh giá",
+      appScreenshot:
+        "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=750&q=80",
       aboutHeading: "FCO - FoodFast Delivery chuẩn chuyên nghiệp",
       aboutDescription:
         "Thành lập từ 2015, FCO mang tới trải nghiệm ẩm thực nhanh chóng nhưng vẫn giữ nguyên sự chỉn chu của một nhà hàng chuyên nghiệp. Hệ thống bếp trung tâm và đội ngũ giao nhận nội bộ giúp chúng tôi kiểm soát chất lượng từng đơn hàng.",
@@ -215,7 +274,9 @@ export const contentByLanguage = {
         { id: "menu", label: "Menu" },
         { id: "best-seller", label: "Best sellers" },
         { id: "combo", label: "Value combos" },
+        { id: "process", label: "How it works" },
         { id: "promo", label: "Promotions" },
+        { id: "app", label: "App" },
         { id: "about", label: "About FCO" },
       ],
       locationPrefix: "📍 Deliver to:",
@@ -252,9 +313,66 @@ export const contentByLanguage = {
       comboDescription:
         "Curated for every occasion: family feasts, date nights or office lunches.",
       comboButton: "Order combo",
+      processHeading: "3 steps to lightning-fast delivery",
+      processDescription:
+        "Every order moves seamlessly from the central kitchen to our in-house couriers for maximum control.",
+      processSteps: [
+        {
+          title: "Build your meal in seconds",
+          description: "Choose à la carte dishes or curated combos, add notes and delivery timing.",
+          icon: "🛒",
+        },
+        {
+          title: "Chefs fire up the kitchen",
+          description: "Orders land instantly in FCO kitchens where chefs cook and seal meals for heat retention.",
+          icon: "👩‍🍳",
+        },
+        {
+          title: "In-house couriers deliver",
+          description: "Our riders pick up the order, you track the route in real time and receive it within 15 minutes.",
+          icon: "🛵",
+        },
+      ],
       promotionHeading: "Rewards & promotions",
       promotionDescription: "Join FCO Rewards to unlock every deal.",
       promotionCta: "Learn more →",
+      testimonialHeading: "Why customers love FCO",
+      testimonialDescription:
+        "Thousands of five-star reviews from busy offices, families and food lovers across the city.",
+      testimonials: [
+        {
+          quote:
+            "Lunch for the entire marketing team arrives on time and still piping hot every single time.",
+          name: "Linh Tran",
+          role: "Marketing Director",
+        },
+        {
+          quote:
+            "Our co-working members adore the value combos. Packaging is neat and easy to share around.",
+          name: "David Nguyen",
+          role: "Coworking Founder",
+        },
+        {
+          quote:
+            "The FCO app lets me track the rider live while I finish meetings—super convenient.",
+          name: "Quinn Le",
+          role: "Food Content Creator",
+        },
+      ],
+      appHeading: "Order anywhere with the FCO app",
+      appDescription:
+        "Get notified when cooking starts, track your courier live and collect reward points for exclusive vouchers.",
+      appPrimaryCta: "Download FCO App",
+      appSecondaryCta: "Subscribe for offers",
+      appHighlights: [
+        "Personalized menu recommendations",
+        "Real-time courier and order tracking",
+        "Flexible payments via wallets, cards or COD",
+      ],
+      appBadgeValue: "4.8★",
+      appBadgeLabel: "12K+ ratings worldwide",
+      appScreenshot:
+        "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=750&q=80",
       aboutHeading: "FCO - Professional food delivery",
       aboutDescription:
         "Founded in 2015, FCO brings restaurant-grade experiences with the speed of delivery. Central kitchens and in-house couriers let us control quality in every order.",

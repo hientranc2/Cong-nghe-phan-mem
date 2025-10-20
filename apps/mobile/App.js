@@ -64,6 +64,51 @@ const highlights = [
   },
 ];
 
+const workflow = [
+  {
+    icon: '🛒',
+    title: 'Chọn món & ghi chú',
+    description: 'Tùy chỉnh khẩu vị, thêm combo và ghi chú ngay trong ứng dụng.',
+  },
+  {
+    icon: '🍳',
+    title: 'Bếp trung tâm chế biến',
+    description: 'Đầu bếp FCO bắt đầu chế biến, đóng gói giữ nhiệt trong 2 phút.',
+  },
+  {
+    icon: '🛵',
+    title: 'Giao nhanh 15 phút',
+    description: 'Tài xế nội bộ nhận đơn, bạn theo dõi lộ trình real-time.',
+  },
+];
+
+const testimonials = [
+  {
+    quote: 'Đơn 20 suất trưa nào cũng tới đúng giờ, đồ ăn nóng và đóng gói gọn gàng.',
+    name: 'Trâm Anh',
+    role: 'Quản lý văn phòng',
+  },
+  {
+    quote: 'Combo gia đình vừa miệng, con nhỏ nhà mình mê tít burger Blaze.',
+    name: 'Quốc Bảo',
+    role: 'Khách hàng thân thiết',
+  },
+  {
+    quote: 'App dễ dùng, theo dõi tài xế realtime nên mình luôn chủ động thời gian.',
+    name: 'Khánh Linh',
+    role: 'Food Blogger',
+  },
+];
+
+const appPerks = [
+  'Thông báo khi bếp bắt đầu chế biến',
+  'Theo dõi tài xế & thời gian giao realtime',
+  'Tích điểm đổi voucher ưu đãi',
+];
+
+const appMockup =
+  'https://images.unsplash.com/photo-1556740749-887f6717d7e4?auto=format&fit=crop&w=700&q=80';
+
 export default function App() {
   return (
     <SafeAreaProvider>
@@ -141,6 +186,75 @@ export default function App() {
                 </View>
               ))}
             </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionEyebrow}>quy trình chuẩn</Text>
+            <Text style={styles.sectionTitle}>3 bước giao món thần tốc</Text>
+            <Text style={styles.sectionDescription}>
+              Quy trình khép kín từ khâu đặt món đến giao hàng giúp bữa ăn của bạn luôn nóng hổi.
+            </Text>
+
+            <View style={styles.workflowList}>
+              {workflow.map((step) => (
+                <View key={step.title} style={styles.workflowCard}>
+                  <Text style={styles.workflowIcon}>{step.icon}</Text>
+                  <Text style={styles.workflowTitle}>{step.title}</Text>
+                  <Text style={styles.workflowDescription}>{step.description}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View style={[styles.section, styles.testimonialSection]}>
+            <Text style={styles.sectionEyebrow}>khách hàng nói gì</Text>
+            <Text style={styles.sectionTitle}>Trải nghiệm được tin tưởng</Text>
+            <View style={styles.testimonialList}>
+              {testimonials.map((item) => (
+                <View key={item.name} style={styles.testimonialCard}>
+                  <Text style={styles.testimonialQuote}>“{item.quote}”</Text>
+                  <Text style={styles.testimonialName}>{item.name}</Text>
+                  <Text style={styles.testimonialRole}>{item.role}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          <View style={[styles.section, styles.appSection]}>
+            <Text style={styles.sectionEyebrow}>ứng dụng fco</Text>
+            <Text style={styles.sectionTitle}>Đặt món mọi lúc mọi nơi</Text>
+            <Text style={styles.sectionDescription}>
+              Tải ứng dụng FCO để nhận ưu đãi độc quyền, theo dõi tài xế realtime và thanh toán tiện lợi.
+            </Text>
+
+            <View style={styles.appActions}>
+              <Pressable style={[styles.button, styles.appPrimaryButton]}>
+                <Text style={styles.appPrimaryButtonText}>Tải ứng dụng</Text>
+              </Pressable>
+              <Pressable style={[styles.button, styles.appSecondaryButton]}>
+                <Text style={styles.appSecondaryButtonText}>Nhận ưu đãi</Text>
+              </Pressable>
+            </View>
+
+            <View style={styles.appPerks}>
+              {appPerks.map((perk) => (
+                <View key={perk} style={styles.appPerkItem}>
+                  <Text style={styles.appPerkBullet}>•</Text>
+                  <Text style={styles.appPerkText}>{perk}</Text>
+                </View>
+              ))}
+            </View>
+
+            <ImageBackground
+              source={{ uri: appMockup }}
+              style={styles.appMockup}
+              imageStyle={styles.appMockupImage}
+            >
+              <View style={styles.appMockupBadge}>
+                <Text style={styles.appBadgeValue}>4.8★</Text>
+                <Text style={styles.appBadgeLabel}>12K+ đánh giá</Text>
+              </View>
+            </ImageBackground>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -338,5 +452,137 @@ const styles = StyleSheet.create({
   menuDescription: {
     color: palette.muted,
     lineHeight: 21,
+  },
+  workflowList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+  },
+  workflowCard: {
+    flexBasis: '48%',
+    backgroundColor: palette.surface,
+    borderRadius: 20,
+    padding: 16,
+    gap: 8,
+    shadowColor: palette.primary,
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 4,
+  },
+  workflowIcon: {
+    fontSize: 22,
+  },
+  workflowTitle: {
+    fontWeight: '700',
+    color: palette.text,
+  },
+  workflowDescription: {
+    color: palette.muted,
+    lineHeight: 20,
+  },
+  testimonialSection: {
+    gap: 20,
+  },
+  testimonialList: {
+    gap: 16,
+  },
+  testimonialCard: {
+    backgroundColor: palette.surface,
+    borderRadius: 22,
+    padding: 18,
+    gap: 8,
+    shadowColor: palette.primary,
+    shadowOpacity: 0.1,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 4,
+  },
+  testimonialQuote: {
+    fontStyle: 'italic',
+    color: palette.text,
+    lineHeight: 20,
+  },
+  testimonialName: {
+    fontWeight: '700',
+    color: palette.text,
+  },
+  testimonialRole: {
+    color: palette.muted,
+    fontSize: 12,
+  },
+  appSection: {
+    gap: 20,
+  },
+  appActions: {
+    flexDirection: 'row',
+    gap: 12,
+    flexWrap: 'wrap',
+  },
+  appPrimaryButton: {
+    backgroundColor: palette.primary,
+  },
+  appPrimaryButtonText: {
+    color: '#fff',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  appSecondaryButton: {
+    borderWidth: 1,
+    borderColor: palette.primary,
+    backgroundColor: palette.surface,
+  },
+  appSecondaryButtonText: {
+    color: palette.primary,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  appPerks: {
+    gap: 8,
+  },
+  appPerkItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  appPerkBullet: {
+    color: palette.primary,
+    fontSize: 20,
+    lineHeight: 20,
+  },
+  appPerkText: {
+    color: palette.muted,
+    flex: 1,
+    lineHeight: 20,
+  },
+  appMockup: {
+    marginTop: 8,
+    borderRadius: 24,
+    overflow: 'hidden',
+    minHeight: 220,
+    justifyContent: 'flex-end',
+  },
+  appMockupImage: {
+    borderRadius: 24,
+  },
+  appMockupBadge: {
+    backgroundColor: 'rgba(31,31,31,0.8)',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    margin: 18,
+    borderRadius: 18,
+    alignSelf: 'flex-start',
+    gap: 4,
+  },
+  appBadgeValue: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  appBadgeLabel: {
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 12,
   },
 });
