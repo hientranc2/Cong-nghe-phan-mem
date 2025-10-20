@@ -418,4 +418,309 @@ export const menuItems = [
       },
     },
   },
+  {
+    id: "fco-burger-korean",
+    categoryId: "cat-burger",
+    name: "Burger Bulgogi Seoul",
+    description: "Burger bò ướp bulgogi, kimchi caramel và sốt mayo gochujang.",
+    price: 78,
+    img: "https://images.unsplash.com/photo-1553979459-d2229ba7433b?auto=format&fit=crop&w=800&q=80",
+    calories: 560,
+    time: 13,
+    tag: "Fusion",
+    isBestSeller: false,
+    translations: {
+      vi: {
+        name: "Burger Bulgogi Seoul",
+        description:
+          "Burger bò ướp bulgogi, kimchi caramel và sốt mayo gochujang.",
+        tag: "Fusion",
+      },
+      en: {
+        name: "Seoul Bulgogi Burger",
+        description:
+          "Beef patty marinated in bulgogi glaze with caramelized kimchi and gochujang mayo.",
+        tag: "Fusion",
+      },
+    },
+  },
+  {
+    id: "fco-burger-blue",
+    categoryId: "cat-burger",
+    name: "Burger Phô Mai Xanh",
+    description: "Burger bò Úc phủ phô mai xanh, hành tím ngâm và sốt mật ong cay.",
+    price: 88,
+    img: "https://images.unsplash.com/photo-1526139495367-6105411b8a51?auto=format&fit=crop&w=800&q=80",
+    calories: 600,
+    time: 12,
+    tag: "Gourmet",
+    isBestSeller: false,
+    translations: {
+      vi: {
+        name: "Burger Phô Mai Xanh",
+        description:
+          "Burger bò Úc phủ phô mai xanh, hành tím ngâm và sốt mật ong cay.",
+        tag: "Gourmet",
+      },
+      en: {
+        name: "Blue Cheese Gourmet Burger",
+        description:
+          "Australian beef burger topped with blue cheese, pickled shallots and spicy honey glaze.",
+        tag: "Gourmet",
+      },
+    },
+  },
+  {
+    id: "fco-burger-double",
+    categoryId: "cat-burger",
+    name: "Double Cheese Smash",
+    description: "Hai lớp bò smash, phô mai cheddar đôi và sốt tỏi nướng.",
+    price: 89,
+    img: "https://images.unsplash.com/photo-1612874472184-02475d82c7b7?auto=format&fit=crop&w=800&q=80",
+    calories: 720,
+    time: 15,
+    tag: "Double",
+    isBestSeller: true,
+    translations: {
+      vi: {
+        name: "Double Cheese Smash",
+        description:
+          "Hai lớp bò smash, phô mai cheddar đôi và sốt tỏi nướng.",
+        tag: "Double",
+      },
+      en: {
+        name: "Double Cheese Smash",
+        description:
+          "Two smash beef patties, double cheddar slices and roasted garlic sauce.",
+        tag: "Double",
+      },
+    },
+  },
+  {
+    id: "fco-pizza-bbq",
+    categoryId: "cat-pizza",
+    name: "Pizza BBQ Khói",
+    description: "Sườn heo xé, sốt BBQ khói và hành tây caramel trên đế mỏng.",
+    price: 128,
+    img: "https://images.unsplash.com/photo-1528137871618-79d2761e3fd5?auto=format&fit=crop&w=800&q=80",
+    calories: 680,
+    time: 17,
+    tag: "Smoky",
+    isBestSeller: false,
+    translations: {
+      vi: {
+        name: "Pizza BBQ Khói",
+        description:
+          "Sườn heo xé, sốt BBQ khói và hành tây caramel trên đế mỏng.",
+        tag: "Smoky",
+      },
+      en: {
+        name: "Smoked BBQ Pizza",
+        description:
+          "Shredded pork ribs, smoky BBQ sauce and caramelized onions on a thin crust.",
+        tag: "Smoky",
+      },
+    },
+  },
+  {
+    id: "fco-pizza-carbonara",
+    categoryId: "cat-pizza",
+    name: "Pizza Carbonara",
+    description: "Thịt xông khói, trứng lòng đào và phô mai pecorino béo ngậy.",
+    price: 132,
+    img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80",
+    calories: 720,
+    time: 16,
+    tag: "Creamy",
+    isBestSeller: false,
+    translations: {
+      vi: {
+        name: "Pizza Carbonara",
+        description:
+          "Thịt xông khói, trứng lòng đào và phô mai pecorino béo ngậy.",
+        tag: "Creamy",
+      },
+      en: {
+        name: "Carbonara Pizza",
+        description:
+          "Bacon, soft-set egg and pecorino cheese over a silky cream base.",
+        tag: "Creamy",
+      },
+    },
+  },
+  {
+    id: "fco-pizza-truffle",
+    categoryId: "cat-pizza",
+    name: "Pizza Truffle Rừng",
+    description: "Nấm rừng, dầu truffle đen và ricotta tươi.",
+    price: 145,
+    img: "https://images.unsplash.com/photo-1541746972996-4e0b0f43e02a?auto=format&fit=crop&w=800&q=80",
+    calories: 650,
+    time: 18,
+    tag: "Chef's pick",
+    isBestSeller: true,
+    translations: {
+      vi: {
+        name: "Pizza Truffle Rừng",
+        description: "Nấm rừng, dầu truffle đen và ricotta tươi.",
+        tag: "Chef's pick",
+      },
+      en: {
+        name: "Forest Truffle Pizza",
+        description: "Wild mushrooms, black truffle oil and fresh ricotta.",
+        tag: "Chef's pick",
+      },
+    },
+  },
+  {
+    id: "fco-snack-parmesan",
+    categoryId: "cat-fried",
+    name: "Khoai Xoắn Parmesan",
+    description: "Khoai tây xoắn chiên bơ tỏi, rắc parmesan và rau thơm.",
+    price: 59,
+    img: "https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?auto=format&fit=crop&w=800&q=80",
+    calories: 430,
+    time: 7,
+    tag: "Snack",
+    isBestSeller: false,
+    translations: {
+      vi: {
+        name: "Khoai Xoắn Parmesan",
+        description: "Khoai tây xoắn chiên bơ tỏi, rắc parmesan và rau thơm.",
+        tag: "Snack",
+      },
+      en: {
+        name: "Parmesan Twist Fries",
+        description:
+          "Spiral fries tossed in garlic butter, parmesan and herbs.",
+        tag: "Snack",
+      },
+    },
+  },
+  {
+    id: "fco-snack-popcorn",
+    categoryId: "cat-fried",
+    name: "Gà Viên Popcorn",
+    description: "Gà popcorn chiên giòn, áo sốt mayo mật ong và tiêu hồng.",
+    price: 68,
+    img: "https://images.unsplash.com/photo-1588166746301-cc3f5c38de4b?auto=format&fit=crop&w=800&q=80",
+    calories: 480,
+    time: 8,
+    tag: "Kid's pick",
+    isBestSeller: false,
+    translations: {
+      vi: {
+        name: "Gà Viên Popcorn",
+        description:
+          "Gà popcorn chiên giòn, áo sốt mayo mật ong và tiêu hồng.",
+        tag: "Kid's pick",
+      },
+      en: {
+        name: "Honey Pepper Popcorn Chicken",
+        description:
+          "Crispy popcorn chicken glazed with honey mayo and pink peppercorns.",
+        tag: "Kid's pick",
+      },
+    },
+  },
+  {
+    id: "fco-snack-tempura",
+    categoryId: "cat-fried",
+    name: "Tôm Tempura Sốt Ponzu",
+    description: "Tôm chiên tempura, sốt ponzu cam và mè rang.",
+    price: 92,
+    img: "https://images.unsplash.com/photo-1548943487-a2e4e43b4853?auto=format&fit=crop&w=800&q=80",
+    calories: 510,
+    time: 9,
+    tag: "Premium",
+    isBestSeller: true,
+    translations: {
+      vi: {
+        name: "Tôm Tempura Sốt Ponzu",
+        description: "Tôm chiên tempura, sốt ponzu cam và mè rang.",
+        tag: "Premium",
+      },
+      en: {
+        name: "Ponzu Tempura Shrimp",
+        description:
+          "Crispy tempura shrimp with citrus ponzu sauce and toasted sesame.",
+        tag: "Premium",
+      },
+    },
+  },
+  {
+    id: "fco-drink-peachtea",
+    categoryId: "cat-drink",
+    name: "Trà Đào Cam Sả",
+    description: "Trà đen ủ lạnh, đào vàng, cam tươi và sả thơm.",
+    price: 42,
+    img: "https://images.unsplash.com/photo-1527169402691-feff5539e52c?auto=format&fit=crop&w=800&q=80",
+    calories: 120,
+    time: 4,
+    tag: "Best seller",
+    isBestSeller: true,
+    translations: {
+      vi: {
+        name: "Trà Đào Cam Sả",
+        description: "Trà đen ủ lạnh, đào vàng, cam tươi và sả thơm.",
+        tag: "Best seller",
+      },
+      en: {
+        name: "Peach Citrus Tea",
+        description:
+          "Cold-brewed black tea with golden peach, fresh orange and lemongrass.",
+        tag: "Best seller",
+      },
+    },
+  },
+  {
+    id: "fco-drink-matcha",
+    categoryId: "cat-drink",
+    name: "Matcha Dừa Kem Sữa",
+    description: "Matcha Nhật, sữa dừa và lớp kem cheese mặn ngọt.",
+    price: 55,
+    img: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=800&q=80",
+    calories: 240,
+    time: 5,
+    tag: "Creamy",
+    isBestSeller: false,
+    translations: {
+      vi: {
+        name: "Matcha Dừa Kem Sữa",
+        description: "Matcha Nhật, sữa dừa và lớp kem cheese mặn ngọt.",
+        tag: "Creamy",
+      },
+      en: {
+        name: "Creamy Coconut Matcha",
+        description:
+          "Japanese matcha with coconut milk topped with salted cheese foam.",
+        tag: "Creamy",
+      },
+    },
+  },
+  {
+    id: "fco-drink-tonic",
+    categoryId: "cat-drink",
+    name: "Espresso Tonic Citrus",
+    description: "Espresso rang đậm, tonic và syrup quýt tươi.",
+    price: 62,
+    img: "https://images.unsplash.com/photo-1587731359975-81f1e87d21b4?auto=format&fit=crop&w=800&q=80",
+    calories: 95,
+    time: 3,
+    tag: "Signature",
+    isBestSeller: false,
+    translations: {
+      vi: {
+        name: "Espresso Tonic Citrus",
+        description: "Espresso rang đậm, tonic và syrup quýt tươi.",
+        tag: "Signature",
+      },
+      en: {
+        name: "Citrus Espresso Tonic",
+        description:
+          "Dark roast espresso shaken with tonic water and mandarin syrup.",
+        tag: "Signature",
+      },
+    },
+  },
 ];
