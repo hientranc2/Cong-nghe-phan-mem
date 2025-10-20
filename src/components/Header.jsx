@@ -20,11 +20,13 @@ function Header({
   onCartOpen = () => {},
   onNavigateHome = () => {},
   onNavigateSection = () => {},
-
-   texts = {},
+  texts = {},
   brandTagline = "",
   language = "vi",
   onLanguageChange = () => {},
+  user = null,
+  onLoginClick = () => {},
+  onLogout = () => {},
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -56,10 +58,13 @@ function Header({
   const locationPrefix = texts?.locationPrefix ?? "📍 Giao đến:";
   const locationHighlight = texts?.locationHighlight ?? "TP. Hồ Chí Minh";
   const loginLabel = texts?.loginLabel ?? "👤 Đăng nhập";
+  const logoutLabel = texts?.logoutLabel ?? "Đăng xuất";
   const cartLabel = texts?.cartLabel ?? "Giỏ hàng";
   const cartAriaLabel = texts?.cartAriaLabel ?? "Giỏ hàng";
   const menuToggleLabel = texts?.menuToggleLabel ?? "Mở menu điều hướng";
   const languageAriaLabel = texts?.language?.ariaLabel ?? "Chọn ngôn ngữ";
+  const welcomeTemplate = texts?.welcomeMessage ?? "Xin chào, {name}";
+  const welcomeMessage = welcomeTemplate.replace("{name}", user?.name ?? "");
 
   const handleSectionClick = (event, sectionId) => {
     event.preventDefault();
@@ -140,9 +145,22 @@ function Header({
           <button className="location-btn" type="button">
             {locationPrefix} <strong>{locationHighlight}</strong>
           </button>
-          <button className="login-btn" type="button">
-            {loginLabel}
-          </button>
+          {user ? (
+            <div className="user-info">
+              <span className="user-info__greeting">{welcomeMessage}</span>
+              <button
+                className="logout-btn"
+                type="button"
+                onClick={onLogout}
+              >
+                {logoutLabel}
+              </button>
+            </div>
+          ) : (
+            <button className="login-btn" type="button" onClick={onLoginClick}>
+              {loginLabel}
+            </button>
+          )}
           <button
             className="cart-btn"
             type="button"

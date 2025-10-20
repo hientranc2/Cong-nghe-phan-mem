@@ -1,7 +1,15 @@
-function Menu({ items = [], addToCart, labels = {} }) {
+function Menu({
+  items = [],
+  addToCart,
+  labels = {},
+  canAddToCart = true,
+  onRequireAuth = () => {},
+}) {
   const caloriesUnit = labels.caloriesUnit ?? "kcal";
   const prepTimeSuffix = labels.prepTimeSuffix ?? "phút chế biến";
   const addToCartLabel = labels.addToCart ?? "Thêm vào giỏ hàng";
+  const addToCartDisabledLabel =
+    labels.addToCartDisabled ?? "Đăng nhập để đặt món";
 
   return (
     <div className="menu-grid">
@@ -23,10 +31,17 @@ function Menu({ items = [], addToCart, labels = {} }) {
               </span>
               <button
                 type="button"
-                className="menu-card__button"
-                onClick={() => addToCart(item)}
+                className={`menu-card__button ${
+                  canAddToCart ? "" : "menu-card__button--locked"
+                }`}
+                onClick={() =>
+                  canAddToCart ? addToCart(item) : onRequireAuth(item)
+                }
+                aria-label={
+                  canAddToCart ? addToCartLabel : addToCartDisabledLabel
+                }
               >
-                {addToCartLabel}
+                {canAddToCart ? addToCartLabel : addToCartDisabledLabel}
               </button>
             </div>
           </div>

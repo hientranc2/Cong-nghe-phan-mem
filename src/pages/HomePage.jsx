@@ -2,15 +2,17 @@ import Menu from "../components/Menu";
 
 function HomePage({
   heroBackground,
-   stats = [],
+  stats = [],
   categories = [],
   bestSellers = [],
   combos = [],
   promotions = [],
   addToCart,
   onSelectCategory = () => {},
-   texts = {},
+  texts = {},
   menuLabels = {},
+  canAddToCart = true,
+  onRequireAuth = () => {},
 }) {
    const heroHighlights = texts.heroHighlights ?? [
     "⚡ Miễn phí giao nhanh nội thành",
@@ -110,7 +112,13 @@ function HomePage({
           <h2>{bestSellerHeading}</h2>
           <p>{bestSellerDescription}</p>
         </div>
-        <Menu items={bestSellers} addToCart={addToCart} labels={menuLabels} />
+        <Menu
+          items={bestSellers}
+          addToCart={addToCart}
+          labels={menuLabels}
+          canAddToCart={canAddToCart}
+          onRequireAuth={onRequireAuth}
+        />
       </section>
 
       <section className="combo" id="combo">

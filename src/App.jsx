@@ -3,6 +3,7 @@ import "./App.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Cart from "./components/Cart";
+import AuthModal from "./components/AuthModal";
 import HomePage from "./pages/HomePage";
 import CategoryPage from "./pages/CategoryPage";
 import CheckoutPage from "./pages/CheckoutPage";
@@ -12,6 +13,26 @@ import { contentByLanguage } from "./i18n/translations";
 
 const heroBackground =
   "https://images.unsplash.com/photo-1550317138-10000687a72b?auto=format&fit=crop&w=1600&q=80";
+
+const STORAGE_KEYS = {
+  users: "fcoUsers",
+  currentUser: "fcoCurrentUser",
+};
+
+const readStorage = (key, fallback) => {
+  if (typeof window === "undefined") {
+    return fallback;
+  }
+
+  try {
+    const rawValue = window.localStorage.getItem(key);
+    return rawValue ? JSON.parse(rawValue) : fallback;
+  } catch (error) {
+    return fallback;
+  }
+};
+
+const normalizeEmail = (value = "") => value.trim().toLowerCase();
 
 const parseViewFromHash = () => {
   if (typeof window === "undefined") {
@@ -59,7 +80,7 @@ const translateCategories = (categories, language) =>
 
 const translateMenuItems = (items, language) =>
   items.map((item) => {
-const translation =
+    const translation =
       item.translations?.[language] ?? item.translations?.vi ?? {};
     return {
       ...item,
@@ -73,6 +94,15 @@ function App() {
   const [language, setLanguage] = useState("vi");
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [registeredUsers, setRegisteredUsers] = useState(() =>
+    readStorage(STORAGE_KEYS.users, [])
+  );
+  const [user, setUser] = useState(() =>
+    readStorage(STORAGE_KEYS.currentUser, null)
+  );
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState("login");
+  const [pendingItem, setPendingItem] = useState(null);
   const pendingSectionRef = useRef(null);
   const [view, setView] = useState(() => parseViewFromHash());
   const parseHash = useCallback(() => parseViewFromHash(), []);
@@ -90,6 +120,32 @@ function App() {
       window.removeEventListener("hashchange", handleHashChange);
     };
   }, [parseHash]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.localStorage.setItem(
+      STORAGE_KEYS.users,
+      JSON.stringify(registeredUsers)
+    );
+  }, [registeredUsers]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    if (user) {
+      window.localStorage.setItem(
+        STORAGE_KEYS.currentUser,
+        JSON.stringify({ name: user.name, email: user.email })
+      );
+    } else {
+      window.localStorage.removeItem(STORAGE_KEYS.currentUser);
+    }
+  }, [user]);
 
   const content = useMemo(
     () => contentByLanguage[language] ?? contentByLanguage.vi,
@@ -132,6 +188,14 @@ function App() {
   const combos = content.combos ?? [];
   const promotions = content.promotions ?? [];
   const stats = content.stats ?? [];
+  const authTexts = content.auth ?? {};
+  const authErrors = authTexts.errors ?? {};
+  const missingFieldsError =
+    authErrors.missingFields ?? "Vui lòng nhập đầy đủ thông tin.";
+  const invalidCredentialsError =
+    authErrors.invalidCredentials ?? "Email hoặc mật khẩu không đúng.";
+  const emailTakenError =
+    authErrors.emailTaken ?? "Email đã được đăng ký.";
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
@@ -179,9 +243,34 @@ function App() {
     }
   };
 
-  
 
-  const addToCart = (item) => {
+  const openAuthModal = (mode = "login", item = null) => {
+    setPendingItem(item);
+    setAuthMode(mode);
+    setIsAuthModalOpen(true);
+  };
+
+  const handleRequireAuth = (item = null) => {
+    openAuthModal("login", item);
+  };
+
+  const handleLoginClick = () => {
+    openAuthModal("login");
+  };
+
+  const handleAuthClose = () => {
+    setIsAuthModalOpen(false);
+    setPendingItem(null);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setPendingItem(null);
+    setIsAuthModalOpen(false);
+    setAuthMode("login");
+  };
+
+  const performAddToCart = (item) => {
     setCart((prevCart) => {
       const exists = prevCart.find((c) => c.id === item.id);
       if (exists) {
@@ -194,6 +283,79 @@ function App() {
     });
 
     setIsCartOpen(true);
+  };
+
+  const completeAuthSuccess = (account) => {
+    const safeUser = { name: account.name, email: account.email };
+    setUser(safeUser);
+    setIsAuthModalOpen(false);
+
+    if (pendingItem) {
+      performAddToCart(pendingItem);
+      setPendingItem(null);
+    } else {
+      setPendingItem(null);
+    }
+  };
+
+  const handleLogin = ({ email = "", password = "" }) => {
+    const normalizedEmail = normalizeEmail(email);
+    const sanitizedPassword = password.trim();
+
+    if (!normalizedEmail || !sanitizedPassword) {
+      return { success: false, error: missingFieldsError };
+    }
+
+    const account = registeredUsers.find(
+      (entry) =>
+        entry.email === normalizedEmail && entry.password === sanitizedPassword
+    );
+
+    if (!account) {
+      return { success: false, error: invalidCredentialsError };
+    }
+
+    completeAuthSuccess(account);
+    return { success: true };
+  };
+
+  const handleRegister = ({ name = "", email = "", password = "" }) => {
+    const trimmedName = name.trim();
+    const normalizedEmail = normalizeEmail(email);
+    const sanitizedPassword = password.trim();
+
+    if (!trimmedName || !normalizedEmail || !sanitizedPassword) {
+      return { success: false, error: missingFieldsError };
+    }
+
+    const exists = registeredUsers.some(
+      (entry) => entry.email === normalizedEmail
+    );
+
+    if (exists) {
+      return { success: false, error: emailTakenError };
+    }
+
+    const newAccount = {
+      name: trimmedName,
+      email: normalizedEmail,
+      password: sanitizedPassword,
+    };
+
+    setRegisteredUsers((prev) => [...prev, newAccount]);
+    completeAuthSuccess(newAccount);
+    return { success: true };
+  };
+
+
+
+  const addToCart = (item) => {
+    if (!user) {
+      handleRequireAuth(item);
+      return;
+    }
+
+    performAddToCart(item);
   };
 
   const removeFromCart = (id) => {
@@ -270,6 +432,9 @@ function App() {
         }
         language={language}
         onLanguageChange={setLanguage}
+        user={user}
+        onLoginClick={handleLoginClick}
+        onLogout={handleLogout}
       />
       {view.type === "checkout" ? (
         <CheckoutPage
@@ -289,6 +454,8 @@ function App() {
           onNavigateMenu={() => handleNavigateSection("menu")}
           texts={content.categoryPage}
           menuLabels={content.menuLabels}
+          canAddToCart={Boolean(user)}
+          onRequireAuth={handleRequireAuth}
         />
       ) : (
         <HomePage
@@ -302,6 +469,8 @@ function App() {
           onSelectCategory={handleSelectCategory}
           texts={content.home}
           menuLabels={content.menuLabels}
+          canAddToCart={Boolean(user)}
+          onRequireAuth={handleRequireAuth}
         />
       )}
       <Footer texts={content.footer} />
@@ -314,6 +483,15 @@ function App() {
           texts={content.cart}
         />
       )}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        mode={authMode}
+        texts={authTexts}
+        onModeChange={setAuthMode}
+        onClose={handleAuthClose}
+        onLogin={handleLogin}
+        onRegister={handleRegister}
+      />
     </div>
   );
 }

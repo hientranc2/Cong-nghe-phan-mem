@@ -755,6 +755,17 @@ main {
   justify-content: center;
 }
 
+.menu-card__button--locked {
+  background: rgba(31, 31, 31, 0.12);
+  color: var(--muted);
+  box-shadow: none;
+}
+
+.menu-card__button--locked:hover {
+  background: rgba(31, 31, 31, 0.18);
+  transform: none;
+}
+
 .menu-card__button:hover {
   background: var(--primary-dark);
   transform: translateY(-1px);

@@ -11,6 +11,8 @@ function CategoryPage({
   onNavigateMenu = () => {},
   texts = {},
   menuLabels = {},
+  canAddToCart = true,
+  onRequireAuth = () => {},
 }) {
   const breadcrumbHome = texts.breadcrumbHome ?? "Trang chủ";
   const backToMenu = texts.backToMenu ?? "← Trở lại danh mục";
@@ -87,6 +89,8 @@ function CategoryPage({
               items={paginatedItems}
               addToCart={addToCart}
               labels={menuLabels}
+              canAddToCart={canAddToCart}
+              onRequireAuth={onRequireAuth}
             />
             {totalPages > 1 && (
               <div className="category-pagination" role="navigation" aria-label="Phân trang sản phẩm">
