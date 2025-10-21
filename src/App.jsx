@@ -11,6 +11,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import OrderConfirmationPage from "./pages/OrderConfirmationPage";
 import OrderTrackingPage from "./pages/OrderTrackingPage.jsx";
+import OrderHistoryPage from "./pages/OrderHistoryPage.jsx";
 import AdminDashboard from "./pages/AdminDashboard";
 import RestaurantDashboard from "./pages/RestaurantDashboard";
 import { categories as categoryData, menuItems } from "./data/menuData";
@@ -22,6 +23,7 @@ const heroBackground =
 
 const USERS_STORAGE_KEY = "fcoUsers";
 const CURRENT_USER_STORAGE_KEY = "fcoCurrentUser";
+const ORDER_HISTORY_STORAGE_KEY = "fcoOrderHistory";
 const DEFAULT_USERS = [
   {
     id: "admin",
@@ -78,6 +80,10 @@ const parseViewFromHash = () => {
 
   if (/^\/order-tracking$/.test(hash)) {
     return { type: "orderTracking" };
+  }
+
+  if (/^\/orders$/.test(hash)) {
+    return { type: "orders" };
   }
 
   if (/^\/admin$/.test(hash)) {
@@ -156,6 +162,7 @@ function App() {
   const [authMessage, setAuthMessage] = useState("");
   const [pendingOrder, setPendingOrder] = useState(null);
   const [recentReceipt, setRecentReceipt] = useState(null);
+  const [orderHistory, setOrderHistory] = useState([]);
 
 
 
@@ -207,6 +214,23 @@ function App() {
     }
 
     try {
+      const storedHistory = JSON.parse(
+        window.localStorage.getItem(ORDER_HISTORY_STORAGE_KEY) ?? "[]"
+      );
+      if (Array.isArray(storedHistory)) {
+        setOrderHistory(storedHistory);
+      }
+    } catch (error) {
+      setOrderHistory([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
       window.localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
     } catch (error) {
       /* ignore persistence errors */
@@ -228,6 +252,21 @@ function App() {
     }
   }, [currentUser]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(
+        ORDER_HISTORY_STORAGE_KEY,
+        JSON.stringify(orderHistory)
+      );
+    } catch (error) {
+      /* ignore persistence errors */
+    }
+  }, [orderHistory]);
+
   const content = useMemo(
     () => contentByLanguage[language] ?? contentByLanguage.vi,
     [language]
@@ -242,6 +281,40 @@ function App() {
     () => translateMenuItems(menuItems, language),
     [language]
   );
+
+  const customerOrders = useMemo(() => {
+    if (!currentUser || currentUser.role !== "customer") {
+      return [];
+    }
+
+    const customerEmail = normalizeEmail(currentUser.email);
+    if (!customerEmail) {
+      return [];
+    }
+
+    const filtered = orderHistory.filter((order) => {
+      const orderEmail = normalizeEmail(
+        order.ownerEmail ?? order.customer?.email ?? ""
+      );
+      return orderEmail === customerEmail;
+    });
+
+    return filtered
+      .slice()
+      .sort((a, b) => {
+        const aTime = new Date(a.confirmedAt ?? a.createdAt ?? 0).getTime();
+        const bTime = new Date(b.confirmedAt ?? b.createdAt ?? 0).getTime();
+        return bTime - aTime;
+      });
+  }, [currentUser, orderHistory]);
+
+  const canViewOrderHistory = useMemo(() => {
+    if (!currentUser || currentUser.role !== "customer") {
+      return false;
+    }
+
+    return Boolean(pendingOrder || recentReceipt || customerOrders.length > 0);
+  }, [currentUser, pendingOrder, recentReceipt, customerOrders]);
 
   useEffect(() => {
     setCart((prevCart) =>
@@ -273,6 +346,7 @@ function App() {
   const registerTexts = content.register ?? content.auth?.register ?? {};
   const orderConfirmationTexts =
     content.orderConfirmation ?? content.auth?.orderConfirmation ?? {};
+  const orderHistoryTexts = content.orderHistory ?? {};
   const adminTexts = content.admin ?? {};
   const restaurantTexts = content.restaurant ?? {};
 
@@ -313,6 +387,13 @@ function App() {
       if (nextDestination === "checkout" && cart.length > 0) {
         if (typeof window !== "undefined") {
           window.location.hash = "/checkout";
+        }
+        return;
+      }
+
+      if (nextDestination === "orders") {
+        if (typeof window !== "undefined") {
+          window.location.hash = "/orders";
         }
         return;
       }
@@ -488,6 +569,22 @@ function App() {
           !currentUser
             ? "Vui lòng đăng nhập để tiếp tục thanh toán."
             : "Tài khoản hiện tại không thể thanh toán ở giao diện khách hàng."
+        );
+        if (typeof window !== "undefined") {
+          window.location.hash = "/login";
+        }
+      }
+    }
+  }, [view, currentUser]);
+
+  useEffect(() => {
+    if (view.type === "orders") {
+      if (!currentUser || currentUser.role !== "customer") {
+        setAuthRedirect("orders");
+        setAuthMessage(
+          !currentUser
+            ? "Vui lòng đăng nhập để xem đơn hàng của bạn."
+            : "Tài khoản hiện tại không thể xem lịch sử đơn hàng."
         );
         if (typeof window !== "undefined") {
           window.location.hash = "/login";
@@ -706,6 +803,10 @@ function App() {
       };
     }
 
+    const normalizedCustomerEmail = normalizeEmail(email);
+    const ownerEmail = normalizedCustomerEmail
+      || normalizeEmail(currentUser?.email ?? "");
+
     const receipt = {
       ...pendingOrder,
       customer: {
@@ -717,11 +818,23 @@ function App() {
       },
       id: `ORD-${Date.now()}`,
       confirmedAt: new Date().toISOString(),
+      ownerEmail,
     };
 
     setRecentReceipt(receipt);
     setPendingOrder(null);
     setCart([]);
+
+    setOrderHistory((prevHistory) => {
+      const filtered = prevHistory.filter((order) => order.id !== receipt.id);
+      const updated = [receipt, ...filtered];
+
+      return updated.sort((a, b) => {
+        const aTime = new Date(a.confirmedAt ?? a.createdAt ?? 0).getTime();
+        const bTime = new Date(b.confirmedAt ?? b.createdAt ?? 0).getTime();
+        return bTime - aTime;
+      });
+    });
 
     return {
       success: true,
@@ -750,6 +863,54 @@ function App() {
   const handleBackToOrderSummary = () => {
     if (typeof window !== "undefined") {
       window.location.hash = "/order-confirmation";
+    }
+  };
+
+  const handleViewOrdersPage = () => {
+    pendingSectionRef.current = null;
+    setIsCartOpen(false);
+    if (typeof window !== "undefined") {
+      window.location.hash = "/orders";
+    }
+  };
+
+  const handleSelectOrderFromHistory = (orderId) => {
+    const order = customerOrders.find((entry) => entry.id === orderId);
+    if (!order) {
+      return;
+    }
+
+    const clonedOrder = {
+      ...order,
+      items: (order.items ?? []).map((item) => ({ ...item })),
+      customer: order.customer ? { ...order.customer } : order.customer,
+    };
+
+    setPendingOrder(null);
+    setRecentReceipt(clonedOrder);
+
+    if (typeof window !== "undefined") {
+      window.location.hash = "/order-confirmation";
+    }
+  };
+
+  const handleTrackOrderFromHistory = (orderId) => {
+    const order = customerOrders.find((entry) => entry.id === orderId);
+    if (!order) {
+      return;
+    }
+
+    const clonedOrder = {
+      ...order,
+      items: (order.items ?? []).map((item) => ({ ...item })),
+      customer: order.customer ? { ...order.customer } : order.customer,
+    };
+
+    setPendingOrder(null);
+    setRecentReceipt(clonedOrder);
+
+    if (typeof window !== "undefined") {
+      window.location.hash = "/order-tracking";
     }
   };
 
@@ -834,6 +995,17 @@ function App() {
         onBackHome={handleOrderConfirmationClose}
       />
     );
+  } else if (view.type === "orders") {
+    pageContent = (
+      <OrderHistoryPage
+        user={currentUser}
+        orders={customerOrders}
+        texts={orderHistoryTexts}
+        onSelectOrder={handleSelectOrderFromHistory}
+        onTrackOrder={handleTrackOrderFromHistory}
+        onBackHome={handleNavigateHome}
+      />
+    );
   } else if (view.type === "admin") {
     pageContent = (
       <AdminDashboard
@@ -876,12 +1048,15 @@ function App() {
         onNavigateHome={handleNavigateHome}
         onNavigateSection={handleNavigateSection}
         texts={content.header}
-       
+
         language={language}
         onLanguageChange={setLanguage}
         user={currentUser}
         onShowLogin={handleShowLogin}
         onLogout={handleLogout}
+        onViewOrders={handleViewOrdersPage}
+        canViewOrders={canViewOrderHistory}
+        orderCount={customerOrders.length}
       />
       {pageContent}
       <Footer texts={content.footer} />

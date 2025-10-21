@@ -27,6 +27,9 @@ function Header({
   user = null,
   onShowLogin = () => {},
   onLogout = () => {},
+  onViewOrders = () => {},
+  canViewOrders = false,
+  orderCount = 0,
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -69,6 +72,9 @@ function Header({
   const cartAriaLabel = texts?.cartAriaLabel ?? "Giỏ hàng";
   const menuToggleLabel = texts?.menuToggleLabel ?? "Mở menu điều hướng";
   const languageAriaLabel = texts?.language?.ariaLabel ?? "Chọn ngôn ngữ";
+  const ordersLabel = texts?.ordersLabel ?? "Đơn hàng";
+  const ordersAriaLabel =
+    texts?.ordersAriaLabel ?? "Xem danh sách đơn hàng đã đặt";
 
   const handleSectionClick = (event, sectionId) => {
     event.preventDefault();
@@ -154,6 +160,22 @@ function Header({
               aria-label={locationSearchPlaceholder}
             />
           </label>
+          {user?.role === "customer" && canViewOrders && (
+            <button
+              type="button"
+              className="orders-btn"
+              onClick={onViewOrders}
+              aria-label={ordersAriaLabel}
+            >
+              <span className="orders-icon" aria-hidden="true">
+                📦
+              </span>
+              <span className="orders-label">{ordersLabel}</span>
+              {orderCount > 0 && (
+                <span className="orders-count">{orderCount}</span>
+              )}
+            </button>
+          )}
           <div className="auth-controls">
             {user ? (
               <div className="user-menu" aria-live="polite">
