@@ -48,7 +48,7 @@ function OrderTrackingPage({
     activeOrder.restaurant?.name ??
     activeOrder.storeName ??
     texts.restaurantFallback ??
-    "Nhà hàng đối tác";
+    "Nhà hàng";
 
   return (
     <main className="order-tracking-page" aria-labelledby="order-tracking-heading">

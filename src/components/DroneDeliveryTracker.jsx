@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import droneIcon from "../assets/drone-icon.svg";
+
 import "./DroneDeliveryTracker.css";
 
 const DEFAULT_ROUTE = [
@@ -50,13 +52,13 @@ const START_POINT = { x: 14, y: 74 };
 const END_POINT = { x: 86, y: 24 };
 
 function DroneDeliveryTracker({
-  origin = "Nhà hàng đối tác",
+  origin = "Nhà hàng ",
   destination = "Địa chỉ khách hàng",
   distanceKm = 4.2,
   estimatedMinutes = 18,
   lastUpdate = new Date(),
   routePoints = DEFAULT_ROUTE,
-  initialProgress = 0.25,
+  initialProgress = 0,
   texts = {},
   autoAdvance = true,
   statusMessage =
@@ -238,11 +240,9 @@ function DroneDeliveryTracker({
         <div
           className="tracking-map__drone"
           style={{ left: `${dronePosition.x}%`, top: `${dronePosition.y}%` }}
-          aria-hidden="true"
         >
-          <span role="img" aria-label="Drone giao hàng">
-            🚁
-          </span>
+                   <img src={droneIcon} alt="Drone giao hàng" />
+
         </div>
         <div className="tracking-map__pulse" style={{ left: `${dronePosition.x}%`, top: `${dronePosition.y}%` }} aria-hidden="true" />
       </div>
