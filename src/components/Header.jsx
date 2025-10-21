@@ -20,11 +20,14 @@ function Header({
   onCartOpen = () => {},
   onNavigateHome = () => {},
   onNavigateSection = () => {},
-
-   texts = {},
+  texts = {},
   brandTagline = "",
   language = "vi",
   onLanguageChange = () => {},
+  user = null,
+  onShowLogin = () => {},
+  onShowRegister = () => {},
+  onLogout = () => {},
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -56,6 +59,14 @@ function Header({
   const locationSearchPlaceholder =
     texts?.locationSearchPlaceholder ?? "Tìm kiếm ...";
   const loginLabel = texts?.loginLabel ?? "👤 Đăng nhập";
+  const registerLabel = texts?.registerLabel ?? "Đăng ký";
+  const logoutLabel = texts?.logoutLabel ?? "Đăng xuất";
+  const roleLabels = texts?.roleLabels ?? {
+    customer: "Khách hàng",
+    admin: "Quản trị viên",
+    restaurant: "Nhà hàng đối tác",
+  };
+  const userName = user?.name ?? texts?.anonymousLabel ?? "Người dùng";
   const cartLabel = texts?.cartLabel ?? "Giỏ hàng";
   const cartAriaLabel = texts?.cartAriaLabel ?? "Giỏ hàng";
   const menuToggleLabel = texts?.menuToggleLabel ?? "Mở menu điều hướng";
@@ -148,9 +159,42 @@ function Header({
               aria-label={locationSearchPlaceholder}
             />
           </label>
-          <button className="login-btn" type="button">
-            {loginLabel}
-          </button>
+          <div className="auth-controls">
+            {user ? (
+              <div className="user-menu" aria-live="polite">
+                <div className="user-menu__info">
+                  <span className="user-menu__name">👋 {userName}</span>
+                  <span className="user-menu__role">
+                    {roleLabels[user.role] ?? user.role}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="logout-btn"
+                  onClick={onLogout}
+                >
+                  {logoutLabel}
+                </button>
+              </div>
+            ) : (
+              <>
+                <button
+                  className="login-btn"
+                  type="button"
+                  onClick={onShowLogin}
+                >
+                  {loginLabel}
+                </button>
+                <button
+                  className="register-btn"
+                  type="button"
+                  onClick={onShowRegister}
+                >
+                  {registerLabel}
+                </button>
+              </>
+            )}
+          </div>
           <button
             className="cart-btn"
             type="button"
