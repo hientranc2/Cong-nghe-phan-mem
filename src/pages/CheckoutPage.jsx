@@ -21,7 +21,7 @@ function CheckoutPage({
   const deliveryToday = texts.deliveryToday ?? "Deliver within 30 minutes";
   const deliveryTodayDescription =
     texts.deliveryTodayDescription ??
-    "Perfect for instant meals with the nearest courier.";
+    "Perfect for instant meals .";
   const deliveryLater = texts.deliveryLater ?? "Schedule for another day";
   const deliveryLaterDescription =
     texts.deliveryLaterDescription ??

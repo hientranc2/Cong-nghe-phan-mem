@@ -190,7 +190,7 @@ export const contentByLanguage = {
       notePlaceholder: "Ví dụ: Giao giờ trưa, không thêm đá...",
       deliveryHeading: "Thời gian giao dự kiến",
       deliveryToday: "Giao ngay trong 30 phút",
-      deliveryTodayDescription: "Phù hợp cho đơn ăn liền, tài xế gần nhất nhận đơn.",
+      deliveryTodayDescription: "Phù hợp cho đơn ăn liền.",
       deliveryLater: "Đặt lịch giao vào ngày khác",
       deliveryLaterDescription: "Chọn khung giờ giao trong ngày hoặc hẹn ngày kế tiếp.",
       infoBoxes: [
@@ -407,7 +407,7 @@ export const contentByLanguage = {
       notePlaceholder: "E.g. deliver at noon, less ice...",
       deliveryHeading: "Estimated delivery",
       deliveryToday: "Deliver within 30 minutes",
-      deliveryTodayDescription: "Perfect for instant meals with the nearest courier.",
+      deliveryTodayDescription: "Perfect for instant meals.",
       deliveryLater: "Schedule for another day",
       deliveryLaterDescription: "Pick a delivery slot later today or on the next day.",
       infoBoxes: [
