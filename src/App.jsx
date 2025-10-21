@@ -10,6 +10,7 @@ import ProductDetailPage from "./pages/ProductDetailPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import OrderConfirmationPage from "./pages/OrderConfirmationPage";
+import OrderTrackingPage from "./pages/OrderTrackingPage.jsx";
 import AdminDashboard from "./pages/AdminDashboard";
 import RestaurantDashboard from "./pages/RestaurantDashboard";
 import { categories as categoryData, menuItems } from "./data/menuData";
@@ -73,6 +74,10 @@ const parseViewFromHash = () => {
 
   if (/^\/order-confirmation$/.test(hash)) {
     return { type: "orderConfirmation" };
+  }
+
+  if (/^\/order-tracking$/.test(hash)) {
+    return { type: "orderTracking" };
   }
 
   if (/^\/admin$/.test(hash)) {
@@ -461,6 +466,7 @@ function App() {
       view.type === "login" ||
       view.type === "register" ||
       view.type === "orderConfirmation" ||
+      view.type === "orderTracking" ||
       view.type === "admin" ||
       view.type === "restaurant"
     ) {
@@ -513,6 +519,16 @@ function App() {
   useEffect(() => {
     if (
       view.type === "orderConfirmation" &&
+      !pendingOrder &&
+      !recentReceipt
+    ) {
+      redirectToHome();
+    }
+  }, [view, pendingOrder, recentReceipt, redirectToHome]);
+
+  useEffect(() => {
+    if (
+      view.type === "orderTracking" &&
       !pendingOrder &&
       !recentReceipt
     ) {
@@ -725,6 +741,18 @@ function App() {
     }
   };
 
+  const handleViewTracking = () => {
+    if (typeof window !== "undefined") {
+      window.location.hash = "/order-tracking";
+    }
+  };
+
+  const handleBackToOrderSummary = () => {
+    if (typeof window !== "undefined") {
+      window.location.hash = "/order-confirmation";
+    }
+  };
+
   let pageContent;
 
   if (view.type === "checkout") {
@@ -790,6 +818,20 @@ function App() {
         onConfirm={handleConfirmOrderDetails}
         onBackHome={handleOrderConfirmationClose}
         onBackToCheckout={handleBackToCheckout}
+        onViewTracking={handleViewTracking}
+      />
+    );
+  } else if (view.type === "orderTracking") {
+    const trackingTexts =
+      orderConfirmationTexts.trackingPage ?? orderConfirmationTexts;
+
+    pageContent = (
+      <OrderTrackingPage
+        receipt={recentReceipt}
+        pendingOrder={pendingOrder}
+        texts={trackingTexts}
+        onBackToOrder={handleBackToOrderSummary}
+        onBackHome={handleOrderConfirmationClose}
       />
     );
   } else if (view.type === "admin") {
