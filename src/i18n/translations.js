@@ -15,6 +15,8 @@ export const contentByLanguage = {
       locationPrefix: "📍 Giao đến:",
       locationHighlight: "TP. Hồ Chí Minh",
       loginLabel: "👤 Đăng nhập",
+      ordersLabel: "Đơn hàng",
+      ordersAriaLabel: "Xem lịch sử đơn hàng đã đặt",
       cartLabel: "Giỏ hàng",
       cartAriaLabel: "Giỏ hàng",
       menuToggleLabel: "Mở menu điều hướng",
@@ -143,6 +145,26 @@ export const contentByLanguage = {
       continueButton: "Mua thêm món",
       checkoutButton: "Đi đến thanh toán",
     },
+    orderHistory: {
+      title: "Đơn hàng đã đặt",
+      subtitle:
+        "Theo dõi lại các đơn đã xác nhận và xem hành trình giao hàng trực tiếp.",
+      emptyMessage:
+        "Bạn chưa có đơn hàng nào được lưu. Khi hoàn tất đặt món, đơn hàng sẽ xuất hiện tại đây.",
+      emptyCtaLabel: "Tiếp tục đặt món",
+      viewDetailsLabel: "Xem tóm tắt",
+      trackLabel: "Theo dõi hành trình",
+      trackDisabledLabel: "Đã hoàn tất",
+      backHomeLabel: "Về trang chủ",
+      itemsLabel: "Món đã đặt",
+      totalLabel: "Tổng thanh toán",
+      confirmedAtLabel: "Thời gian xác nhận",
+      statusLabel: "Trạng thái",
+      statusInTransit: "Đang giao",
+      statusCompleted: "Hoàn tất",
+      unauthorizedMessage:
+        "Vui lòng đăng nhập bằng tài khoản khách hàng để xem lịch sử đơn hàng.",
+    },
     footer: {
       description: "Ăn ngon chuẩn vị - giao tận nhà chỉ trong 15 phút.",
       columns: [
@@ -234,6 +256,8 @@ export const contentByLanguage = {
       locationPrefix: "📍 Deliver to:",
       locationHighlight: "Ho Chi Minh City",
       loginLabel: "👤 Sign in",
+      ordersLabel: "Orders",
+      ordersAriaLabel: "View your recent orders",
       cartLabel: "Cart",
       cartAriaLabel: "Shopping cart",
       menuToggleLabel: "Open navigation menu",
@@ -359,6 +383,26 @@ export const contentByLanguage = {
       subtotalLabel: "Subtotal",
       continueButton: "Keep shopping",
       checkoutButton: "Go to checkout",
+    },
+    orderHistory: {
+      title: "Your orders",
+      subtitle:
+        "Review confirmed orders and keep tracking the delivery journey.",
+      emptyMessage:
+        "You don't have any saved orders yet. Once you place an order it will appear here.",
+      emptyCtaLabel: "Start ordering",
+      viewDetailsLabel: "View summary",
+      trackLabel: "Track delivery",
+      trackDisabledLabel: "Completed",
+      backHomeLabel: "Back to home",
+      itemsLabel: "Items",
+      totalLabel: "Grand total",
+      confirmedAtLabel: "Confirmed at",
+      statusLabel: "Status",
+      statusInTransit: "In delivery",
+      statusCompleted: "Completed",
+      unauthorizedMessage:
+        "Please sign in with a customer account to view order history.",
     },
     footer: {
       description: "Restaurant-quality meals delivered in 15 minutes.",
