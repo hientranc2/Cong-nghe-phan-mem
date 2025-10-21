@@ -5,7 +5,6 @@ function LoginPage({
   onLogin = () => {},
   onNavigateRegister = () => {},
   texts = {},
-  presetAccounts = [],
   message = "",
 }) {
   const title = texts.title ?? "Đăng nhập";
@@ -16,18 +15,9 @@ function LoginPage({
   const submitLabel = texts.submitLabel ?? "Đăng nhập";
   const registerPrompt = texts.registerPrompt ?? "Chưa có tài khoản?";
   const registerLinkLabel = texts.registerLinkLabel ?? "Đăng ký ngay";
-  const presetTitle = texts.presetTitle ?? "Tài khoản mẫu";
-  const presetDescription =
-    texts.presetDescription ??
-    "Sử dụng nhanh các tài khoản mẫu bên dưới để trải nghiệm giao diện admin và nhà hàng.";
   const messageLabel = texts.messageLabel ?? "Lưu ý";
   const defaultErrorMessage =
     texts.errorMessage ?? "Đăng nhập không thành công. Vui lòng kiểm tra lại.";
-  const roleLabels = texts.roleLabels ?? {
-    customer: "Khách hàng",
-    admin: "Quản trị viên",
-    restaurant: "Nhà hàng đối tác",
-  };
 
   const [formState, setFormState] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
@@ -109,24 +99,6 @@ function LoginPage({
           </button>
         </p>
       </section>
-      {presetAccounts.length > 0 && (
-        <aside className="auth-presets" aria-label={presetTitle}>
-          <h3>{presetTitle}</h3>
-          <p>{presetDescription}</p>
-          <ul>
-            {presetAccounts.map((account) => (
-              <li key={account.email}>
-                <strong>{account.name}</strong>
-                <span>{account.email}</span>
-                <span>{account.password}</span>
-                <span className="auth-presets__role">
-                  Vai trò: {roleLabels[account.role] ?? account.role}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </aside>
-      )}
     </main>
   );
 }
