@@ -46,8 +46,19 @@ const parseDate = (value) => {
   return parsed;
 };
 
-const START_POINT = { x: 14, y: 74 };
-const END_POINT = { x: 86, y: 24 };
+const START_POINT = { x: 38, y: 14 };
+const END_POINT = { x: 48, y: 86 };
+
+const MAP_OUTLINE_PATH =
+  "M34 8 C40 10 50 15 56 22 C62 29 63 36 58 44 C52 52 57 57 61 64 C65 71 63 79 56 86 C49 93 40 94 32 88 C24 82 22 72 26 62 C30 52 28 46 22 38 C16 30 18 20 26 14 C30 11 32 9.5 34 8 Z";
+
+const MAP_CITIES = [
+  { id: "hanoi", label: "Hà Nội", x: 38, y: 12, position: "north" },
+  { id: "ninhbinh", label: "Ninh Bình", x: 42, y: 28, position: "east" },
+  { id: "hue", label: "Huế", x: 46, y: 46, position: "west" },
+  { id: "nhatrang", label: "Nha Trang", x: 54, y: 64, position: "east" },
+  { id: "hochiminh", label: "TP.HCM", x: 48, y: 88, position: "south" },
+];
 
 function DroneDeliveryTracker({
   origin = "Nhà hàng đối tác",
@@ -76,6 +87,7 @@ function DroneDeliveryTracker({
     orderLabel = "Mã đơn",
     statusHeading = "Trạng thái",
     confirmedLabel = "Đã xác nhận",
+    mapStatusLabel = "Đang vận chuyển",
   } = texts;
 
   const safeRoute = routePoints.length > 1 ? routePoints : DEFAULT_ROUTE;
@@ -109,13 +121,28 @@ function DroneDeliveryTracker({
   }, [estimatedMinutes, autoAdvance]);
 
   const routeSamples = useMemo(() => {
-    const segments = 48;
+    const pathPoints = [
+      { x: 38, y: 14 },
+      { x: 44, y: 24 },
+      { x: 50, y: 36 },
+      { x: 50, y: 46 },
+      { x: 48, y: 56 },
+      { x: 56, y: 66 },
+      { x: 54, y: 76 },
+      { x: 48, y: 86 },
+    ];
+
+    const segments = 64;
     return Array.from({ length: segments + 1 }, (_, index) => {
       const ratio = index / segments;
-      const wobble = Math.sin(ratio * Math.PI * 1.35) * 5.5;
-      const curvature = Math.sin(ratio * Math.PI) * 22;
-      const x = START_POINT.x + (END_POINT.x - START_POINT.x) * ratio + wobble;
-      const y = START_POINT.y + (END_POINT.y - START_POINT.y) * ratio - curvature;
+      const scaled = ratio * (pathPoints.length - 1);
+      const lowerIndex = Math.floor(scaled);
+      const upperIndex = Math.min(pathPoints.length - 1, lowerIndex + 1);
+      const localT = scaled - lowerIndex;
+      const start = pathPoints[lowerIndex];
+      const end = pathPoints[upperIndex];
+      const x = start.x + (end.x - start.x) * localT;
+      const y = start.y + (end.y - start.y) * localT;
       return { x, y };
     });
   }, []);
@@ -197,6 +224,14 @@ function DroneDeliveryTracker({
               <stop offset="0%" stopColor="rgba(255, 90, 31, 0.75)" />
               <stop offset="100%" stopColor="rgba(255, 196, 31, 0.9)" />
             </linearGradient>
+            <linearGradient id="trackingWaterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="rgba(12, 90, 160, 0.22)" />
+              <stop offset="100%" stopColor="rgba(12, 120, 180, 0.12)" />
+            </linearGradient>
+            <linearGradient id="trackingLandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgba(255, 255, 255, 0.92)" />
+              <stop offset="100%" stopColor="rgba(255, 196, 31, 0.32)" />
+            </linearGradient>
             <radialGradient id="trackingPointGradient" cx="50%" cy="50%" r="50%">
               <stop offset="0%" stopColor="rgba(255, 255, 255, 0.95)" />
               <stop offset="100%" stopColor="rgba(255, 90, 31, 0.35)" />
@@ -210,8 +245,18 @@ function DroneDeliveryTracker({
               <stop offset="100%" stopColor="rgba(255, 90, 31, 0.5)" />
             </radialGradient>
           </defs>
+          <rect x="0" y="0" width="100" height="100" fill="url(#trackingWaterGradient)" />
+          <path d={MAP_OUTLINE_PATH} fill="url(#trackingLandGradient)" className="tracking-map__land" />
           {pathD && (
-            <path d={pathD} fill="none" stroke="url(#trackingPathGradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="tracking-map__route" />
+            <path
+              d={pathD}
+              fill="none"
+              stroke="url(#trackingPathGradient)"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="tracking-map__route"
+            />
           )}
           {positions.map((point, index) => (
             <g key={safeRoute[index]?.id ?? index}>
@@ -225,16 +270,26 @@ function DroneDeliveryTracker({
           className="tracking-map__landmark tracking-map__landmark--origin"
           style={{ left: `${START_POINT.x}%`, top: `${START_POINT.y}%` }}
         >
-          <span aria-hidden="true">🍽️</span>
+          <span className="tracking-map__origin-icon" aria-hidden="true" />
           <span>{origin}</span>
         </div>
         <div
           className="tracking-map__landmark tracking-map__landmark--destination"
           style={{ left: `${END_POINT.x}%`, top: `${END_POINT.y}%` }}
         >
-          <span aria-hidden="true">📍</span>
+          <span className="tracking-map__destination-icon" aria-hidden="true">📍</span>
           <span>{destination}</span>
         </div>
+        {MAP_CITIES.map((city) => (
+          <div
+            key={city.id}
+            className={`tracking-map__city tracking-map__city--${city.position}`}
+            style={{ left: `${city.x}%`, top: `${city.y}%` }}
+          >
+            <span className="tracking-map__city-dot" aria-hidden="true" />
+            <span>{city.label}</span>
+          </div>
+        ))}
         <div
           className="tracking-map__drone"
           style={{ left: `${dronePosition.x}%`, top: `${dronePosition.y}%` }}
@@ -245,6 +300,12 @@ function DroneDeliveryTracker({
           </span>
         </div>
         <div className="tracking-map__pulse" style={{ left: `${dronePosition.x}%`, top: `${dronePosition.y}%` }} aria-hidden="true" />
+        <div
+          className="tracking-map__status"
+          style={{ left: `${dronePosition.x}%`, top: `${dronePosition.y - 8}%` }}
+        >
+          {mapStatusLabel}
+        </div>
       </div>
 
       <div className="tracking-info">

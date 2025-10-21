@@ -8,24 +8,10 @@
 .tracking-map {
   position: relative;
   border-radius: 22px;
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.9), rgba(255, 196, 31, 0.12)),
-    linear-gradient(135deg, rgba(31, 138, 112, 0.08), rgba(255, 90, 31, 0.16));
   overflow: hidden;
-  min-height: 260px;
-  box-shadow: 0 18px 38px rgba(255, 90, 31, 0.2);
-}
-
-.tracking-map::before {
-  content: "";
-  position: absolute;
-  inset: -40%;
-  background-image:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-  background-size: 80px 80px;
-  transform: rotate(12deg);
-  opacity: 0.55;
-  pointer-events: none;
+  min-height: 280px;
+  box-shadow: 0 18px 38px rgba(8, 55, 122, 0.18);
+  background: linear-gradient(160deg, rgba(5, 48, 104, 0.16), rgba(3, 75, 126, 0.24));
 }
 
 .tracking-map__svg {
@@ -34,8 +20,19 @@
   height: 100%;
 }
 
+.tracking-map__svg defs + rect {
+  filter: saturate(105%);
+}
+
+.tracking-map__land {
+  stroke: rgba(15, 102, 117, 0.15);
+  stroke-width: 0.6;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.12));
+}
+
 .tracking-map__route {
-  opacity: 0.9;
+  opacity: 0.95;
+  filter: drop-shadow(0 6px 12px rgba(255, 90, 31, 0.35));
 }
 
 .tracking-map__drone,
@@ -51,12 +48,25 @@
 }
 
 .tracking-map__pulse {
-  width: 110px;
-  height: 110px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(255, 255, 255, 0.55) 0%, rgba(255, 90, 31, 0) 70%);
   animation: tracking-drone-pulse 2.8s ease-out infinite;
   pointer-events: none;
+}
+
+.tracking-map__status {
+  position: absolute;
+  transform: translate(-50%, -120%);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--primary);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  box-shadow: 0 12px 24px rgba(8, 55, 122, 0.22);
+  white-space: nowrap;
 }
 
 .tracking-map__landmark {
@@ -77,13 +87,62 @@
   pointer-events: none;
 }
 
-.tracking-map__landmark span:first-child {
-  font-size: 1.4rem;
+.tracking-map__origin-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #ffffff 0%, #1f8a70 65%);
+  box-shadow: inset 0 0 0 4px rgba(31, 138, 112, 0.2), 0 6px 14px rgba(31, 138, 112, 0.28);
 }
 
 .tracking-map__landmark--destination {
   background: rgba(255, 244, 237, 0.95);
   color: var(--primary);
+}
+
+.tracking-map__destination-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  display: inline-flex;
+}
+
+.tracking-map__city {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.92);
+  color: #0b4676;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transform: translate(-50%, -100%);
+  box-shadow: 0 10px 18px rgba(8, 55, 122, 0.18);
+}
+
+.tracking-map__city-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff5a1f, #ffb031);
+  box-shadow: 0 0 0 4px rgba(255, 90, 31, 0.2);
+}
+
+.tracking-map__city--south {
+  transform: translate(-50%, -10%);
+}
+
+.tracking-map__city--east {
+  transform: translate(-10%, -50%);
+}
+
+.tracking-map__city--west {
+  transform: translate(-90%, -50%);
+}
+
+.tracking-map__city--north {
+  transform: translate(-50%, -130%);
 }
 
 .tracking-map__landmark--origin {
