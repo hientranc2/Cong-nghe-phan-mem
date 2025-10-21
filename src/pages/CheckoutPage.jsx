@@ -38,12 +38,9 @@ function CheckoutPage({
   const confirmButton = texts.confirmButton ?? "Confirm order";
   const removeLabel = texts.removeItem ?? "Remove";
   const emptyMessage = texts.emptyMessage ?? "Your cart is empty. Please add some items first!";
-  const successMessage =
-    texts.successMessage ?? "Your order has been received! We'll reach out shortly to confirm.";
 
   const [deliveryOption, setDeliveryOption] = useState("today");
   const [orderNote, setOrderNote] = useState("");
-  const [showSuccess, setShowSuccess] = useState(false);
 
   const subtotal = useMemo(
     () => cart.reduce((sum, item) => sum + item.price * item.quantity, 0),
@@ -74,8 +71,14 @@ function CheckoutPage({
       return;
     }
 
-    setShowSuccess(true);
-    onPlaceOrder();
+    onPlaceOrder({
+      items: cart.map((item) => ({ ...item })),
+      subtotal,
+      shipping: shippingValue,
+      total,
+      note: orderNote,
+      deliveryOption,
+    });
   };
 
   return (
@@ -120,13 +123,6 @@ function CheckoutPage({
           );
         })}
       </ol>
-
-      {showSuccess && (
-        <div className="checkout-success" role="status" aria-live="polite">
-          <span aria-hidden="true">✅</span>
-          <p>{successMessage}</p>
-        </div>
-      )}
 
       {hasItems ? (
         <div className="checkout-layout">
@@ -282,7 +278,7 @@ function CheckoutPage({
         </div>
       ) : (
         <div className="checkout-empty">
-          {!showSuccess && <p>{emptyMessage}</p>}
+          <p>{emptyMessage}</p>
           <button type="button" onClick={onContinueShopping}>
             {continueShoppingLabel}
           </button>
