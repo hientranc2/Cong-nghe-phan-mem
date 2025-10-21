@@ -536,16 +536,7 @@ function App() {
     }
   };
 
-  const presetAccounts = useMemo(
-    () =>
-      DEFAULT_USERS.map((user) => ({
-        name: user.name,
-        email: user.email,
-        password: user.password,
-        role: user.role,
-      })),
-    []
-  );
+  
 
   const handleLogin = ({ email = "", password = "" }) => {
     const normalizedEmail = normalizeEmail(email);
@@ -778,7 +769,6 @@ function App() {
         onLogin={handleLogin}
         onNavigateRegister={handleShowRegister}
         texts={loginTexts}
-        presetAccounts={presetAccounts}
         message={authMessage}
       />
     );
@@ -853,7 +843,6 @@ function App() {
         onLanguageChange={setLanguage}
         user={currentUser}
         onShowLogin={handleShowLogin}
-        onShowRegister={handleShowRegister}
         onLogout={handleLogout}
       />
       {pageContent}

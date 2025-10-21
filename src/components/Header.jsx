@@ -26,7 +26,6 @@ function Header({
   onLanguageChange = () => {},
   user = null,
   onShowLogin = () => {},
-  onShowRegister = () => {},
   onLogout = () => {},
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -59,7 +58,6 @@ function Header({
   const locationSearchPlaceholder =
     texts?.locationSearchPlaceholder ?? "Tìm kiếm ...";
   const loginLabel = texts?.loginLabel ?? "👤 Đăng nhập";
-  const registerLabel = texts?.registerLabel ?? "Đăng ký";
   const logoutLabel = texts?.logoutLabel ?? "Đăng xuất";
   const roleLabels = texts?.roleLabels ?? {
     customer: "Khách hàng",
@@ -177,22 +175,13 @@ function Header({
                 </button>
               </div>
             ) : (
-              <>
-                <button
-                  className="login-btn"
-                  type="button"
-                  onClick={onShowLogin}
-                >
-                  {loginLabel}
-                </button>
-                <button
-                  className="register-btn"
-                  type="button"
-                  onClick={onShowRegister}
-                >
-                  {registerLabel}
-                </button>
-              </>
+             <button
+                className="login-btn"
+                type="button"
+                onClick={onShowLogin}
+              >
+                {loginLabel}
+              </button>
             )}
           </div>
           <button
