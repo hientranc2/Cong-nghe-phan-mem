@@ -12,7 +12,6 @@ function RegisterPage({
   const nameLabel = texts.nameLabel ?? "Họ và tên";
   const emailLabel = texts.emailLabel ?? "Email";
   const passwordLabel = texts.passwordLabel ?? "Mật khẩu";
-  const roleLabel = texts.roleLabel ?? "Vai trò";
   const submitLabel = texts.submitLabel ?? "Đăng ký";
   const loginPrompt = texts.loginPrompt ?? "Đã có tài khoản?";
   const loginLinkLabel = texts.loginLinkLabel ?? "Đăng nhập";
@@ -20,21 +19,12 @@ function RegisterPage({
     texts.successMessage ?? "Đăng ký thành công! Đang chuyển hướng...";
   const defaultErrorMessage =
     texts.errorMessage ?? "Không thể đăng ký. Vui lòng kiểm tra thông tin.";
-  const roleOptions =
-    texts.roleOptions ?? [
-      { value: "customer", label: "Khách hàng" },
-      { value: "restaurant", label: "Nhà hàng đối tác" },
-      { value: "admin", label: "Quản trị viên" },
-    ];
-  const roleHint =
-    texts.roleHint ??
-    "Bạn có thể chọn vai trò khách hàng, quản trị hoặc nhà hàng để xem trước các giao diện.";
+ 
 
   const [formState, setFormState] = useState({
     name: "",
     email: "",
     password: "",
-    role: roleOptions[0]?.value ?? "customer",
   });
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
@@ -54,7 +44,6 @@ function RegisterPage({
         name: formState.name,
         email: formState.email.trim(),
         password: formState.password,
-        role: formState.role,
       });
 
       if (!result?.success) {
@@ -73,7 +62,6 @@ function RegisterPage({
       <section className="auth-card">
         <h2 id="register-heading">{title}</h2>
         <p className="auth-card__subtitle">{subtitle}</p>
-        <p className="auth-card__hint">{roleHint}</p>
         {error && (
           <div className="auth-card__error" role="alert">
             {error}
@@ -125,21 +113,7 @@ function RegisterPage({
               required
             />
           </label>
-          <label htmlFor="register-role">
-            {roleLabel}
-            <select
-              id="register-role"
-              name="role"
-              value={formState.role}
-              onChange={handleChange}
-            >
-              {roleOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+     
           <button type="submit" className="auth-submit">
             {submitLabel}
           </button>
