@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import DroneDeliveryTracker from "../components/DroneDeliveryTracker.jsx";
 import "./OrderConfirmationPage.css";
 
 function OrderConfirmationPage({
@@ -45,6 +46,16 @@ function OrderConfirmationPage({
     "Cảm ơn bạn! Đơn hàng của bạn đã được ghi nhận. Đội ngũ FCO sẽ liên hệ để xác nhận trong ít phút.";
   const formErrorMessage =
     texts.errorMessage ?? "Không thể xác nhận đơn hàng. Vui lòng thử lại.";
+    const trackingTitle = texts.trackingTitle ?? "Theo dõi đơn hàng";
+  const trackingDescription =
+    texts.trackingDescription ??
+    "Drone giao hàng đang trên đường tới bạn. Bạn có thể xem vị trí và các mốc hành trình mới nhất.";
+  const trackingDistanceLabel = texts.trackingDistanceLabel ?? "Quãng đường";
+  const trackingEtaLabel = texts.trackingEtaLabel ?? "Dự kiến tới nơi";
+  const trackingDestinationLabel = texts.trackingDestinationLabel ?? "Điểm đến";
+  const trackingUpdatedLabel = texts.trackingUpdatedLabel ?? "Cập nhật cuối";
+  const trackingMinutesSuffix = texts.trackingMinutesSuffix ?? "phút";
+  const trackingStops = texts.trackingStops ?? null;
 
   const paymentOptions = texts.paymentOptions ?? [
     { value: "cash", label: "Tiền mặt khi nhận hàng" },
@@ -120,7 +131,16 @@ function OrderConfirmationPage({
   const deliveryDescription =
     deliveryDescriptions[deliveryOption] ?? deliveryDescriptions.today;
   const formatPrice = (value) => `${value}k`;
-
+ const estimatedDeliveryMinutes =
+    Number(activeOrder.estimatedDeliveryMinutes) ||
+    (deliveryOption === "today" ? 22 : 45);
+  const distanceKm = Number(activeOrder.distanceKm) || 4.6;
+  const deliveryProgress =
+    typeof activeOrder.deliveryProgress === "number"
+      ? activeOrder.deliveryProgress
+      : typeof activeOrder.progress === "number"
+        ? activeOrder.progress
+        : 0.32;
   const customerInfo = receipt?.customer ?? null;
   const safeCustomer = customerInfo
     ? {
@@ -223,6 +243,25 @@ function OrderConfirmationPage({
                   <strong>{addressLabel}:</strong> {safeCustomer?.address || "—"}
                 </li>
               </ul>
+            </div>
+              <div className="order-result__tracking">
+              <DroneDeliveryTracker
+                destination={safeCustomer?.address || formState.address || "—"}
+                distanceKm={distanceKm}
+                estimatedMinutes={estimatedDeliveryMinutes}
+                lastUpdate={receipt?.updatedAt ?? receipt?.confirmedAt ?? new Date()}
+                initialProgress={deliveryProgress}
+                routePoints={Array.isArray(trackingStops) ? trackingStops : undefined}
+                texts={{
+                  title: trackingTitle,
+                  description: trackingDescription,
+                  distanceLabel: trackingDistanceLabel,
+                  etaLabel: trackingEtaLabel,
+                  destinationLabel: trackingDestinationLabel,
+                  updatedLabel: trackingUpdatedLabel,
+                  minutesSuffix: trackingMinutesSuffix,
+                }}
+              />
             </div>
             <div className="order-result__actions">
               <button type="button" onClick={onBackHome} className="order-btn order-btn--primary">
