@@ -283,36 +283,57 @@
 }
 
 /* ===== Search ===== */
+/* ===== Search pill: icon absolute + input full width ===== */
 .location-search {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.2);
+  position: relative;                 /* để đặt icon absolute */
+  display: inline-block;              /* không bị co/kéo lạ trong flex parent */
+  width: 220px;                       /* đổi theo ý bạn */
+  height: 40px;                       /* “thon” chuẩn */
   border-radius: 999px;
-  padding: 6px 12px;         /* gọn hơn */
+  background: rgba(255, 255, 255, 0.22);
   backdrop-filter: blur(4px);
-  max-width: 200px;          /* giới hạn chiều rộng tổng thể */
-  flex-shrink: 0;            /* tránh co quá nhỏ */
+  border: 1px solid rgba(255,255,255,.25);
+  box-shadow: 0 6px 18px rgba(255, 90, 31, 0.18);
+  overflow: hidden;                   /* tránh text tràn */
 }
 
+/* icon kính lúp – cố định bên trái, canh giữa dọc */
+.location-search .search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  line-height: 1;
+  pointer-events: none;               /* click vào vẫn focus input */
+  color: rgba(255,255,255,.95);
+}
+
+/* input chiếm toàn bộ, padding-left để chừa chỗ cho icon */
 .location-search input {
+  position: absolute;
+  inset: 0;                           /* top/right/bottom/left: 0 */
+  width: 100%;
+  height: 100%;
+  padding: 0 14px 0 36px;             /* chừa 36px cho icon */
   border: none;
+  outline: none;
   background: transparent;
   color: #fff;
-  font-weight: 500;
-  outline: none;
-  width: 140px;              /* rút ngắn ô nhập */
-  min-width: unset;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 40px;                  /* căn giữa chữ theo chiều dọc */
 }
 
 .location-search input::placeholder {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255,255,255,0.92);
+  font-weight: 600;
 }
 
-.search-icon {
-  font-size: 1rem;
-  line-height: 1;
+/* tùy chọn: tự co trên màn nhỏ */
+@media (max-width: 768px) {
+  .location-search { width: clamp(240px, 60vw, 520px); height: 38px; }
+  .location-search input { line-height: 38px; }
 }
 
 /* ===== Cart ===== */
