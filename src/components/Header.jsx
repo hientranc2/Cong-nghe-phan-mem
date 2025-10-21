@@ -108,10 +108,7 @@ function Header({
           }}
         >
           <div className="brand-logo">FCO</div>
-          <div className="brand-text">
-            <h1>FCO FoodFast Delivery</h1>
-            <p>{brandTagline}</p>
-          </div>
+         
         </div>
 
         <nav className={`nav-links ${menuOpen ? "open" : ""}`}>

@@ -834,11 +834,7 @@ function App() {
         onNavigateHome={handleNavigateHome}
         onNavigateSection={handleNavigateSection}
         texts={content.header}
-        brandTagline={
-          content.header?.brandTagline ??
-          content.footer?.description ??
-          ""
-        }
+       
         language={language}
         onLanguageChange={setLanguage}
         user={currentUser}
