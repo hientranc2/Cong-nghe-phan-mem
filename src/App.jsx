@@ -307,7 +307,22 @@ function App() {
         return bTime - aTime;
       });
   }, [currentUser, orderHistory]);
+    const activeCustomerOrdersCount = useMemo(() => {
+    if (customerOrders.length === 0) {
+      return 0;
+    }
 
+    return customerOrders.filter((order) => {
+      const statusText = String(order.status ?? "").toLowerCase();
+      const isCancelled =
+        statusText.includes("hủy") ||
+        statusText.includes("huy") ||
+        statusText.includes("cancel") ||
+        Boolean(order.cancelledAt);
+
+      return !isCancelled;
+    }).length;
+  }, [customerOrders]);
   const canViewOrderHistory = useMemo(() => {
     if (!currentUser || currentUser.role !== "customer") {
       return false;
@@ -1100,7 +1115,7 @@ function App() {
         onLogout={handleLogout}
         onViewOrders={handleViewOrdersPage}
         canViewOrders={canViewOrderHistory}
-        orderCount={customerOrders.length}
+        orderCount={activeCustomerOrdersCount}
       />
       {pageContent}
       <Footer texts={content.footer} />
