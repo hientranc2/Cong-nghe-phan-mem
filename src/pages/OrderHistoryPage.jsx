@@ -6,6 +6,7 @@ function OrderHistoryPage({
   texts = {},
   onSelectOrder = () => {},
   onTrackOrder = () => {},
+  onCancelOrder = () => {},
   onBackHome = () => {},
 }) {
   const isCustomer = user?.role === "customer";
@@ -27,6 +28,9 @@ function OrderHistoryPage({
   const statusLabel = texts.statusLabel ?? "Trạng thái";
   const statusInTransit = texts.statusInTransit ?? "Đang giao";
   const statusCompleted = texts.statusCompleted ?? "Hoàn tất";
+   const statusCancelled = texts.statusCancelled ?? "Đã hủy";
+  const cancelLabel = texts.cancelLabel ?? "Hủy đơn hàng";
+  const cancelledLabel = texts.cancelledLabel ?? "Đã hủy";
   const unauthorizedMessage =
     texts.unauthorizedMessage ??
     "Vui lòng đăng nhập bằng tài khoản khách hàng để xem lịch sử đơn hàng.";
@@ -122,7 +126,10 @@ function OrderHistoryPage({
                   ? order.progress
                   : null;
             const canTrack = typeof progress === "number" ? progress < 1.01 : true;
-
+            const resolvedStatus = resolveStatus(order);
+            const isCompleted = resolvedStatus === statusCompleted;
+            const isCancelled = resolvedStatus === statusCancelled;
+            const canCancel = !isCompleted && !isCancelled;
             return (
               <li key={orderKey} className="order-history-card">
                 <div className="order-history-card__header">
@@ -132,8 +139,9 @@ function OrderHistoryPage({
                       {confirmedAtLabel}: {formatDateTime(confirmedAt)}
                     </span>
                   </div>
-                  <span className="order-history-status">{statusLabel}: {resolveStatus(order)}</span>
-                </div>
+                  <span className="order-history-status">
+                    {statusLabel}: {resolvedStatus}
+                  </span>                </div>
 
                 <div className="order-history-card__body">
                   <div className="order-history-items">
@@ -153,6 +161,15 @@ function OrderHistoryPage({
                 </div>
 
                 <div className="order-history-card__actions">
+                     <button
+                    type="button"
+                    className="order-history-btn order-history-btn--danger"
+                    onClick={() => onCancelOrder(orderId)}
+                    disabled={!canCancel}
+                    aria-disabled={!canCancel}
+                  >
+                    {canCancel ? cancelLabel : cancelledLabel}
+                  </button>
                   <button
                     type="button"
                     className="order-history-btn order-history-btn--ghost"

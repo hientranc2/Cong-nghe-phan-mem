@@ -155,6 +155,8 @@ export const contentByLanguage = {
       viewDetailsLabel: "Xem tóm tắt",
       trackLabel: "Theo dõi hành trình",
       trackDisabledLabel: "Đã hoàn tất",
+      cancelLabel: "Hủy đơn hàng",
+      cancelledLabel: "Đã hủy",
       backHomeLabel: "Về trang chủ",
       itemsLabel: "Món đã đặt",
       totalLabel: "Tổng thanh toán",
@@ -162,6 +164,8 @@ export const contentByLanguage = {
       statusLabel: "Trạng thái",
       statusInTransit: "Đang giao",
       statusCompleted: "Hoàn tất",
+     statusCancelled: "Đã hủy",
+
       unauthorizedMessage:
         "Vui lòng đăng nhập bằng tài khoản khách hàng để xem lịch sử đơn hàng.",
     },
@@ -394,6 +398,8 @@ export const contentByLanguage = {
       viewDetailsLabel: "View summary",
       trackLabel: "Track delivery",
       trackDisabledLabel: "Completed",
+       cancelLabel: "Cancel order",
+      cancelledLabel: "Cancelled",
       backHomeLabel: "Back to home",
       itemsLabel: "Items",
       totalLabel: "Grand total",
@@ -401,6 +407,8 @@ export const contentByLanguage = {
       statusLabel: "Status",
       statusInTransit: "In delivery",
       statusCompleted: "Completed",
+      statusCancelled: "Cancelled",
+
       unauthorizedMessage:
         "Please sign in with a customer account to view order history.",
     },

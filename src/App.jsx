@@ -913,6 +913,48 @@ function App() {
       window.location.hash = "/order-tracking";
     }
   };
+  const handleCancelOrderFromHistory = (orderId) => {
+    const order = customerOrders.find((entry) => entry.id === orderId);
+    if (!order) {
+      return;
+    }
+
+    setOrderHistory((prevHistory) =>
+      prevHistory.map((entry) => {
+        if (entry.id !== orderId) {
+          return entry;
+        }
+
+        const progress =
+          typeof entry.deliveryProgress === "number"
+            ? entry.deliveryProgress
+            : typeof entry.progress === "number"
+              ? entry.progress
+              : null;
+
+        const statusText = String(entry.status ?? "").toLowerCase();
+        const isCompleted =
+          (typeof progress === "number" && progress >= 0.99) ||
+          statusText.includes("hoàn") ||
+          statusText.includes("complete") ||
+          statusText.includes("done");
+        const isCancelled =
+          statusText.includes("hủy") ||
+          statusText.includes("huy") ||
+          statusText.includes("cancel");
+
+        if (isCompleted || isCancelled) {
+          return entry;
+        }
+
+        return {
+          ...entry,
+          status: orderHistoryTexts.statusCancelled ?? "Đã hủy",
+          cancelledAt: new Date().toISOString(),
+        };
+      })
+    );
+  };
 
   let pageContent;
 
@@ -1003,6 +1045,8 @@ function App() {
         texts={orderHistoryTexts}
         onSelectOrder={handleSelectOrderFromHistory}
         onTrackOrder={handleTrackOrderFromHistory}
+        onCancelOrder={handleCancelOrderFromHistory}
+
         onBackHome={handleNavigateHome}
       />
     );

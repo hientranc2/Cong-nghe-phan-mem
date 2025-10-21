@@ -128,7 +128,14 @@
   background: rgba(31, 27, 23, 0.08);
   color: #1f1b17;
 }
+.order-history-btn--danger {
+  background: rgba(215, 38, 61, 0.12);
+  color: #d7263d;
+}
 
+.order-history-btn--danger:hover:not(:disabled) {
+  box-shadow: 0 16px 34px rgba(215, 38, 61, 0.35);
+}
 .order-history-empty {
   margin: 80px auto 0;
   max-width: 520px;
