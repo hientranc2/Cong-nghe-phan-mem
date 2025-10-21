@@ -46,7 +46,11 @@ const parseDate = (value) => {
   return parsed;
 };
 
+const START_POINT = { x: 14, y: 74 };
+const END_POINT = { x: 86, y: 24 };
+
 function DroneDeliveryTracker({
+  origin = "Nhà hàng đối tác",
   destination = "Địa chỉ khách hàng",
   distanceKm = 4.2,
   estimatedMinutes = 18,
@@ -55,6 +59,10 @@ function DroneDeliveryTracker({
   initialProgress = 0.25,
   texts = {},
   autoAdvance = true,
+  statusMessage =
+    "Drone đang trên đường giao hàng. Hãy giữ điện thoại bên bạn để nhận hàng nhanh nhất.",
+  orderId = "—",
+  confirmedAt = null,
 }) {
   const {
     title = "Theo dõi hành trình drone",
@@ -64,6 +72,10 @@ function DroneDeliveryTracker({
     destinationLabel = "Điểm đến",
     updatedLabel = "Cập nhật cuối",
     minutesSuffix = "phút",
+    originLabel = "Nhà hàng",
+    orderLabel = "Mã đơn",
+    statusHeading = "Trạng thái",
+    confirmedLabel = "Đã xác nhận",
   } = texts;
 
   const safeRoute = routePoints.length > 1 ? routePoints : DEFAULT_ROUTE;
@@ -96,55 +108,57 @@ function DroneDeliveryTracker({
     return () => clearInterval(id);
   }, [estimatedMinutes, autoAdvance]);
 
-  const positions = useMemo(() => {
-    if (safeRoute.length === 0) {
-      return [];
-    }
-
-    if (safeRoute.length === 1) {
-      return [{ x: 50, y: 50 }];
-    }
-
-    return safeRoute.map((_, index) => {
-      const ratio = index / (safeRoute.length - 1);
-      const x = 10 + ratio * 80;
-      const y = index % 2 === 0 ? 30 : 70;
+  const routeSamples = useMemo(() => {
+    const segments = 48;
+    return Array.from({ length: segments + 1 }, (_, index) => {
+      const ratio = index / segments;
+      const wobble = Math.sin(ratio * Math.PI * 1.35) * 5.5;
+      const curvature = Math.sin(ratio * Math.PI) * 22;
+      const x = START_POINT.x + (END_POINT.x - START_POINT.x) * ratio + wobble;
+      const y = START_POINT.y + (END_POINT.y - START_POINT.y) * ratio - curvature;
       return { x, y };
     });
-  }, [safeRoute]);
+  }, []);
+
+  const positions = useMemo(() => {
+    const count = Math.max(safeRoute.length, 2);
+    return Array.from({ length: count }, (_, index) => {
+      const ratio = index / (count - 1);
+      const wobble = Math.sin(ratio * Math.PI * 1.2) * 4;
+      const curvature = Math.sin(ratio * Math.PI) * 20;
+      const x = START_POINT.x + (END_POINT.x - START_POINT.x) * ratio + wobble;
+      const y = START_POINT.y + (END_POINT.y - START_POINT.y) * ratio - curvature;
+      return { x, y };
+    });
+  }, [safeRoute.length]);
 
   const pathD = useMemo(() => {
-    if (positions.length === 0) {
+    if (routeSamples.length === 0) {
       return "";
     }
 
-    const [first, ...rest] = positions;
+    const [first, ...rest] = routeSamples;
     const commands = rest.map((point) => `L ${point.x} ${point.y}`);
     return [`M ${first.x} ${first.y}`, ...commands].join(" ");
-  }, [positions]);
+  }, [routeSamples]);
 
   const dronePosition = useMemo(() => {
-    if (positions.length === 0) {
+    if (routeSamples.length === 0) {
       return { x: 50, y: 50 };
     }
-    if (positions.length === 1) {
-      return positions[0];
-    }
 
-    const segmentCount = positions.length - 1;
     const safeProgress = clamp(progress, 0, 0.999);
-    const exact = safeProgress * segmentCount;
-    const segmentIndex = Math.min(segmentCount - 1, Math.floor(exact));
-    const localProgress = exact - segmentIndex;
-
-    const start = positions[segmentIndex];
-    const end = positions[segmentIndex + 1];
+    const exact = safeProgress * (routeSamples.length - 1);
+    const index = Math.floor(exact);
+    const localProgress = exact - index;
+    const start = routeSamples[index];
+    const end = routeSamples[Math.min(routeSamples.length - 1, index + 1)];
 
     return {
       x: start.x + (end.x - start.x) * localProgress,
       y: start.y + (end.y - start.y) * localProgress,
     };
-  }, [positions, progress]);
+  }, [routeSamples, progress]);
 
   const statuses = useMemo(() => {
     const denominator = Math.max(safeRoute.length - 1, 1);
@@ -167,6 +181,12 @@ function DroneDeliveryTracker({
     () => timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     [timestamp],
   );
+  const formattedConfirmedAt = useMemo(() => {
+    if (!confirmedAt) {
+      return null;
+    }
+    return parseDate(confirmedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }, [confirmedAt]);
 
   return (
     <section className="order-tracking" aria-label={title} id="tracking">
@@ -181,6 +201,14 @@ function DroneDeliveryTracker({
               <stop offset="0%" stopColor="rgba(255, 255, 255, 0.95)" />
               <stop offset="100%" stopColor="rgba(255, 90, 31, 0.35)" />
             </radialGradient>
+            <radialGradient id="trackingOriginGradient" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="rgba(255, 255, 255, 0.95)" />
+              <stop offset="100%" stopColor="rgba(31, 138, 112, 0.4)" />
+            </radialGradient>
+            <radialGradient id="trackingDestinationGradient" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="rgba(255, 255, 255, 0.95)" />
+              <stop offset="100%" stopColor="rgba(255, 90, 31, 0.5)" />
+            </radialGradient>
           </defs>
           {pathD && (
             <path d={pathD} fill="none" stroke="url(#trackingPathGradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="tracking-map__route" />
@@ -190,7 +218,23 @@ function DroneDeliveryTracker({
               <circle cx={point.x} cy={point.y} r={4.8} fill="url(#trackingPointGradient)" stroke="rgba(255, 90, 31, 0.65)" strokeWidth="0.8" />
             </g>
           ))}
+          <circle cx={START_POINT.x} cy={START_POINT.y} r={6} fill="url(#trackingOriginGradient)" stroke="rgba(31, 138, 112, 0.6)" strokeWidth="1" />
+          <circle cx={END_POINT.x} cy={END_POINT.y} r={6.4} fill="url(#trackingDestinationGradient)" stroke="rgba(255, 90, 31, 0.6)" strokeWidth="1" />
         </svg>
+        <div
+          className="tracking-map__landmark tracking-map__landmark--origin"
+          style={{ left: `${START_POINT.x}%`, top: `${START_POINT.y}%` }}
+        >
+          <span aria-hidden="true">🍽️</span>
+          <span>{origin}</span>
+        </div>
+        <div
+          className="tracking-map__landmark tracking-map__landmark--destination"
+          style={{ left: `${END_POINT.x}%`, top: `${END_POINT.y}%` }}
+        >
+          <span aria-hidden="true">📍</span>
+          <span>{destination}</span>
+        </div>
         <div
           className="tracking-map__drone"
           style={{ left: `${dronePosition.x}%`, top: `${dronePosition.y}%` }}
@@ -208,6 +252,24 @@ function DroneDeliveryTracker({
           <h4>{title}</h4>
           <p>{description}</p>
         </header>
+        <div className="tracking-status-card">
+          <div className="tracking-status-card__meta">
+            <div>
+              <span className="tracking-status-card__label">{orderLabel}</span>
+              <strong className="tracking-status-card__value">{orderId}</strong>
+            </div>
+            {confirmedAt && formattedConfirmedAt && (
+              <div>
+                <span className="tracking-status-card__label">{confirmedLabel}</span>
+                <time className="tracking-status-card__value">{formattedConfirmedAt}</time>
+              </div>
+            )}
+          </div>
+          <div className="tracking-status-card__message">
+            <h5>{statusHeading}</h5>
+            <p>{statusMessage}</p>
+          </div>
+        </div>
         <dl className="tracking-stats">
           <div>
             <dt>{distanceLabel}</dt>
@@ -222,6 +284,10 @@ function DroneDeliveryTracker({
             <dd>{formattedUpdatedAt}</dd>
           </div>
         </dl>
+        <div className="tracking-destination tracking-destination--origin">
+          <span className="tracking-destination__label">{originLabel}</span>
+          <span className="tracking-destination__value">{origin}</span>
+        </div>
         <div className="tracking-destination">
           <span className="tracking-destination__label">{destinationLabel}</span>
           <span className="tracking-destination__value">{destination}</span>
