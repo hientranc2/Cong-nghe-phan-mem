@@ -1,0 +1,468 @@
+:root {
+  color-scheme: light dark;
+}
+
+.admin-shell {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  min-height: 100vh;
+  background: radial-gradient(circle at top left, #172237 0%, #0b0f19 45%, #06070f 100%);
+  color: #eef2ff;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+.admin-sidebar {
+  background: rgba(12, 18, 32, 0.9);
+  backdrop-filter: blur(24px);
+  border-right: 1px solid rgba(126, 144, 255, 0.15);
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.brand .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 12px;
+  background: linear-gradient(120deg, #58ff9a, #46ccff);
+  box-shadow: 0 0 12px rgba(70, 204, 255, 0.6);
+}
+
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sidebar-section.compact {
+  gap: 12px;
+}
+
+.sidebar-label {
+  color: rgba(238, 242, 255, 0.48);
+  font-size: 0.8rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.admin-sidebar nav {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-sidebar a {
+  display: block;
+  padding: 10px 14px;
+  border-radius: 12px;
+  color: rgba(238, 242, 255, 0.72);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.admin-sidebar a:hover,
+.admin-sidebar a.active {
+  background: rgba(88, 255, 154, 0.12);
+  color: #ffffff;
+}
+
+.admin-sidebar button {
+  background: rgba(88, 255, 154, 0.16);
+  color: #e7ffee;
+  border: 1px solid rgba(88, 255, 154, 0.35);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.admin-sidebar button:hover {
+  background: rgba(88, 255, 154, 0.28);
+  transform: translateY(-1px);
+}
+
+.admin-main {
+  padding: 40px 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+}
+
+.admin-header h1 {
+  margin: 0;
+  font-size: 2rem;
+  letter-spacing: -0.02em;
+}
+
+.admin-header p {
+  margin: 6px 0 0;
+  color: rgba(238, 242, 255, 0.58);
+}
+
+.search-box input {
+  background: rgba(11, 15, 25, 0.7);
+  border: 1px solid rgba(88, 255, 154, 0.2);
+  border-radius: 14px;
+  padding: 12px 16px;
+  min-width: 280px;
+  color: inherit;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+.metric-card {
+  background: linear-gradient(135deg, rgba(88, 255, 154, 0.18), rgba(70, 204, 255, 0.12));
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid rgba(70, 204, 255, 0.2);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.metric-label {
+  color: rgba(238, 242, 255, 0.65);
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.metric-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.collection {
+  background: rgba(10, 15, 26, 0.78);
+  border-radius: 24px;
+  padding: 28px;
+  border: 1px solid rgba(70, 204, 255, 0.2);
+  box-shadow: 0 18px 44px rgba(5, 9, 18, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.collection-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+}
+
+.collection-heading h2 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.collection-heading p {
+  margin: 8px 0 0;
+  color: rgba(238, 242, 255, 0.55);
+}
+
+.collection-heading button {
+  background: rgba(70, 204, 255, 0.18);
+  border: 1px solid rgba(70, 204, 255, 0.35);
+  padding: 10px 18px;
+  border-radius: 12px;
+  color: #f0f6ff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.collection-heading button:hover {
+  background: rgba(70, 204, 255, 0.32);
+}
+
+.table-wrapper {
+  border-radius: 20px;
+  border: 1px solid rgba(238, 242, 255, 0.08);
+  overflow: hidden;
+  background: rgba(6, 10, 18, 0.78);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+thead {
+  background: rgba(12, 18, 30, 0.85);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.78rem;
+}
+
+thead th {
+  text-align: left;
+  padding: 14px 18px;
+  color: rgba(238, 242, 255, 0.58);
+}
+
+tbody td {
+  padding: 16px 18px;
+  border-top: 1px solid rgba(238, 242, 255, 0.05);
+}
+
+tbody tr:hover {
+  background: rgba(88, 255, 154, 0.06);
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: rgba(70, 204, 255, 0.16);
+  border: 1px solid rgba(70, 204, 255, 0.35);
+  color: #b8dcff;
+}
+
+.status-active {
+  background: rgba(88, 255, 154, 0.18);
+  border-color: rgba(88, 255, 154, 0.45);
+  color: #d9ffe5;
+}
+
+.status-inactive {
+  background: rgba(255, 149, 128, 0.14);
+  border-color: rgba(255, 149, 128, 0.35);
+  color: #ffd0c7;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.actions button {
+  background: rgba(70, 204, 255, 0.14);
+  border: 1px solid rgba(70, 204, 255, 0.38);
+  border-radius: 10px;
+  padding: 6px 12px;
+  color: inherit;
+  cursor: pointer;
+}
+
+.actions button:hover {
+  background: rgba(70, 204, 255, 0.28);
+}
+
+.actions .danger {
+  background: rgba(255, 88, 139, 0.14);
+  border-color: rgba(255, 88, 139, 0.35);
+}
+
+.actions .danger:hover {
+  background: rgba(255, 88, 139, 0.24);
+}
+
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 6, 12, 0.76);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  z-index: 20;
+}
+
+.drawer {
+  width: min(520px, 100%);
+  max-height: min(640px, 100%);
+  background: rgba(6, 10, 18, 0.96);
+  border-radius: 24px;
+  border: 1px solid rgba(70, 204, 255, 0.25);
+  box-shadow: 0 24px 80px rgba(3, 8, 20, 0.7);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.drawer-header {
+  padding: 24px 28px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.drawer-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.drawer-header p {
+  margin: 8px 0 0;
+  color: rgba(238, 242, 255, 0.6);
+}
+
+.drawer-header .icon {
+  background: none;
+  border: none;
+  color: rgba(238, 242, 255, 0.6);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.drawer-content {
+  padding: 0 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  overflow-y: auto;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+}
+
+input,
+select,
+textarea {
+  background: rgba(12, 18, 30, 0.8);
+  border: 1px solid rgba(70, 204, 255, 0.25);
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: inherit;
+  font: inherit;
+  resize: vertical;
+}
+
+textarea {
+  min-height: 88px;
+}
+
+.toggle {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.toggle input {
+  width: 18px;
+  height: 18px;
+}
+
+.drawer-footer {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.drawer-footer button {
+  background: rgba(70, 204, 255, 0.14);
+  border: 1px solid rgba(70, 204, 255, 0.32);
+  padding: 10px 18px;
+  border-radius: 12px;
+  color: inherit;
+  cursor: pointer;
+}
+
+.drawer-footer button.primary {
+  background: rgba(88, 255, 154, 0.18);
+  border-color: rgba(88, 255, 154, 0.45);
+}
+
+.drawer-footer button.primary:hover {
+  background: rgba(88, 255, 154, 0.3);
+}
+
+.empty {
+  text-align: center;
+  padding: 24px;
+  color: rgba(238, 242, 255, 0.45);
+}
+
+@media (max-width: 1080px) {
+  .admin-shell {
+    grid-template-columns: 220px 1fr;
+  }
+
+  .admin-main {
+    padding: 32px;
+  }
+}
+
+@media (max-width: 880px) {
+  .admin-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-sidebar {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .admin-main {
+    padding: 28px;
+  }
+
+  .admin-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-main {
+    padding: 24px 16px;
+  }
+
+  .collection {
+    padding: 20px;
+  }
+
+  .collection-heading {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .search-box input {
+    width: 100%;
+    min-width: 0;
+  }
+}

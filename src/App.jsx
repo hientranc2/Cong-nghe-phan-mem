@@ -12,7 +12,7 @@ import RegisterPage from "./pages/RegisterPage";
 import OrderConfirmationPage from "./pages/OrderConfirmationPage";
 import OrderTrackingPage from "./pages/OrderTrackingPage.jsx";
 import OrderHistoryPage from "./pages/OrderHistoryPage.jsx";
-import AdminDashboard from "./pages/AdminDashboard";
+import AdminDashboard from "./admin/AdminDashboard";
 import RestaurantDashboard from "./pages/RestaurantDashboard";
 import { categories as categoryData, menuItems } from "./data/menuData";
 import { contentByLanguage } from "./i18n/translations";
@@ -362,7 +362,6 @@ function App() {
   const orderConfirmationTexts =
     content.orderConfirmation ?? content.auth?.orderConfirmation ?? {};
   const orderHistoryTexts = content.orderHistory ?? {};
-  const adminTexts = content.admin ?? {};
   const restaurantTexts = content.restaurant ?? {};
 
   const scrollToSection = (sectionId) => {
@@ -1065,14 +1064,6 @@ function App() {
         onBackHome={handleNavigateHome}
       />
     );
-  } else if (view.type === "admin") {
-    pageContent = (
-      <AdminDashboard
-        user={currentUser}
-        texts={adminTexts}
-        onBackHome={handleNavigateHome}
-      />
-    );
   } else if (view.type === "restaurant") {
     pageContent = (
       <RestaurantDashboard
@@ -1097,6 +1088,10 @@ function App() {
         menuLabels={content.menuLabels}
       />
     );
+  }
+
+  if (view.type === "admin") {
+    return <AdminDashboard />;
   }
 
   return (
