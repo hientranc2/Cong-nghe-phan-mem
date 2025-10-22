@@ -356,6 +356,10 @@ main {
   flex-shrink: 0;
 }
 
+.checkout-item--no-image {
+  gap: 0;
+}
+
 .checkout-item__info {
   display: flex;
   flex-direction: column;
@@ -1040,6 +1044,10 @@ main {
   object-fit: cover;
   border-radius: 18px;
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.12);
+}
+
+.cart-item--no-image {
+  grid-template-columns: 1fr auto;
 }
 
 .cart-item__info {

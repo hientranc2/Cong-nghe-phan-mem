@@ -59,6 +59,16 @@ const mergeUsersByEmail = (users = []) => {
   return Array.from(byEmail.values());
 };
 
+const slugify = (value = "") =>
+  value
+    .normalize("NFD")
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
 const parseViewFromHash = () => {
   if (typeof window === "undefined") {
     return { type: "home" };
@@ -354,7 +364,34 @@ function App() {
     [translatedMenuItems]
   );
 
-  const combos = content.combos ?? [];
+  const combos = useMemo(() => {
+    const rawCombos = content.combos ?? [];
+
+    return rawCombos.map((combo, index) => {
+      const safeName = combo.name ?? `Combo ${index + 1}`;
+      const generatedId = slugify(safeName);
+      const id =
+        combo.id ??
+        (generatedId ? `combo-${generatedId}` : `combo-${index + 1}`);
+      const description = combo.desc ?? combo.description ?? "";
+      const price =
+        typeof combo.price === "number"
+          ? combo.price
+          : Number.parseFloat(combo.price) || 0;
+      const image = combo.img ?? combo.image ?? null;
+
+      return {
+        ...combo,
+        id,
+        name: safeName,
+        desc: description,
+        description,
+        price,
+        img: image,
+        type: combo.type ?? "combo",
+      };
+    });
+  }, [content.combos]);
   const promotions = content.promotions ?? [];
   const stats = content.stats ?? [];
   const loginTexts = content.login ?? content.auth?.login ?? {};
