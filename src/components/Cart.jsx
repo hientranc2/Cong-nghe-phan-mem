@@ -42,25 +42,35 @@ function Cart({ cart, removeFromCart, onClose, onCheckout, texts = {} }) {
             </div>
           ) : (
             <ul className="cart-list">
-              {cart.map((item) => (
-                <li key={item.id} className="cart-item">
-                  <img src={item.img} alt={item.name} />
-                  <div className="cart-item__info">
-                    <p className="cart-item__name">{item.name}</p>
-                    <p className="cart-item__meta">
-                      {quantityLabel}: x{item.quantity}
-                    </p>
-                  </div>
-                  <p className="cart-item__price">{item.price * item.quantity}k</p>
-                  <button
-                    type="button"
-                    className="cart-item__remove"
-                    onClick={() => removeFromCart(item.id)}
+              {cart.map((item) => {
+                const itemImage = item.img ?? item.image ?? null;
+                const hasImage = Boolean(itemImage);
+
+                return (
+                  <li
+                    key={item.id}
+                    className={`cart-item${hasImage ? "" : " cart-item--no-image"}`}
                   >
-                    {removeLabel}
-                  </button>
-                </li>
-              ))}
+                    {hasImage && <img src={itemImage} alt={item.name} />}
+                    <div className="cart-item__info">
+                      <p className="cart-item__name">{item.name}</p>
+                      <p className="cart-item__meta">
+                        {quantityLabel}: x{item.quantity}
+                      </p>
+                    </div>
+                    <p className="cart-item__price">
+                      {item.price * item.quantity}k
+                    </p>
+                    <button
+                      type="button"
+                      className="cart-item__remove"
+                      onClick={() => removeFromCart(item.id)}
+                    >
+                      {removeLabel}
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>

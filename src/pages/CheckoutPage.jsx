@@ -142,47 +142,60 @@ function CheckoutPage({
                   </tr>
                 </thead>
                 <tbody>
-                  {cart.map((item) => (
-                    <tr key={item.id}>
-                      <td>
-                        <div className="checkout-item">
-                          <img src={item.img} alt={item.name} loading="lazy" />
-                          <div className="checkout-item__info">
-                            <p className="checkout-item__name">{item.name}</p>
-                            <p className="checkout-item__desc">{item.description}</p>
+                  {cart.map((item) => {
+                    const itemImage = item.img ?? item.image ?? null;
+                    const hasImage = Boolean(itemImage);
+
+                    return (
+                      <tr key={item.id}>
+                        <td>
+                          <div
+                            className={`checkout-item${hasImage ? "" : " checkout-item--no-image"}`}
+                          >
+                            {hasImage && (
+                              <img
+                                src={itemImage}
+                                alt={item.name}
+                                loading="lazy"
+                              />
+                            )}
+                            <div className="checkout-item__info">
+                              <p className="checkout-item__name">{item.name}</p>
+                              <p className="checkout-item__desc">{item.description}</p>
+                              <button
+                                type="button"
+                                className="checkout-item__remove"
+                                onClick={() => removeFromCart(item.id)}
+                              >
+                                {removeLabel}
+                              </button>
+                            </div>
+                          </div>
+                        </td>
+                        <td>{formatPrice(item.price)}</td>
+                        <td>
+                          <div className="checkout-quantity">
                             <button
                               type="button"
-                              className="checkout-item__remove"
-                              onClick={() => removeFromCart(item.id)}
+                              onClick={() => handleDecreaseQuantity(item)}
+                              aria-label={`${quantityHeader} minus`}
                             >
-                              {removeLabel}
+                              −
+                            </button>
+                            <span>{item.quantity}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleIncreaseQuantity(item)}
+                              aria-label={`${quantityHeader} plus`}
+                            >
+                              +
                             </button>
                           </div>
-                        </div>
-                      </td>
-                      <td>{formatPrice(item.price)}</td>
-                      <td>
-                        <div className="checkout-quantity">
-                          <button
-                            type="button"
-                            onClick={() => handleDecreaseQuantity(item)}
-                            aria-label={`${quantityHeader} minus`}
-                          >
-                            −
-                          </button>
-                          <span>{item.quantity}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleIncreaseQuantity(item)}
-                            aria-label={`${quantityHeader} plus`}
-                          >
-                            +
-                          </button>
-                        </div>
-                      </td>
-                      <td>{formatPrice(item.price * item.quantity)}</td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td>{formatPrice(item.price * item.quantity)}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

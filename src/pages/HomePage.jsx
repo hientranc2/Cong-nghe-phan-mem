@@ -132,7 +132,9 @@ function HomePage({
               <p>{combo.desc}</p>
               <div className="combo-footer">
                 <span>{combo.price}k</span>
-                <button type="button">{comboButton}</button>
+                <button type="button" onClick={() => addToCart(combo)}>
+                  {comboButton}
+                </button>
               </div>
             </article>
           ))}
