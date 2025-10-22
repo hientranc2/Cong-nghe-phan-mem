@@ -1061,14 +1061,7 @@ function App() {
         onTrackOrder={handleTrackOrderFromHistory}
         onCancelOrder={handleCancelOrderFromHistory}
 
-        onBackHome={handleNavigateHome}
-      />
-    );
-  } else if (view.type === "restaurant") {
-    pageContent = (
-      <RestaurantDashboard
-        user={currentUser}
-        texts={restaurantTexts}
+        
         onBackHome={handleNavigateHome}
       />
     );
@@ -1093,7 +1086,15 @@ function App() {
   if (view.type === "admin") {
     return <AdminDashboard />;
   }
-
+  if (view.type === "restaurant") {
+    return (
+      <RestaurantDashboard
+        user={currentUser}
+        texts={restaurantTexts}
+        onBackHome={handleNavigateHome}
+      />
+    );
+  }
   return (
     <div className="app">
       <Header
