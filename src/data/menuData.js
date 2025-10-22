@@ -1,3 +1,20 @@
+import pizzaPhoMai from "../assets/pizzaphomai.jpg"; 
+import bery from "../assets/bery.jpg";
+import burger from "../assets/burger.jpg";
+import camxa from "../assets/camxa.jpg";
+import canhgabo from "../assets/canhgabo.jpg";
+import cheese from "../assets/cheese.jpg";
+import expresso from "../assets/expresso.jpg";
+import garancay from "../assets/garancay.jpg";
+import gavien from "../assets/gavien.jpg";
+import haisan from "../assets/haisan.jpg";
+import matcha from "../assets/matcha.jpg";
+import phomaixanh from "../assets/phomaixanh.jpg";
+import pizzanam from "../assets/pizzanam.jpg";
+import raucu from "../assets/raucu.jpg";
+import tacos from "../assets/tacos.jpg";
+import tomchien from "../assets/tomchien.jpg";
+import tradao from "../assets/tradao.jpg";
 export const categories = [
   {
     id: "cat-burger",
@@ -138,7 +155,7 @@ export const menuItems = [
     name: "Burger Nấm Truffle",
     description: "Thịt bò Úc kết hợp sốt kem nấm truffle và phô mai gruyere nhập khẩu.",
     price: 95,
-    img: "https://images.unsplash.com/photo-1606755962773-0e7d4c90924c?auto=format&fit=crop&w=800&q=80",
+    img: burger,
     calories: 610,
     time: 14,
     tag: "Chef's Choice",
@@ -164,7 +181,7 @@ export const menuItems = [
     name: "Burger Rau Củ Sốt Miso",
     description: "Patty đậu gà, rau củ nướng và sốt miso ngọt mặn dành cho thực khách eat clean.",
     price: 72,
-    img: "https://images.unsplash.com/photo-1550317138-10000687a72b?auto=format&fit=crop&w=800&q=80",
+    img: raucu,
     calories: 430,
     time: 11,
     tag: "Eat Clean",
@@ -190,7 +207,7 @@ export const menuItems = [
     name: "Pizza Phô Mai Lava",
     description: "Đế mỏng kiểu Ý, phủ phô mai mozzarella lava và pepperoni cay.",
     price: 119,
-    img: "https://images.unsplash.com/photo-1600628422019-90c75f062526?auto=format&fit=crop&w=800&q=80",
+    img: pizzaPhoMai,
     calories: 730,
     time: 15,
     tag: "FCO Signature",
@@ -216,7 +233,7 @@ export const menuItems = [
     name: "Pizza Hải Sản Đặc Biệt",
     description: "Tôm, mực và nghêu tươi với sốt kem tỏi và phô mai parmesan.",
     price: 135,
-    img: "https://images.unsplash.com/photo-1548366086-7f1abaa0f4b4?auto=format&fit=crop&w=800&q=80",
+    img: haisan,
     calories: 690,
     time: 16,
     tag: "Premium",
@@ -268,7 +285,7 @@ export const menuItems = [
     name: "Gà Rán Cay Đậm",
     description: "Gà rán sốt cay Nashville, phục vụ cùng salad bắp cải và khoai tây nghiền.",
     price: 82,
-    img: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=800&q=80",
+    img: garancay,
     calories: 610,
     time: 10,
     tag: "Hot",
@@ -294,7 +311,7 @@ export const menuItems = [
     name: "Cánh Gà Mật Ong Bơ",
     description: "Cánh gà chiên giòn phủ sốt mật ong bơ và mè rang thơm lừng.",
     price: 75,
-    img: "https://images.unsplash.com/photo-1517940310602-26535839fe91?auto=format&fit=crop&w=800&q=80",
+    img: canhgabo,
     calories: 520,
     time: 9,
     tag: "Sweet & Spicy",
@@ -320,7 +337,7 @@ export const menuItems = [
     name: "Taco Fiesta Mexico",
     description: "Taco bò kéo sợi, salsa xoài và sốt kem chua đặc biệt của FCO.",
     price: 65,
-    img: "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80",
+    img: tacos,
     calories: 450,
     time: 9,
     tag: "Món mới",
@@ -372,7 +389,7 @@ export const menuItems = [
     name: "Cold Brew Cam Sả",
     description: "Cold brew ủ lạnh 18h kết hợp syrup cam sả và đá viên đặc biệt.",
     price: 58,
-    img: "https://images.unsplash.com/photo-1527169402691-876a38310f5f?auto=format&fit=crop&w=800&q=80",
+    img: camxa,
     calories: 90,
     time: 4,
     tag: "Limited",
@@ -398,7 +415,7 @@ export const menuItems = [
     name: "Soda Berry Garden",
     description: "Soda việt quất, dâu tằm và bạc hà tươi giúp giải nhiệt tức thì.",
     price: 45,
-    img: "https://images.unsplash.com/photo-1527169402700-6209d58cf10a?auto=format&fit=crop&w=800&q=80",
+    img: bery,
     calories: 150,
     time: 2,
     tag: "Refreshing",
@@ -450,7 +467,7 @@ export const menuItems = [
     name: "Burger Phô Mai Xanh",
     description: "Burger bò Úc phủ phô mai xanh, hành tím ngâm và sốt mật ong cay.",
     price: 88,
-    img: "https://images.unsplash.com/photo-1526139495367-6105411b8a51?auto=format&fit=crop&w=800&q=80",
+    img: phomaixanh,
     calories: 600,
     time: 12,
     tag: "Gourmet",
@@ -476,7 +493,7 @@ export const menuItems = [
     name: "Double Cheese Smash",
     description: "Hai lớp bò smash, phô mai cheddar đôi và sốt tỏi nướng.",
     price: 89,
-    img: "https://images.unsplash.com/photo-1612874472184-02475d82c7b7?auto=format&fit=crop&w=800&q=80",
+    img: cheese,
     calories: 720,
     time: 15,
     tag: "Double",
@@ -554,7 +571,7 @@ export const menuItems = [
     name: "Pizza Truffle Rừng",
     description: "Nấm rừng, dầu truffle đen và ricotta tươi.",
     price: 145,
-    img: "https://images.unsplash.com/photo-1541746972996-4e0b0f43e02a?auto=format&fit=crop&w=800&q=80",
+    img: pizzanam,
     calories: 650,
     time: 18,
     tag: "Chef's pick",
@@ -603,7 +620,7 @@ export const menuItems = [
     name: "Gà Viên Popcorn",
     description: "Gà popcorn chiên giòn, áo sốt mayo mật ong và tiêu hồng.",
     price: 68,
-    img: "https://images.unsplash.com/photo-1588166746301-cc3f5c38de4b?auto=format&fit=crop&w=800&q=80",
+    img: gavien,
     calories: 480,
     time: 8,
     tag: "Kid's pick",
@@ -629,7 +646,7 @@ export const menuItems = [
     name: "Tôm Tempura Sốt Ponzu",
     description: "Tôm chiên tempura, sốt ponzu cam và mè rang.",
     price: 92,
-    img: "https://images.unsplash.com/photo-1548943487-a2e4e43b4853?auto=format&fit=crop&w=800&q=80",
+    img: tomchien,
     calories: 510,
     time: 9,
     tag: "Premium",
@@ -654,7 +671,7 @@ export const menuItems = [
     name: "Trà Đào Cam Sả",
     description: "Trà đen ủ lạnh, đào vàng, cam tươi và sả thơm.",
     price: 42,
-    img: "https://images.unsplash.com/photo-1527169402691-feff5539e52c?auto=format&fit=crop&w=800&q=80",
+    img: tradao,
     calories: 120,
     time: 4,
     tag: "Best seller",
@@ -679,7 +696,7 @@ export const menuItems = [
     name: "Matcha Dừa Kem Sữa",
     description: "Matcha Nhật, sữa dừa và lớp kem cheese mặn ngọt.",
     price: 55,
-    img: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=800&q=80",
+    img: matcha,
     calories: 240,
     time: 5,
     tag: "Creamy",
@@ -704,7 +721,7 @@ export const menuItems = [
     name: "Espresso Tonic Citrus",
     description: "Espresso rang đậm, tonic và syrup quýt tươi.",
     price: 62,
-    img: "https://images.unsplash.com/photo-1587731359975-81f1e87d21b4?auto=format&fit=crop&w=800&q=80",
+    img: expresso,
     calories: 95,
     time: 3,
     tag: "Signature",
