@@ -92,6 +92,15 @@ const EMPTY_DISH_FORM = {
   tag: "",
 };
 
+const EMPTY_ORDER_FORM = {
+  customer: "",
+  items: "",
+  total: "",
+  status: "Chờ xác nhận",
+  placedAt: "",
+  address: "",
+};
+
 const STATUS_VARIANTS = {
   "đang giao": "info",
   "chuẩn bị": "warning",
@@ -138,19 +147,6 @@ const formatDateTime = (value) => {
   return `${day} • ${time}`;
 };
 
-const isToday = (value) => {
-  if (!value) return false;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return false;
-
-  const now = new Date();
-  return (
-    date.getFullYear() === now.getFullYear() &&
-    date.getMonth() === now.getMonth() &&
-    date.getDate() === now.getDate()
-  );
-};
-
 const isSameMonth = (value, reference = new Date()) => {
   if (!value) return false;
   const date = new Date(value);
@@ -182,6 +178,25 @@ const normalizeOrder = (order, index) => ({
   address: order?.address || "",
 });
 
+const parseDate = (value) => {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date;
+};
+
+const isSameDay = (value, reference) => {
+  const date = parseDate(value);
+  const referenceDate = parseDate(reference);
+  if (!date || !referenceDate) return false;
+
+  return (
+    date.getFullYear() === referenceDate.getFullYear() &&
+    date.getMonth() === referenceDate.getMonth() &&
+    date.getDate() === referenceDate.getDate()
+  );
+};
+
 function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} }) {
   const [activeTab, setActiveTab] = useState("overview");
   const [menuItems, setMenuItems] = useState(() => {
@@ -190,7 +205,7 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
     }
     return DEFAULT_MENU_ITEMS;
   });
-  const [orders] = useState(() => {
+  const [orders, setOrders] = useState(() => {
     if (Array.isArray(texts.orders) && texts.orders.length > 0) {
       return texts.orders.map(normalizeOrder);
     }
@@ -199,6 +214,9 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [dishForm, setDishForm] = useState(EMPTY_DISH_FORM);
   const [editingDishId, setEditingDishId] = useState(null);
+  const [isOrderFormVisible, setIsOrderFormVisible] = useState(false);
+  const [orderForm, setOrderForm] = useState(EMPTY_ORDER_FORM);
+  const [editingOrderId, setEditingOrderId] = useState(null);
 
   const navigationTexts = {
     overview: texts.navigation?.overview ?? "Tổng quan",
@@ -265,6 +283,8 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
       texts.orders?.description ??
       "Theo dõi trạng thái các đơn hàng gần đây tương tự bảng điều khiển admin.",
     empty: texts.orders?.empty ?? "Hiện chưa có đơn hàng nào.",
+    addButton: texts.orders?.addButton ?? "Thêm đơn",
+    confirmDelete: texts.orders?.confirmDelete ?? "Bạn có chắc muốn xóa đơn hàng này?",
     columns: {
       id: texts.orders?.columns?.id ?? "Mã đơn",
       customer: texts.orders?.columns?.customer ?? "Khách hàng",
@@ -272,6 +292,33 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
       total: texts.orders?.columns?.total ?? "Tổng tiền",
       status: texts.orders?.columns?.status ?? "Trạng thái",
       placedAt: texts.orders?.columns?.placedAt ?? "Thời gian",
+    },
+    actions: {
+      edit: texts.orders?.actions?.edit ?? "Sửa",
+      delete: texts.orders?.actions?.delete ?? "Xóa",
+    },
+    actionsLabel: texts.orders?.actionsLabel ?? "Hành động",
+    form: {
+      titleCreate: texts.orders?.form?.titleCreate ?? "Tạo đơn mới",
+      titleUpdate: texts.orders?.form?.titleUpdate ?? "Cập nhật đơn",
+      id: texts.orders?.form?.id ?? "Mã đơn",
+      customer: texts.orders?.form?.customer ?? "Khách hàng",
+      items: texts.orders?.form?.items ?? "Số món",
+      total: texts.orders?.form?.total ?? "Tổng tiền (VNĐ)",
+      status: texts.orders?.form?.status ?? "Trạng thái",
+      placedAt: texts.orders?.form?.placedAt ?? "Thời gian đặt",
+      address: texts.orders?.form?.address ?? "Địa chỉ giao hàng",
+      statusOptions:
+        texts.orders?.form?.statusOptions ?? [
+          "Chờ xác nhận",
+          "Chuẩn bị",
+          "Đang giao",
+          "Đã hoàn tất",
+          "Đã hủy",
+        ],
+      cancel: texts.orders?.form?.cancel ?? "Hủy",
+      submitCreate: texts.orders?.form?.submitCreate ?? "Tạo đơn",
+      submitUpdate: texts.orders?.form?.submitUpdate ?? "Lưu thay đổi",
     },
   };
 
@@ -290,17 +337,23 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
     ? ratingInfo.score
     : DEFAULT_RATING.score;
 
-  const monthlyRevenue = useMemo(() => {
-    const reference = new Date();
-    return orders
-      .filter((order) => isSameMonth(order.placedAt, reference))
-      .reduce((sum, order) => sum + (Number(order.total) || 0), 0);
+  const latestOrderDate = useMemo(() => {
+    const sorted = orders
+      .map((order) => parseDate(order.placedAt))
+      .filter(Boolean)
+      .sort((a, b) => b.getTime() - a.getTime());
+    return sorted[0] || new Date();
   }, [orders]);
 
-  const todaysOrders = useMemo(
-    () => orders.filter((order) => isToday(order.placedAt)).length,
-    [orders]
-  );
+  const monthlyRevenue = useMemo(() => {
+    return orders
+      .filter((order) => isSameMonth(order.placedAt, latestOrderDate))
+      .reduce((sum, order) => sum + (Number(order.total) || 0), 0);
+  }, [orders, latestOrderDate]);
+
+  const todaysOrders = useMemo(() => {
+    return orders.filter((order) => isSameDay(order.placedAt, latestOrderDate)).length;
+  }, [orders, latestOrderDate]);
 
   const processingOrders = useMemo(
     () =>
@@ -419,6 +472,112 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
     }
   };
 
+  const formatOrderDateInput = (value) => {
+    const date = parseDate(value);
+    if (!date) {
+      return "";
+    }
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  const handleStartAddOrder = () => {
+    setActiveTab("orders");
+    setIsOrderFormVisible(true);
+    setEditingOrderId(null);
+    setOrderForm({
+      ...EMPTY_ORDER_FORM,
+      placedAt: formatOrderDateInput(new Date().toISOString()),
+    });
+  };
+
+  const handleStartEditOrder = (order) => {
+    setActiveTab("orders");
+    setIsOrderFormVisible(true);
+    setEditingOrderId(order.id);
+    setOrderForm({
+      customer: order.customer,
+      items: String(order.items),
+      total: String(order.total),
+      status: order.status,
+      placedAt: formatOrderDateInput(order.placedAt),
+      address: order.address || "",
+      id: order.id,
+    });
+  };
+
+  const handleCancelOrderForm = () => {
+    setIsOrderFormVisible(false);
+    setEditingOrderId(null);
+    setOrderForm(EMPTY_ORDER_FORM);
+  };
+
+  const handleOrderFieldChange = (field, value) => {
+    setOrderForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmitOrder = (event) => {
+    event.preventDefault();
+
+    const trimmedCustomer = orderForm.customer.trim();
+    if (!trimmedCustomer) {
+      return;
+    }
+
+    const parsedDate = parseDate(orderForm.placedAt) || new Date();
+    const payload = {
+      id: orderForm.id || editingOrderId,
+      customer: trimmedCustomer,
+      items: Math.max(Number(orderForm.items) || 0, 0),
+      total: Math.max(Number(orderForm.total) || 0, 0),
+      status: orderForm.status || "Chờ xác nhận",
+      placedAt: parsedDate.toISOString(),
+      address: orderForm.address.trim(),
+    };
+
+    setOrders((prevOrders) => {
+      if (editingOrderId) {
+        return prevOrders.map((order) =>
+          order.id === editingOrderId ? { ...order, ...payload, id: editingOrderId } : order
+        );
+      }
+
+      const nextNumber = prevOrders
+        .map((order) => Number(String(order.id).replace(/\D+/g, "")) || 0)
+        .reduce((max, value) => Math.max(max, value), 0);
+
+      return [
+        {
+          ...payload,
+          id: payload.id || `DH-${String(nextNumber + 1).padStart(4, "0")}`,
+        },
+        ...prevOrders,
+      ];
+    });
+
+    handleCancelOrderForm();
+  };
+
+  const handleDeleteOrder = (order) => {
+    const message = ordersTexts.confirmDelete ?? "Bạn có chắc muốn xóa đơn hàng này?";
+    // eslint-disable-next-line no-alert
+    const shouldDelete = typeof window === "undefined" ? true : window.confirm(message);
+    if (!shouldDelete) {
+      return;
+    }
+
+    setOrders((prevOrders) => prevOrders.filter((item) => item.id !== order.id));
+
+    if (editingOrderId === order.id) {
+      handleCancelOrderForm();
+    }
+  };
+
   const statusBadgeClass = (status) => {
     const key = String(status).toLowerCase();
     const variant = STATUS_VARIANTS[key] || "info";
@@ -489,13 +648,24 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
             <p>{headerTexts.subtitle}</p>
           </div>
           <div className="restaurant-header__actions">
-            <button
-              type="button"
-              className="restaurant-btn"
-              onClick={handleStartAddDish}
-            >
-              + {menuTexts.addButton}
-            </button>
+            {activeTab === "menu" && (
+              <button
+                type="button"
+                className="restaurant-btn"
+                onClick={handleStartAddDish}
+              >
+                + {menuTexts.addButton}
+              </button>
+            )}
+            {activeTab === "orders" && (
+              <button
+                type="button"
+                className="restaurant-btn"
+                onClick={handleStartAddOrder}
+              >
+                + {ordersTexts.addButton}
+              </button>
+            )}
             <button
               type="button"
               className="restaurant-btn restaurant-btn--ghost"
@@ -778,11 +948,108 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
               </div>
             </header>
 
+            {isOrderFormVisible && (
+              <form className="restaurant-card restaurant-form" onSubmit={handleSubmitOrder}>
+                <header className="restaurant-form__header">
+                  <h3>
+                    {editingOrderId
+                      ? ordersTexts.form.titleUpdate
+                      : ordersTexts.form.titleCreate}
+                  </h3>
+                </header>
+                <div className="restaurant-form__grid">
+                  <label>
+                    <span>{ordersTexts.form.customer}</span>
+                    <input
+                      type="text"
+                      value={orderForm.customer}
+                      onChange={(event) =>
+                        handleOrderFieldChange("customer", event.target.value)
+                      }
+                      required
+                    />
+                  </label>
+                  <label>
+                    <span>{ordersTexts.form.items}</span>
+                    <input
+                      type="number"
+                      min="0"
+                      value={orderForm.items}
+                      onChange={(event) =>
+                        handleOrderFieldChange("items", event.target.value)
+                      }
+                    />
+                  </label>
+                  <label>
+                    <span>{ordersTexts.form.total}</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1000"
+                      value={orderForm.total}
+                      onChange={(event) =>
+                        handleOrderFieldChange("total", event.target.value)
+                      }
+                    />
+                  </label>
+                  <label>
+                    <span>{ordersTexts.form.status}</span>
+                    <select
+                      value={orderForm.status}
+                      onChange={(event) =>
+                        handleOrderFieldChange("status", event.target.value)
+                      }
+                    >
+                      {ordersTexts.form.statusOptions.map((option) => (
+                        <option key={option} value={option}>
+                          {option}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    <span>{ordersTexts.form.placedAt}</span>
+                    <input
+                      type="datetime-local"
+                      value={orderForm.placedAt}
+                      onChange={(event) =>
+                        handleOrderFieldChange("placedAt", event.target.value)
+                      }
+                    />
+                  </label>
+                  <label className="restaurant-form__full">
+                    <span>{ordersTexts.form.address}</span>
+                    <textarea
+                      rows={3}
+                      value={orderForm.address}
+                      onChange={(event) =>
+                        handleOrderFieldChange("address", event.target.value)
+                      }
+                    />
+                  </label>
+                </div>
+                <div className="restaurant-form__actions">
+                  <button
+                    type="button"
+                    className="restaurant-btn restaurant-btn--ghost"
+                    onClick={handleCancelOrderForm}
+                  >
+                    {ordersTexts.form.cancel}
+                  </button>
+                  <button type="submit" className="restaurant-btn">
+                    {editingOrderId
+                      ? ordersTexts.form.submitUpdate
+                      : ordersTexts.form.submitCreate}
+                  </button>
+                </div>
+              </form>
+            )}
+
             <div className="restaurant-card">
               {orders.length === 0 ? (
                 <p className="restaurant-empty">{ordersTexts.empty}</p>
               ) : (
-                <div className="restaurant-table" role="table">
+                <div className="restaurant-table restaurant-table--orders" role="table">
                   <div className="restaurant-table__header" role="row">
                     <span role="columnheader">{ordersTexts.columns.id}</span>
                     <span role="columnheader">{ordersTexts.columns.customer}</span>
@@ -790,12 +1057,23 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
                     <span role="columnheader">{ordersTexts.columns.total}</span>
                     <span role="columnheader">{ordersTexts.columns.status}</span>
                     <span role="columnheader">{ordersTexts.columns.placedAt}</span>
+                    <span role="columnheader" className="table-actions">
+                      {ordersTexts.actionsLabel}
+                    </span>
                   </div>
                   {orders.map((order) => (
                     <div
                       key={order.id}
-                      className="restaurant-table__row"
+                      className="restaurant-table__row is-clickable"
                       role="row"
+                      tabIndex={0}
+                      onClick={() => handleStartEditOrder(order)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          handleStartEditOrder(order);
+                        }
+                      }}
                     >
                       <span role="cell">{order.id}</span>
                       <span role="cell">
@@ -811,6 +1089,28 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
                       </span>
                       <span role="cell">
                         <time dateTime={order.placedAt}>{formatDateTime(order.placedAt)}</time>
+                      </span>
+                      <span role="cell" className="table-actions">
+                        <button
+                          type="button"
+                          className="link-button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleStartEditOrder(order);
+                          }}
+                        >
+                          {ordersTexts.actions.edit}
+                        </button>
+                        <button
+                          type="button"
+                          className="link-button link-button--danger"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleDeleteOrder(order);
+                          }}
+                        >
+                          {ordersTexts.actions.delete}
+                        </button>
                       </span>
                     </div>
                   ))}
