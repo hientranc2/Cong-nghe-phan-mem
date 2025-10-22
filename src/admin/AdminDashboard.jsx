@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./AdminDashboard.css";
 
 const DEFAULT_DRONES = [
@@ -33,6 +33,7 @@ const DEFAULT_CUSTOMERS = [
     phone: "0988 123 456",
     tier: "Vàng",
     active: true,
+    joinedAt: "2024-05-12",
   },
   {
     id: "kh-02",
@@ -41,6 +42,7 @@ const DEFAULT_CUSTOMERS = [
     phone: "0909 555 777",
     tier: "Bạc",
     active: true,
+    joinedAt: "2024-05-08",
   },
   {
     id: "kh-03",
@@ -49,6 +51,7 @@ const DEFAULT_CUSTOMERS = [
     phone: "0977 222 333",
     tier: "Tiêu chuẩn",
     active: false,
+    joinedAt: "2024-04-28",
   },
 ];
 
@@ -94,6 +97,7 @@ const EMPTY_FORMS = {
     phone: "",
     tier: "Tiêu chuẩn",
     active: true,
+    joinedAt: "",
   },
   order: {
     id: "",
@@ -118,6 +122,13 @@ const formatCurrency = (value) =>
     currency: "VND",
   }).format(value);
 
+const formatDate = (value) => {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("vi-VN").format(date);
+};
+
 const nextId = (prefix, existing) => {
   const numeric = existing
     .map((item) => Number(String(item.id).replace(/^[^0-9]*/, "")) || 0)
@@ -131,7 +142,12 @@ function AdminDashboard() {
   const [customers, setCustomers] = useState(DEFAULT_CUSTOMERS);
   const [orders, setOrders] = useState(DEFAULT_ORDERS);
   const [activeForm, setActiveForm] = useState(null);
+  const [activeSection, setActiveSection] = useState("overview");
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    setSearch("");
+  }, [activeSection]);
 
   const filteredDrones = useMemo(() => {
     if (!search.trim()) return drones;
@@ -224,7 +240,10 @@ function AdminDashboard() {
     if (type === "customer") {
       if (mode === "create") {
         const id = values.id?.trim() || nextId("kh", customers);
-        setCustomers([...customers, { ...values, id }]);
+        const joinedAt = values.joinedAt?.trim()
+          ? values.joinedAt
+          : new Date().toISOString().slice(0, 10);
+        setCustomers([...customers, { ...values, id, joinedAt }]);
       } else {
         setCustomers(
           customers.map((customer) =>
@@ -262,6 +281,11 @@ function AdminDashboard() {
     }
   };
 
+  const totalRevenue = useMemo(
+    () => orders.reduce((sum, order) => sum + Number(order.total || 0), 0),
+    [orders]
+  );
+
   const metrics = useMemo(
     () => [
       {
@@ -276,19 +300,53 @@ function AdminDashboard() {
       },
       {
         id: "customers",
-        label: "Khách hàng",
+        label: "Tổng khách hàng",
         value: customers.length,
       },
       {
         id: "revenue",
         label: "Giá trị đơn trong ngày",
-        value: formatCurrency(
-          orders.reduce((sum, order) => sum + Number(order.total || 0), 0)
-        ),
+        value: formatCurrency(totalRevenue),
       },
     ],
-    [drones, customers, orders]
+    [drones, customers, totalRevenue]
   );
+
+  const overviewSummary = useMemo(() => {
+    const newestCustomer = [...customers]
+      .filter((customer) => Boolean(customer.joinedAt))
+      .sort(
+        (a, b) => new Date(b.joinedAt).getTime() - new Date(a.joinedAt).getTime()
+      )[0] || customers[0] || null;
+
+    const topTierCustomer = [...customers]
+      .sort(
+        (a, b) =>
+          CUSTOMER_TIERS.indexOf(b.tier) - CUSTOMER_TIERS.indexOf(a.tier)
+      )[0] || null;
+
+    const largestOrder = [...orders]
+      .sort((a, b) => Number(b.total || 0) - Number(a.total || 0))[0] || null;
+
+    return {
+      newestCustomer,
+      topTierCustomer,
+      largestOrder,
+    };
+  }, [customers, orders]);
+
+  const searchPlaceholder = useMemo(() => {
+    if (activeSection === "fleet") {
+      return "Tìm drone theo mã, tên hoặc trạng thái...";
+    }
+    if (activeSection === "customers") {
+      return "Tìm khách hàng theo tên, email hoặc hạng...";
+    }
+    if (activeSection === "orders") {
+      return "Tìm đơn hàng theo mã, khách hoặc trạng thái...";
+    }
+    return "";
+  }, [activeSection]);
 
   const renderFormFields = () => {
     if (!activeForm) return null;
@@ -507,12 +565,46 @@ function AdminDashboard() {
         <div className="sidebar-section">
           <p className="sidebar-label">Điều hướng</p>
           <nav>
-            <a href="#/admin" className="active">
+            <a
+              href="#overview"
+              className={activeSection === "overview" ? "active" : ""}
+              onClick={(event) => {
+                event.preventDefault();
+                setActiveSection("overview");
+              }}
+            >
               Tổng quan
             </a>
-            <a href="#/admin?section=fleet">Đội bay</a>
-            <a href="#/admin?section=customers">Khách hàng</a>
-            <a href="#/admin?section=orders">Đơn hàng</a>
+            <a
+              href="#fleet"
+              className={activeSection === "fleet" ? "active" : ""}
+              onClick={(event) => {
+                event.preventDefault();
+                setActiveSection("fleet");
+              }}
+            >
+              Đội bay
+            </a>
+            <a
+              href="#customers"
+              className={activeSection === "customers" ? "active" : ""}
+              onClick={(event) => {
+                event.preventDefault();
+                setActiveSection("customers");
+              }}
+            >
+              Khách hàng
+            </a>
+            <a
+              href="#orders"
+              className={activeSection === "orders" ? "active" : ""}
+              onClick={(event) => {
+                event.preventDefault();
+                setActiveSection("orders");
+              }}
+            >
+              Đơn hàng
+            </a>
           </nav>
         </div>
         <div className="sidebar-section compact">
@@ -534,37 +626,96 @@ function AdminDashboard() {
             <h1>Bảng điều khiển FCO</h1>
             <p>Quản lý đội bay và đơn hàng trong một giao diện chuyên biệt.</p>
           </div>
-          <div className="search-box">
-            <input
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Tìm kiếm theo mã, tên, email, số điện thoại..."
-            />
-          </div>
+          {activeSection !== "overview" && (
+            <div className="search-box">
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder={searchPlaceholder}
+              />
+            </div>
+          )}
         </header>
 
-        <section className="metrics-grid">
-          {metrics.map((metric) => (
-            <article key={metric.id} className="metric-card">
-              <p className="metric-label">{metric.label}</p>
-              <p className="metric-value">{metric.value}</p>
-            </article>
-          ))}
-        </section>
+        {activeSection === "overview" && (
+          <>
+            <section className="metrics-grid">
+              {metrics.map((metric) => (
+                <article key={metric.id} className="metric-card">
+                  <p className="metric-label">{metric.label}</p>
+                  <p className="metric-value">{metric.value}</p>
+                </article>
+              ))}
+            </section>
+            <section className="insights-grid">
+              <article className="insight-card">
+                <h3>Khách hàng mới nhất</h3>
+                {overviewSummary.newestCustomer ? (
+                  <>
+                    <p className="insight-primary">
+                      {overviewSummary.newestCustomer.name}
+                    </p>
+                    <p className="insight-secondary">
+                      Gia nhập ngày {formatDate(overviewSummary.newestCustomer.joinedAt)}
+                    </p>
+                  </>
+                ) : (
+                  <p className="insight-empty">Chưa có khách hàng.</p>
+                )}
+              </article>
+              <article className="insight-card">
+                <h3>Khách hàng hạng cao nhất</h3>
+                {overviewSummary.topTierCustomer ? (
+                  <>
+                    <p className="insight-primary">
+                      {overviewSummary.topTierCustomer.name}
+                    </p>
+                    <p className="insight-secondary">
+                      Hạng {overviewSummary.topTierCustomer.tier}
+                    </p>
+                  </>
+                ) : (
+                  <p className="insight-empty">Chưa có dữ liệu hạng.</p>
+                )}
+              </article>
+              <article className="insight-card">
+                <h3>Đơn hàng giá trị cao nhất</h3>
+                {overviewSummary.largestOrder ? (
+                  <>
+                    <p className="insight-primary">
+                      {overviewSummary.largestOrder.id}
+                    </p>
+                    <p className="insight-secondary">
+                      Giá trị {formatCurrency(overviewSummary.largestOrder.total)}
+                    </p>
+                  </>
+                ) : (
+                  <p className="insight-empty">Chưa có đơn hàng.</p>
+                )}
+              </article>
+              <article className="insight-card">
+                <h3>Tổng doanh thu hôm nay</h3>
+                <p className="insight-primary">{formatCurrency(totalRevenue)}</p>
+                <p className="insight-secondary">Từ tất cả các đơn hàng đang xử lý.</p>
+              </article>
+            </section>
+          </>
+        )}
 
-        <section className="collection" id="fleet">
-          <div className="collection-heading">
-            <div>
-              <h2>Đội bay</h2>
-              <p>Giám sát tình trạng và nhiệm vụ gần nhất của từng drone.</p>
+        {activeSection === "fleet" && (
+          <section className="collection" id="fleet">
+            <div className="collection-heading">
+              <div>
+                <h2>Đội bay</h2>
+                <p>Giám sát tình trạng và nhiệm vụ gần nhất của từng drone.</p>
+              </div>
+              <button onClick={() => handleOpenForm("drone", "create")}>
+                Thêm drone
+              </button>
             </div>
-            <button onClick={() => handleOpenForm("drone", "create")}>
-              Thêm drone
-            </button>
-          </div>
-          <div className="table-wrapper">
-            <table>
+            <div className="table-wrapper">
+              <table>
               <thead>
                 <tr>
                   <th>Mã</th>
@@ -609,21 +760,23 @@ function AdminDashboard() {
                 ))}
               </tbody>
             </table>
-          </div>
-        </section>
-
-        <section className="collection" id="customers">
-          <div className="collection-heading">
-            <div>
-              <h2>Khách hàng</h2>
-              <p>Quản lý thông tin liên hệ và hạng thành viên của khách.</p>
             </div>
-            <button onClick={() => handleOpenForm("customer", "create")}>
-              Thêm khách hàng
-            </button>
-          </div>
-          <div className="table-wrapper">
-            <table>
+          </section>
+        )}
+
+        {activeSection === "customers" && (
+          <section className="collection" id="customers">
+            <div className="collection-heading">
+              <div>
+                <h2>Khách hàng</h2>
+                <p>Quản lý thông tin liên hệ và hạng thành viên của khách.</p>
+              </div>
+              <button onClick={() => handleOpenForm("customer", "create")}>
+                Thêm khách hàng
+              </button>
+            </div>
+            <div className="table-wrapper">
+              <table>
               <thead>
                 <tr>
                   <th>Mã</th>
@@ -676,21 +829,23 @@ function AdminDashboard() {
                 ))}
               </tbody>
             </table>
-          </div>
-        </section>
-
-        <section className="collection" id="orders">
-          <div className="collection-heading">
-            <div>
-              <h2>Đơn hàng</h2>
-              <p>Theo dõi các chuyến giao và giá trị đơn theo từng drone.</p>
             </div>
-            <button onClick={() => handleOpenForm("order", "create")}>
-              Tạo đơn hàng
-            </button>
-          </div>
-          <div className="table-wrapper">
-            <table>
+          </section>
+        )}
+
+        {activeSection === "orders" && (
+          <section className="collection" id="orders">
+            <div className="collection-heading">
+              <div>
+                <h2>Đơn hàng</h2>
+                <p>Theo dõi các chuyến giao và giá trị đơn theo từng drone.</p>
+              </div>
+              <button onClick={() => handleOpenForm("order", "create")}>
+                Tạo đơn hàng
+              </button>
+            </div>
+            <div className="table-wrapper">
+              <table>
               <thead>
                 <tr>
                   <th>Mã</th>
@@ -737,8 +892,9 @@ function AdminDashboard() {
                 ))}
               </tbody>
             </table>
-          </div>
-        </section>
+            </div>
+          </section>
+        )}
       </main>
 
       {activeForm && (
