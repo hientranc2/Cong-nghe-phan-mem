@@ -294,9 +294,9 @@ function AdminDashboard() {
         value: drones.length,
       },
       {
-        id: "active",
-        label: "Đang hoạt động",
-        value: drones.filter((item) => item.status === "Đang hoạt động").length,
+        id: "orders-today",
+        label: "Tổng đơn hàng hôm nay",
+        value: orders.length,
       },
       {
         id: "customers",
@@ -309,7 +309,7 @@ function AdminDashboard() {
         value: formatCurrency(totalRevenue),
       },
     ],
-    [drones, customers, totalRevenue]
+    [drones, orders, customers, totalRevenue]
   );
 
   const overviewSummary = useMemo(() => {
