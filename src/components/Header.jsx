@@ -56,8 +56,6 @@ function Header({
   const topbarMessage =
     texts?.topbarMessage ?? "FCO giao nhanh trong 15 phút · Freeship đơn từ 199k";
   const topbarActions = texts?.topbarActions ?? [];
-  const locationSearchPlaceholder =
-    texts?.locationSearchPlaceholder ?? "Tìm kiếm ...";
   const loginLabel = texts?.loginLabel ?? "👤 Đăng nhập";
   const logoutLabel = texts?.logoutLabel ?? "Đăng xuất";
   const roleLabels = texts?.roleLabels ?? {
@@ -145,17 +143,7 @@ function Header({
               </button>
             ))}
           </div>
-         <label className="location-search" htmlFor="header-location-search">
-            <span className="search-icon" aria-hidden="true">
-              🔍
-            </span>
-            <input
-              id="header-location-search"
-              type="search"
-              placeholder={locationSearchPlaceholder}
-              aria-label={locationSearchPlaceholder}
-            />
-          </label>
+         
           
           <div className="auth-controls">
             {user ? (
