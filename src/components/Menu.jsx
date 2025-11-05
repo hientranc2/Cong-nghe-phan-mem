@@ -8,7 +8,7 @@ function Menu({
   const prepTimeSuffix = labels.prepTimeSuffix ?? "phút chế biến";
   const addToCartLabel = labels.addToCart ?? "Thêm vào giỏ hàng";
   const viewDetailLabel = labels.viewDetail ?? "Xem chi tiết món";
-
+  
   return (
     <div className="menu-grid">
       {items.map((item) => (

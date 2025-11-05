@@ -4,7 +4,7 @@ export const contentByLanguage = {
       topbarMessage: "FCO giao nhanh trong 15 phút · Freeship đơn từ 199k",
       topbarActions: [
         { href: "tel:19001900", label: "📞 Hotline: 1900 1900" },
-        { href: "#tracking", label: "🚚 Theo dõi đơn" },
+        { href: "#/orders", label: "🚚 Theo dõi đơn" },
       ],
       navLinks: [
         { id: "menu", label: "Danh mục món" },
@@ -15,7 +15,7 @@ export const contentByLanguage = {
       locationPrefix: "📍 Giao đến:",
       locationHighlight: "TP. Hồ Chí Minh",
       loginLabel: "👤 Đăng nhập",
-      ordersLabel: "Đơn hàng",
+     
       ordersAriaLabel: "Xem lịch sử đơn hàng đã đặt",
       cartLabel: "Giỏ hàng",
       cartAriaLabel: "Giỏ hàng",
