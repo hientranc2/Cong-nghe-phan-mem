@@ -2,35 +2,34 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
 const tabs = [
-  { id: "home", label: "Trang chủ", icon: "🏠", active: true },
+  { id: "home", label: "Trang chủ", icon: "🏠" },
   { id: "menu", label: "Thực đơn", icon: "🍽️" },
   { id: "promo", label: "Khuyến mãi", icon: "🎁" },
   { id: "orders", label: "Đơn hàng", icon: "🧾" },
   { id: "more", label: "Xem thêm", icon: "☰" },
 ];
 
-const BottomTabBar = () => (
+const BottomTabBar = ({ activeTab = "home", onTabPress = () => {} }) => (
   <View style={styles.container}>
-    {tabs.map((tab) => (
-      <TouchableOpacity key={tab.id} style={styles.tabItem}>
-        <Text
-          style={[
-            styles.icon,
-            tab.active ? styles.iconActive : undefined,
-          ]}
+    {tabs.map((tab) => {
+      const isActive = tab.id === activeTab;
+      return (
+        <TouchableOpacity
+          key={tab.id}
+          style={styles.tabItem}
+          onPress={() => onTabPress(tab.id)}
+          accessibilityRole="button"
+          accessibilityState={{ selected: isActive }}
         >
-          {tab.icon}
-        </Text>
-        <Text
-          style={[
-            styles.label,
-            tab.active ? styles.labelActive : undefined,
-          ]}
-        >
-          {tab.label}
-        </Text>
-      </TouchableOpacity>
-    ))}
+          <Text style={[styles.icon, isActive && styles.iconActive]}>
+            {tab.icon}
+          </Text>
+          <Text style={[styles.label, isActive && styles.labelActive]}>
+            {tab.label}
+          </Text>
+        </TouchableOpacity>
+      );
+    })}
   </View>
 );
 
