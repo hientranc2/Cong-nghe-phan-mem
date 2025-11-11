@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
+  Alert,
   FlatList,
   Image,
   ScrollView,
@@ -10,10 +11,11 @@ import {
 } from "react-native";
 
 import { menuCategories, menuItems } from "../data/menu";
+import ProductQuickView from "../components/ProductQuickView.jsx";
 
 const currencyFormatter = new Intl.NumberFormat("vi-VN");
 
-const MenuItemCard = ({ item }) => (
+const MenuItemCard = ({ item, onPressAdd }) => (
   <View style={styles.card}>
     <Image source={{ uri: item.image }} style={styles.cardImage} />
     <View style={styles.cardBody}>
@@ -26,7 +28,11 @@ const MenuItemCard = ({ item }) => (
       <Text style={styles.cardPrice}>
         {currencyFormatter.format(item.price)} đ
       </Text>
-      <TouchableOpacity style={styles.addButton}>
+      <TouchableOpacity
+        style={styles.addButton}
+        activeOpacity={0.85}
+        onPress={() => onPressAdd?.(item)}
+      >
         <Text style={styles.addButtonLabel}>Thêm</Text>
       </TouchableOpacity>
     </View>
@@ -37,6 +43,8 @@ const MenuScreen = () => {
   const [activeCategory, setActiveCategory] = useState(
     menuCategories[0]?.id ?? null
   );
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedQuantity, setSelectedQuantity] = useState(1);
 
   const activeCategoryData = useMemo(
     () =>
@@ -52,82 +60,125 @@ const MenuScreen = () => {
     return menuItems.filter((item) => item.categoryId === activeCategory);
   }, [activeCategory]);
 
+  const handleOpenQuickView = useCallback((item) => {
+    setSelectedItem(item);
+    setSelectedQuantity(1);
+  }, []);
+
+  const handleCloseQuickView = useCallback(() => {
+    setSelectedItem(null);
+  }, []);
+
+  const handleIncreaseQuantity = useCallback(() => {
+    setSelectedQuantity((qty) => qty + 1);
+  }, []);
+
+  const handleDecreaseQuantity = useCallback(() => {
+    setSelectedQuantity((qty) => (qty > 1 ? qty - 1 : qty));
+  }, []);
+
+  const handleAddToCart = useCallback(() => {
+    if (selectedItem) {
+      Alert.alert(
+        "Đã thêm vào giỏ hàng",
+        `${selectedQuantity} x ${selectedItem.name}`
+      );
+    }
+    setSelectedItem(null);
+  }, [selectedItem, selectedQuantity]);
+
   return (
-    <FlatList
-      data={filteredItems}
-      keyExtractor={(item) => item.id}
-      numColumns={2}
-      showsVerticalScrollIndicator={false}
-      columnWrapperStyle={styles.cardRow}
-      contentContainerStyle={styles.listContent}
-      ListHeaderComponent={
-        <View style={styles.header}>
-          <Text style={styles.sectionTitle}>Danh mục</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoryRow}
-          >
-            {menuCategories.map((category) => {
-              const isActive = category.id === activeCategory;
-              return (
-                <TouchableOpacity
-                  key={category.id}
-                  style={[styles.categoryChip, isActive && styles.categoryChipActive]}
-                  onPress={() => setActiveCategory(category.id)}
-                  activeOpacity={0.85}
-                >
-                  <View style={styles.categoryContent}>
-                    <Text style={styles.categoryIcon}>{category.icon}</Text>
-                    <View style={styles.categoryTextGroup}>
-                      <Text
-                        style={[
-                          styles.categoryLabel,
-                          isActive && styles.categoryLabelActive
-                        ]}
-                      >
-                        {category.title}
-                      </Text>
-                      <Text
-                        numberOfLines={2}
-                        style={[
-                          styles.categoryDescription,
-                          isActive && styles.categoryDescriptionActive
-                        ]}
-                      >
-                        {category.description}
-                      </Text>
+    <View style={styles.screen}>
+      <FlatList
+        data={filteredItems}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        showsVerticalScrollIndicator={false}
+        columnWrapperStyle={styles.cardRow}
+        contentContainerStyle={styles.listContent}
+        ListHeaderComponent={
+          <View style={styles.header}>
+            <Text style={styles.sectionTitle}>Danh mục</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoryRow}
+            >
+              {menuCategories.map((category) => {
+                const isActive = category.id === activeCategory;
+                return (
+                  <TouchableOpacity
+                    key={category.id}
+                    style={[styles.categoryChip, isActive && styles.categoryChipActive]}
+                    onPress={() => setActiveCategory(category.id)}
+                    activeOpacity={0.85}
+                  >
+                    <View style={styles.categoryContent}>
+                      <Text style={styles.categoryIcon}>{category.icon}</Text>
+                      <View style={styles.categoryTextGroup}>
+                        <Text
+                          style={[
+                            styles.categoryLabel,
+                            isActive && styles.categoryLabelActive
+                          ]}
+                        >
+                          {category.title}
+                        </Text>
+                        <Text
+                          numberOfLines={2}
+                          style={[
+                            styles.categoryDescription,
+                            isActive && styles.categoryDescriptionActive
+                          ]}
+                        >
+                          {category.description}
+                        </Text>
+                      </View>
                     </View>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-          {activeCategoryData && (
-            <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionHeading}>
-                {activeCategoryData.title}
-              </Text>
-              <Text style={styles.sectionSubheading}>
-                {activeCategoryData.description}
-              </Text>
-            </View>
-          )}
-        </View>
-      }
-      renderItem={({ item }) => <MenuItemCard item={item} />}
-      ListEmptyComponent={
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyStateText}>
-            Danh mục đang được cập nhật, vui lòng quay lại sau.
-          </Text>
-        </View>
-      }
-    />
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+            {activeCategoryData && (
+              <View style={styles.sectionHeaderRow}>
+                <Text style={styles.sectionHeading}>
+                  {activeCategoryData.title}
+                </Text>
+                <Text style={styles.sectionSubheading}>
+                  {activeCategoryData.description}
+                </Text>
+              </View>
+            )}
+          </View>
+        }
+        renderItem={({ item }) => (
+          <MenuItemCard item={item} onPressAdd={handleOpenQuickView} />
+        )}
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>
+              Danh mục đang được cập nhật, vui lòng quay lại sau.
+            </Text>
+          </View>
+        }
+      />
+      <ProductQuickView
+        visible={Boolean(selectedItem)}
+        product={selectedItem}
+        quantity={selectedQuantity}
+        onClose={handleCloseQuickView}
+        onIncreaseQuantity={handleIncreaseQuantity}
+        onDecreaseQuantity={handleDecreaseQuantity}
+        onAddToCart={handleAddToCart}
+      />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+  },
   listContent: {
     paddingHorizontal: 20,
     paddingBottom: 160,

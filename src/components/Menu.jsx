@@ -2,6 +2,7 @@ function Menu({
   items = [],
   addToCart,
   labels = {},
+  onAddItem,
   onViewItem = () => {},
 }) {
   const caloriesUnit = labels.caloriesUnit ?? "kcal";
@@ -37,7 +38,14 @@ function Menu({
               <button
                 type="button"
                 className="menu-card__button"
-                onClick={() => addToCart(item)}
+                onClick={() => {
+                  if (typeof onAddItem === "function") {
+                    onAddItem(item);
+                    return;
+                  }
+
+                  addToCart(item);
+                }}
               >
                 {addToCartLabel}
               </button>

@@ -3,6 +3,7 @@ import "./App.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Cart from "./components/Cart";
+import ProductQuickView from "./components/ProductQuickView";
 import HomePage from "./pages/HomePage";
 import CategoryPage from "./pages/CategoryPage";
 import CheckoutPage from "./pages/CheckoutPage";
@@ -163,6 +164,7 @@ function App() {
   const [language, setLanguage] = useState("vi");
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const pendingSectionRef = useRef(null);
   const [view, setView] = useState(() => parseViewFromHash());
   const parseHash = useCallback(() => parseViewFromHash(), []);
@@ -489,16 +491,23 @@ function App() {
 
   
 
-  const addToCart = (item) => {
+  const addToCart = (item, quantity = 1) => {
+    const normalizedQuantity = Number.parseInt(quantity, 10);
+    const safeQuantity = Number.isNaN(normalizedQuantity)
+      ? 1
+      : Math.max(1, normalizedQuantity);
+
     setCart((prevCart) => {
       const exists = prevCart.find((c) => c.id === item.id);
       if (exists) {
         return prevCart.map((c) =>
-          c.id === item.id ? { ...c, quantity: c.quantity + 1 } : c
+          c.id === item.id
+            ? { ...c, quantity: c.quantity + safeQuantity }
+            : c
         );
       }
 
-      return [...prevCart, { ...item, quantity: 1 }];
+      return [...prevCart, { ...item, quantity: safeQuantity }];
     });
 
     setIsCartOpen(true);
@@ -695,9 +704,41 @@ function App() {
     }
 
     pendingSectionRef.current = null;
+    setSelectedProduct(null);
     if (typeof window !== "undefined") {
       window.location.hash = `/product/${item.id}`;
     }
+  };
+
+  useEffect(() => {
+    if (!selectedProduct) {
+      return;
+    }
+
+    if (view.type !== "home" && view.type !== "category") {
+      setSelectedProduct(null);
+    }
+  }, [view, selectedProduct]);
+
+  const handleStartAddToCart = (item) => {
+    if (!item) {
+      return;
+    }
+
+    setSelectedProduct(item);
+  };
+
+  const handleCloseProductQuickView = () => {
+    setSelectedProduct(null);
+  };
+
+  const handleConfirmAddToCart = (item, quantity) => {
+    if (!item) {
+      return;
+    }
+
+    addToCart(item, quantity);
+    setSelectedProduct(null);
   };
 
   
@@ -1043,6 +1084,7 @@ function App() {
         texts={content.categoryPage}
         menuLabels={content.menuLabels}
         onViewProduct={handleViewProduct}
+        onAddProduct={handleStartAddToCart}
       />
     );
   } else if (view.type === "login") {
@@ -1114,6 +1156,7 @@ function App() {
         addToCart={addToCart}
         onSelectCategory={handleSelectCategory}
         onViewProduct={handleViewProduct}
+        onAddProduct={handleStartAddToCart}
         texts={content.home}
         menuLabels={content.menuLabels}
       />
@@ -1152,6 +1195,16 @@ function App() {
       />
       {pageContent}
       <Footer texts={content.footer} />
+      {selectedProduct && (
+        <ProductQuickView
+          item={selectedProduct}
+          labels={content.menuLabels}
+          onClose={handleCloseProductQuickView}
+          onAddToCart={(quantity) =>
+            handleConfirmAddToCart(selectedProduct, quantity)
+          }
+        />
+      )}
       {isCartOpen && (
         <Cart
           cart={cart}

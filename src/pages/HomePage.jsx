@@ -10,6 +10,7 @@ function HomePage({
   addToCart,
   onSelectCategory = () => {},
   onViewProduct = () => {},
+  onAddProduct = () => {},
   texts = {},
   menuLabels = {},
 }) {
@@ -116,6 +117,7 @@ function HomePage({
           addToCart={addToCart}
           labels={menuLabels}
           onViewItem={onViewProduct}
+          onAddItem={onAddProduct}
         />
       </section>
 

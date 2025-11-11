@@ -12,6 +12,7 @@ function CategoryPage({
   texts = {},
   menuLabels = {},
   onViewProduct = () => {},
+  onAddProduct = () => {},
 }) {
   const breadcrumbHome = texts.breadcrumbHome ?? "Trang chủ";
   const backToMenu = texts.backToMenu ?? "← Trở lại danh mục";
@@ -89,6 +90,7 @@ function CategoryPage({
               addToCart={addToCart}
               labels={menuLabels}
               onViewItem={onViewProduct}
+              onAddItem={onAddProduct}
             />
             {totalPages > 1 && (
               <div className="category-pagination" role="navigation" aria-label="Phân trang sản phẩm">

@@ -109,6 +109,10 @@ export const contentByLanguage = {
       prepTimeSuffix: "phút chế biến",
       addToCart: "Thêm vào giỏ hàng",
       viewDetail: "Xem chi tiết",
+      quantity: "Số lượng",
+      total: "Tổng",
+      close: "Đóng",
+      priceSuffix: "k",
     },
     productDetail: {
       breadcrumbLabel: "Đường dẫn",
@@ -353,6 +357,10 @@ export const contentByLanguage = {
       prepTimeSuffix: "min prep",
       addToCart: "Add to cart",
       viewDetail: "View details",
+      quantity: "Quantity",
+      total: "Total",
+      close: "Close",
+      priceSuffix: "k",
     },
     productDetail: {
       breadcrumbLabel: "Breadcrumb",
