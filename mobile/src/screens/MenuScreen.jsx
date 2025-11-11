@@ -38,15 +38,18 @@ const MenuScreen = () => {
     menuCategories[0]?.id ?? null
   );
 
+  const activeCategoryData = useMemo(
+    () =>
+      menuCategories.find((category) => category.id === activeCategory) ?? null,
+    [activeCategory]
+  );
+
   const filteredItems = useMemo(() => {
-    if (!activeCategory || activeCategory === "all") {
-      return menuItems;
+    if (!activeCategory) {
+      return [];
     }
-    return menuItems.filter((item) =>
-      Array.isArray(item.categories)
-        ? item.categories.includes(activeCategory)
-        : item.categories === activeCategory
-    );
+
+    return menuItems.filter((item) => item.categoryId === activeCategory);
   }, [activeCategory]);
 
   return (
@@ -72,29 +75,52 @@ const MenuScreen = () => {
                   key={category.id}
                   style={[styles.categoryChip, isActive && styles.categoryChipActive]}
                   onPress={() => setActiveCategory(category.id)}
+                  activeOpacity={0.85}
                 >
-                  <Text
-                    style={[
-                      styles.categoryLabel,
-                      isActive && styles.categoryLabelActive
-                    ]}
-                  >
-                    {category.label}
-                  </Text>
+                  <View style={styles.categoryContent}>
+                    <Text style={styles.categoryIcon}>{category.icon}</Text>
+                    <View style={styles.categoryTextGroup}>
+                      <Text
+                        style={[
+                          styles.categoryLabel,
+                          isActive && styles.categoryLabelActive
+                        ]}
+                      >
+                        {category.title}
+                      </Text>
+                      <Text
+                        numberOfLines={2}
+                        style={[
+                          styles.categoryDescription,
+                          isActive && styles.categoryDescriptionActive
+                        ]}
+                      >
+                        {category.description}
+                      </Text>
+                    </View>
+                  </View>
                 </TouchableOpacity>
               );
             })}
           </ScrollView>
-          <View style={styles.sectionHeaderRow}>
-            <Text style={styles.sectionHeading}>Món ngon phải thử</Text>
-            <Text style={styles.sectionSubheading}>Deal ngon mỗi ngày</Text>
-          </View>
+          {activeCategoryData && (
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionHeading}>
+                {activeCategoryData.title}
+              </Text>
+              <Text style={styles.sectionSubheading}>
+                {activeCategoryData.description}
+              </Text>
+            </View>
+          )}
         </View>
       }
       renderItem={({ item }) => <MenuItemCard item={item} />}
       ListEmptyComponent={
         <View style={styles.emptyState}>
-          <Text style={styles.emptyStateText}>Chưa có món nào trong danh mục này.</Text>
+          <Text style={styles.emptyStateText}>
+            Danh mục đang được cập nhật, vui lòng quay lại sau.
+          </Text>
         </View>
       }
     />
@@ -120,21 +146,42 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   categoryChip: {
+    width: 260,
     paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: 999,
+    paddingVertical: 18,
+    borderRadius: 24,
     backgroundColor: "#f4f4f5",
   },
   categoryChipActive: {
     backgroundColor: "#f97316",
   },
+  categoryContent: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 16,
+  },
+  categoryIcon: {
+    fontSize: 28,
+    lineHeight: 32,
+  },
+  categoryTextGroup: {
+    flex: 1,
+    gap: 6,
+  },
   categoryLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#52525b",
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#18181b",
   },
   categoryLabelActive: {
     color: "#ffffff",
+  },
+  categoryDescription: {
+    fontSize: 13,
+    color: "#52525b",
+  },
+  categoryDescriptionActive: {
+    color: "#fff7ed",
   },
   sectionHeaderRow: {
     marginTop: 20,
