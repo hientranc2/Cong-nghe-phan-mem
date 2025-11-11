@@ -4,28 +4,39 @@ import { headerContent } from "../data/homepage";
 
 const loginAction = headerContent.actions.find((action) => action.id === "login");
 
-const HomeHeader = ({ onLoginPress = () => {} }) => (
-  <View style={styles.container}>
-    <View style={styles.badge}>
-      <Text style={styles.badgeText}>{headerContent.topMessage}</Text>
-    </View>
-    <View style={styles.brandRow}>
-      <View style={styles.logoWrapper}>
-        <Text style={styles.logoText}>FCO</Text>
+const HomeHeader = ({ onLoginPress = () => {}, user }) => {
+  const displayName =
+    typeof user?.fullName === "string" && user.fullName.trim().length > 0
+      ? user.fullName.trim()
+      : null;
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.badge}>
+        <Text style={styles.badgeText}>{headerContent.topMessage}</Text>
       </View>
-      <View style={styles.brandCopy}>
-        <Text style={styles.brandName}>{headerContent.brandName}</Text>
-        <Text style={styles.tagline}>{headerContent.tagline}</Text>
+      <View style={styles.brandRow}>
+        <View style={styles.logoWrapper}>
+          <Text style={styles.logoText}>FCO</Text>
+        </View>
+        <View style={styles.brandCopy}>
+          <Text style={styles.brandName}>{headerContent.brandName}</Text>
+          <Text style={styles.tagline}>{headerContent.tagline}</Text>
+        </View>
+        {displayName ? (
+          <View style={styles.userChip}>
+            <Text style={styles.userName}>{displayName}</Text>
+          </View>
+        ) : loginAction ? (
+          <TouchableOpacity style={styles.loginButton} onPress={onLoginPress}>
+            <Text style={styles.loginIcon}>{loginAction.icon}</Text>
+            <Text style={styles.loginLabel}>{loginAction.label}</Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
-      {loginAction ? (
-        <TouchableOpacity style={styles.loginButton} onPress={onLoginPress}>
-          <Text style={styles.loginIcon}>{loginAction.icon}</Text>
-          <Text style={styles.loginLabel}>{loginAction.label}</Text>
-        </TouchableOpacity>
-      ) : null}
     </View>
-  </View>
-);
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -97,6 +108,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
     color: "#f97316",
+  },
+  userChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: "#fff7ed",
+    borderWidth: 1,
+    borderColor: "#fed7aa",
+    maxWidth: 180,
+    alignItems: "center",
+  },
+  userName: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#7c2d12",
+    flexShrink: 1,
   },
 });
 

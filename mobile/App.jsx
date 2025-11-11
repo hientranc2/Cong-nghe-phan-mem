@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { SafeAreaView, StatusBar, View, StyleSheet } from "react-native";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 
@@ -12,13 +12,39 @@ const SCREENS = {
 
 export default function App() {
   const [activeScreen, setActiveScreen] = useState(SCREENS.home);
+  const [authenticatedUser, setAuthenticatedUser] = useState(null);
+
+  const goToAuth = useCallback(
+    () => setActiveScreen(SCREENS.auth),
+    [setActiveScreen]
+  );
+  const goHome = useCallback(
+    () => setActiveScreen(SCREENS.home),
+    [setActiveScreen]
+  );
+  const handleLoginSuccess = useCallback(
+    (user) => {
+      if (user) {
+        setAuthenticatedUser({
+          fullName: user.fullName,
+          phone: user.phone,
+          email: user.email
+        });
+      } else {
+        setAuthenticatedUser(null);
+      }
+      setActiveScreen(SCREENS.home);
+    },
+    [setActiveScreen, setAuthenticatedUser]
+  );
 
   const screenHandlers = useMemo(
     () => ({
-      goToAuth: () => setActiveScreen(SCREENS.auth),
-      goHome: () => setActiveScreen(SCREENS.home)
+      goToAuth,
+      goHome,
+      handleLoginSuccess
     }),
-    [setActiveScreen]
+    [goHome, goToAuth, handleLoginSuccess]
   );
 
   return (
@@ -27,9 +53,15 @@ export default function App() {
       <ExpoStatusBar style="dark" />
       <View style={styles.screen}>
         {activeScreen === SCREENS.home ? (
-          <HomeScreen onPressLogin={screenHandlers.goToAuth} />
+          <HomeScreen
+            onPressLogin={screenHandlers.goToAuth}
+            user={authenticatedUser}
+          />
         ) : (
-          <AuthScreen onBack={screenHandlers.goHome} />
+          <AuthScreen
+            onBack={screenHandlers.goHome}
+            onLoginSuccess={screenHandlers.handleLoginSuccess}
+          />
         )}
       </View>
     </SafeAreaView>

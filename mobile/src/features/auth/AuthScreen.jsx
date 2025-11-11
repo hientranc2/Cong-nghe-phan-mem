@@ -1,5 +1,12 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from "react-native";
 
 import AuthForm from "./components/AuthForm.jsx";
 import { authContent } from "./data/authContent";
@@ -16,7 +23,7 @@ const buildInitialValues = (forms) => {
   return initialValues;
 };
 
-const AuthScreen = ({ onBack }) => {
+const AuthScreen = ({ onBack, onLoginSuccess = () => {} }) => {
   const initialValues = useMemo(() => buildInitialValues(authContent.forms), []);
   const [activeTab, setActiveTab] = useState(authContent.tabs[0]?.id ?? "login");
   const [formValues, setFormValues] = useState(initialValues);
@@ -73,12 +80,15 @@ const AuthScreen = ({ onBack }) => {
     async (formId) => {
       const errors = validateForm(formId);
       if (Object.keys(errors).length > 0) {
-      setFormStatus((prev) => ({
-        ...prev,
-        [formId]: { type: "error", message: "Vui lòng kiểm tra lại thông tin." }
-      }));
-      return;
-    }
+        setFormStatus((prev) => ({
+          ...prev,
+          [formId]: {
+            type: "error",
+            message: "Vui lòng kiểm tra lại thông tin."
+          }
+        }));
+        return;
+      }
 
     setIsSubmitting(true);
     setFormStatus((prev) => ({ ...prev, [formId]: undefined }));
@@ -115,22 +125,29 @@ const AuthScreen = ({ onBack }) => {
         }
       }));
 
-      if (result.success && formId === "register") {
-        setActiveTab("login");
-        setFormErrors((prev) => ({ ...prev, login: {} }));
-        setFormStatus((prev) => ({
-          ...prev,
-          login: {
-            type: "success",
-            message: "Đăng ký thành công! Vui lòng đăng nhập."
-          }
-        }));
+      if (result.success) {
+        if (formId === "register") {
+          setActiveTab("login");
+          setFormErrors((prev) => ({ ...prev, login: {} }));
+          setFormStatus((prev) => ({
+            ...prev,
+            login: {
+              type: "success",
+              message: "Đăng ký thành công! Vui lòng đăng nhập."
+            }
+          }));
+        }
+
+        if (formId === "login" && result.user) {
+          Alert.alert("Đăng nhập thành công", result.message);
+          onLoginSuccess(result.user);
+        }
       }
     } finally {
       setIsSubmitting(false);
     }
   },
-    [formValues, initialValues, validateForm]
+    [formValues, initialValues, onLoginSuccess, validateForm]
   );
 
   return (

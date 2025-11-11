@@ -48,7 +48,8 @@ export const authService = {
 
     return {
       success: true,
-      message: `Xin chào ${existingUser.fullName}! Bạn đã đăng nhập thành công.`
+      message: `Xin chào ${existingUser.fullName}! Bạn đã đăng nhập thành công.`,
+      user: existingUser
     };
   },
   register: ({ fullName, phone, email, password }) => {

@@ -6,10 +6,10 @@ import BestSellerSection from "../components/BestSellerSection.jsx";
 import FloatingCartButton from "../components/FloatingCartButton.jsx";
 import BottomTabBar from "../components/BottomTabBar.jsx";
 
-const HomeScreen = ({ onPressLogin }) => (
+const HomeScreen = ({ onPressLogin, user }) => (
   <View style={styles.screen}>
     <ScrollView contentContainerStyle={styles.content}>
-      <HomeHeader onLoginPress={onPressLogin} />
+      <HomeHeader onLoginPress={onPressLogin} user={user} />
       <BestSellerSection />
     </ScrollView>
     <FloatingCartButton />
