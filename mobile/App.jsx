@@ -1,24 +1,68 @@
-import React from "react";
-import { SafeAreaView, StatusBar, ScrollView, View, StyleSheet } from "react-native";
+import React, { useCallback, useMemo, useState } from "react";
+import { SafeAreaView, StatusBar, View, StyleSheet } from "react-native";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 
-import HomeHeader from "./src/components/HomeHeader.jsx";
-import BestSellerSection from "./src/components/BestSellerSection.jsx";
-import FloatingCartButton from "./src/components/FloatingCartButton.jsx";
-import BottomTabBar from "./src/components/BottomTabBar.jsx";
+import HomeScreen from "./src/screens/HomeScreen.jsx";
+import AuthScreen from "./src/features/auth/AuthScreen.jsx";
+
+const SCREENS = {
+  home: "home",
+  auth: "auth"
+};
 
 export default function App() {
+  const [activeScreen, setActiveScreen] = useState(SCREENS.home);
+  const [authenticatedUser, setAuthenticatedUser] = useState(null);
+
+  const goToAuth = useCallback(
+    () => setActiveScreen(SCREENS.auth),
+    [setActiveScreen]
+  );
+  const goHome = useCallback(
+    () => setActiveScreen(SCREENS.home),
+    [setActiveScreen]
+  );
+  const handleLoginSuccess = useCallback(
+    (user) => {
+      if (user) {
+        setAuthenticatedUser({
+          fullName: user.fullName,
+          phone: user.phone,
+          email: user.email
+        });
+      } else {
+        setAuthenticatedUser(null);
+      }
+      setActiveScreen(SCREENS.home);
+    },
+    [setActiveScreen, setAuthenticatedUser]
+  );
+
+  const screenHandlers = useMemo(
+    () => ({
+      goToAuth,
+      goHome,
+      handleLoginSuccess
+    }),
+    [goHome, goToAuth, handleLoginSuccess]
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <ExpoStatusBar style="dark" />
       <View style={styles.screen}>
-        <ScrollView contentContainerStyle={styles.content}>
-          <HomeHeader />
-          <BestSellerSection />
-        </ScrollView>
-        <FloatingCartButton />
-        <BottomTabBar />
+        {activeScreen === SCREENS.home ? (
+          <HomeScreen
+            onPressLogin={screenHandlers.goToAuth}
+            user={authenticatedUser}
+          />
+        ) : (
+          <AuthScreen
+            onBack={screenHandlers.goHome}
+            onLoginSuccess={screenHandlers.handleLoginSuccess}
+          />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -31,10 +75,6 @@ const styles = StyleSheet.create({
   },
   screen: {
     flex: 1,
-    position: "relative",
     backgroundColor: "#fff8f2",
-  },
-  content: {
-    paddingBottom: 180,
   },
 });
