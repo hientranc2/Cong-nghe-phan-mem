@@ -4,7 +4,7 @@ import { headerContent } from "../data/homepage";
 
 const loginAction = headerContent.actions.find((action) => action.id === "login");
 
-const HomeHeader = () => (
+const HomeHeader = ({ onLoginPress = () => {} }) => (
   <View style={styles.container}>
     <View style={styles.badge}>
       <Text style={styles.badgeText}>{headerContent.topMessage}</Text>
@@ -18,7 +18,7 @@ const HomeHeader = () => (
         <Text style={styles.tagline}>{headerContent.tagline}</Text>
       </View>
       {loginAction ? (
-        <TouchableOpacity style={styles.loginButton}>
+        <TouchableOpacity style={styles.loginButton} onPress={onLoginPress}>
           <Text style={styles.loginIcon}>{loginAction.icon}</Text>
           <Text style={styles.loginLabel}>{loginAction.label}</Text>
         </TouchableOpacity>
