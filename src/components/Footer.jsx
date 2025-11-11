@@ -1,45 +1,33 @@
 function Footer({ texts = {} }) {
-  const year = new Date().getFullYear();
-  const rightsText = (texts.rights ?? "© {year} FCO FoodFast Delivery. All rights reserved.").replace(
-    "{year}",
-    String(year)
-  );
+  const navItems = texts.navItems ?? [
+    { id: "home", label: "Trang chủ", icon: "🏠", href: "#/" },
+    { id: "best", label: "Bán chạy", icon: "🔥", href: "#best-seller" },
+    { id: "checkout", label: "Đặt hàng", icon: "🛒", href: "#/checkout" },
+    { id: "orders", label: "Đơn hàng", icon: "📦", href: "#/orders" },
+    { id: "account", label: "Tài khoản", icon: "👤", href: "#/login" },
+  ];
+
+  const currentHash =
+    typeof window !== "undefined" && window.location.hash
+      ? window.location.hash
+      : "#/";
 
   return (
-    <footer className="fco-footer">
-      <div className="footer-content">
-        <div className="footer-brand">
-          <div className="footer-logo">FCO</div>
-          <div>
-            <h3>FCO FoodFast Delivery</h3>
-            <p>{texts.description ?? "Ăn ngon chuẩn vị - giao tận nhà chỉ trong 15 phút."}</p>
-          </div>
-        </div>
+    <nav className="bottom-nav">
+      {navItems.map((item) => {
+        const isActive = currentHash === item.href;
+        const itemClass = `bottom-nav__item${isActive ? " bottom-nav__item--active" : ""}`;
 
-        <div className="footer-columns">
-          {(texts.columns ?? []).map((column) => (
-            <div key={column.title}>
-              <h4>{column.title}</h4>
-              {(column.links ?? []).map((link) => (
-                <a key={link.href + link.label} href={link.href}>
-                  {link.label}
-                </a>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="footer-bottom">
-        <span>{rightsText}</span>
-        <div className="footer-social">
-          {(texts.social ?? []).map((item) => (
-            <a key={item.href + item.label} href={item.href}>
-              {item.label}
-            </a>
-          ))}
-        </div>
-      </div>
-    </footer>
+        return (
+          <a key={item.id ?? item.href} href={item.href} className={itemClass}>
+            <span className="bottom-nav__icon" aria-hidden="true">
+              {item.icon ?? "•"}
+            </span>
+            <span className="bottom-nav__label">{item.label}</span>
+          </a>
+        );
+      })}
+    </nav>
   );
 }
 
