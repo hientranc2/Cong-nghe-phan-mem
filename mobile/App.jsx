@@ -1,24 +1,36 @@
-import React from "react";
-import { SafeAreaView, StatusBar, ScrollView, View, StyleSheet } from "react-native";
+import React, { useMemo, useState } from "react";
+import { SafeAreaView, StatusBar, View, StyleSheet } from "react-native";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 
-import HomeHeader from "./src/components/HomeHeader.jsx";
-import BestSellerSection from "./src/components/BestSellerSection.jsx";
-import FloatingCartButton from "./src/components/FloatingCartButton.jsx";
-import BottomTabBar from "./src/components/BottomTabBar.jsx";
+import HomeScreen from "./src/screens/HomeScreen.jsx";
+import AuthScreen from "./src/screens/AuthScreen.jsx";
+
+const SCREENS = {
+  home: "home",
+  auth: "auth"
+};
 
 export default function App() {
+  const [activeScreen, setActiveScreen] = useState(SCREENS.home);
+
+  const screenHandlers = useMemo(
+    () => ({
+      goToAuth: () => setActiveScreen(SCREENS.auth),
+      goHome: () => setActiveScreen(SCREENS.home)
+    }),
+    [setActiveScreen]
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <ExpoStatusBar style="dark" />
       <View style={styles.screen}>
-        <ScrollView contentContainerStyle={styles.content}>
-          <HomeHeader />
-          <BestSellerSection />
-        </ScrollView>
-        <FloatingCartButton />
-        <BottomTabBar />
+        {activeScreen === SCREENS.home ? (
+          <HomeScreen onPressLogin={screenHandlers.goToAuth} />
+        ) : (
+          <AuthScreen onBack={screenHandlers.goHome} />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -31,10 +43,6 @@ const styles = StyleSheet.create({
   },
   screen: {
     flex: 1,
-    position: "relative",
     backgroundColor: "#fff8f2",
-  },
-  content: {
-    paddingBottom: 180,
   },
 });
