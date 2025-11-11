@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
 import HomeHeader from "../components/HomeHeader.jsx";
-import BestSellerSection from "../components/BestSellerSection.jsx";
+import BestSellerSection from "../components/bestSeller/BestSellerSection.jsx";
 import FloatingCartButton from "../components/FloatingCartButton.jsx";
 import BottomTabBar from "../components/BottomTabBar.jsx";
 import MenuScreen from "./MenuScreen.jsx";
