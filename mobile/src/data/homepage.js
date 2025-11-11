@@ -1,6 +1,22 @@
 export const heroBackground =
   "https://images.unsplash.com/photo-1550317138-10000687a72b?auto=format&fit=crop&w=1600&q=80";
 
+export const headerContent = {
+  topMessage: "FCO giao nhanh trong 15 phút · Freeship đơn từ 199k",
+  brandName: "FCO FoodFast Delivery",
+  tagline: "Ăn ngon chuẩn vị - giao tận nhà chỉ trong 15 phút.",
+  navigation: [
+    { id: "menu", label: "Danh mục" },
+    { id: "best-seller", label: "Bán chạy" },
+    { id: "combo", label: "Combo" },
+    { id: "promo", label: "Ưu đãi" }
+  ],
+  actions: [
+    { id: "login", icon: "👤", label: "Đăng nhập" },
+    { id: "cart", icon: "🛒", label: "Giỏ hàng" }
+  ]
+};
+
 export const heroContent = {
   title: "FoodFast Delivery chuẩn vị FCO",
   description:
@@ -132,4 +148,36 @@ export const aboutContent = {
   badgeLabel: "Khách hàng quay lại lần 2",
   image:
     "https://images.unsplash.com/photo-1555992336-cbf3a2862171?auto=format&fit=crop&w=900&q=80"
+};
+
+export const footerContent = {
+  description: "Đặt món nóng hổi từ FCO và nhận ngay trong 15 phút.",
+  columns: [
+    {
+      title: "Hỗ trợ",
+      items: [
+        "Câu hỏi thường gặp",
+        "Chính sách giao hàng",
+        "Liên hệ hỗ trợ"
+      ]
+    },
+    {
+      title: "FCO Rewards",
+      items: [
+        "Tích điểm đổi quà",
+        "Ưu đãi thành viên",
+        "Giftcard điện tử"
+      ]
+    },
+    {
+      title: "Kết nối",
+      items: [
+        "Facebook @fco.fastfood",
+        "Instagram @fco.eats",
+        "Hotline 1900 0999"
+      ]
+    }
+  ],
+  address: "Tòa nhà FCO Tower, 88 Nguyễn Huệ, Quận 1, TP.HCM",
+  rights: "© {year} FCO FoodFast Delivery. All rights reserved."
 };
