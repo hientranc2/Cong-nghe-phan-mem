@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react";
 import {
   FlatList,
-  Image,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,31 +8,10 @@ import {
   View
 } from "react-native";
 
+import ProductCard from "../components/product/ProductCard";
 import { menuCategories, menuItems } from "../data/menu";
 
-const currencyFormatter = new Intl.NumberFormat("vi-VN");
-
-const MenuItemCard = ({ item }) => (
-  <View style={styles.card}>
-    <Image source={{ uri: item.image }} style={styles.cardImage} />
-    <View style={styles.cardBody}>
-      <Text style={styles.cardTitle}>{item.name}</Text>
-      <Text numberOfLines={2} style={styles.cardDescription}>
-        {item.description}
-      </Text>
-    </View>
-    <View style={styles.cardFooter}>
-      <Text style={styles.cardPrice}>
-        {currencyFormatter.format(item.price)} đ
-      </Text>
-      <TouchableOpacity style={styles.addButton}>
-        <Text style={styles.addButtonLabel}>Thêm</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-);
-
-const MenuScreen = () => {
+const MenuScreen = ({ onProductPress }) => {
   const [activeCategory, setActiveCategory] = useState(
     menuCategories[0]?.id ?? null
   );
@@ -115,7 +93,13 @@ const MenuScreen = () => {
           )}
         </View>
       }
-      renderItem={({ item }) => <MenuItemCard item={item} />}
+      renderItem={({ item }) => (
+        <ProductCard
+          product={item}
+          onPressImage={onProductPress}
+          variant="menu"
+        />
+      )}
       ListEmptyComponent={
         <View style={styles.emptyState}>
           <Text style={styles.emptyStateText}>
@@ -199,58 +183,6 @@ const styles = StyleSheet.create({
   cardRow: {
     gap: 16,
     marginBottom: 16,
-  },
-  card: {
-    flex: 1,
-    backgroundColor: "#ffffff",
-    borderRadius: 20,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 8 },
-    shadowRadius: 20,
-    elevation: 3,
-  },
-  cardImage: {
-    width: "100%",
-    height: 140,
-  },
-  cardBody: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1f2937",
-  },
-  cardDescription: {
-    marginTop: 8,
-    fontSize: 13,
-    color: "#4b5563",
-  },
-  cardFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  cardPrice: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1f2937",
-  },
-  addButton: {
-    backgroundColor: "#f97316",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  addButtonLabel: {
-    color: "#ffffff",
-    fontSize: 14,
-    fontWeight: "600",
   },
   emptyState: {
     paddingVertical: 32,

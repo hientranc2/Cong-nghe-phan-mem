@@ -58,7 +58,7 @@ export const bestSellers = [
     id: "fco-burger-blaze",
     name: "Burger Blaze Bò Mỹ",
     description: "Bánh burger bò Mỹ nướng than, sốt phô mai cheddar và bacon giòn.",
-    price: 69,
+    price: 69000,
     tag: "Best Seller",
     image:
       "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80"
@@ -67,7 +67,7 @@ export const bestSellers = [
     id: "fco-pizza-lava",
     name: "Pizza Lava Phô Mai",
     description: "Đế mỏng kiểu Ý, phô mai mozzarella tan chảy và sốt cà chua signature.",
-    price: 189,
+    price: 189000,
     tag: "Signature",
     image:
       "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80"
@@ -76,7 +76,7 @@ export const bestSellers = [
     id: "fco-taco-fiesta",
     name: "Taco Fiesta",
     description: "Vỏ taco mềm, bò hầm Mexico và sốt salsa tươi mát.",
-    price: 89,
+    price: 89000,
     tag: "Chef's Choice",
     image:
       "https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?auto=format&fit=crop&w=800&q=80"
