@@ -15,10 +15,10 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#1b1b1f",
+    backgroundColor: "#f97316",
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
+    shadowColor: "#0a0a0aff",
     shadowOpacity: 0.12,
     shadowOffset: { width: 0, height: 12 },
     shadowRadius: 24,
@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
   },
   icon: {
     fontSize: 24,
-    color: "#ffffff",
+    color: "#161515ff",
   },
 });
 

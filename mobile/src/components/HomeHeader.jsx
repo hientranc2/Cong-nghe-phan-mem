@@ -31,10 +31,14 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
     paddingTop: 12,
+    paddingBottom: 16,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    backgroundColor: "#f97316",
   },
   badge: {
     alignSelf: "flex-start",
-    backgroundColor: "#ffe3d4",
+    backgroundColor: "#fb923c",
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 999,
@@ -42,7 +46,7 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#f04e23",
+    color: "#fff7ed",
   },
   brandRow: {
     flexDirection: "row",
@@ -53,12 +57,12 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 16,
-    backgroundColor: "#1b1b1f",
+    backgroundColor: "#ffffff",
     alignItems: "center",
     justifyContent: "center",
   },
   logoText: {
-    color: "#ffffff",
+    color: "#f97316",
     fontSize: 20,
     fontWeight: "700",
   },
@@ -69,11 +73,11 @@ const styles = StyleSheet.create({
   brandName: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#1b1b1f",
+    color: "#ffffff",
   },
   tagline: {
     fontSize: 14,
-    color: "#4a4a55",
+    color: "#fff7ed",
     marginTop: 4,
   },
   loginButton: {
@@ -82,17 +86,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 12,
-    backgroundColor: "#1b1b1f",
+    backgroundColor: "#ffffff",
   },
   loginIcon: {
     fontSize: 16,
     marginRight: 8,
-    color: "#ffffff",
+    color: "#f97316",
   },
   loginLabel: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#ffffff",
+    color: "#f97316",
   },
 });
 

@@ -3,8 +3,6 @@ export const heroBackground =
 
 export const headerContent = {
   topMessage: "FCO giao nhanh trong 15 phút · Freeship đơn từ 199k",
-  brandName: "FCO FoodFast Delivery",
-  tagline: "Ăn ngon chuẩn vị - giao tận nhà chỉ trong 15 phút.",
   navigation: [],
   actions: [{ id: "login", icon: "👤", label: "Đăng nhập" }]
 };

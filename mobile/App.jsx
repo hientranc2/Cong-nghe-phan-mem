@@ -2,10 +2,10 @@ import React from "react";
 import { SafeAreaView, StatusBar, ScrollView, View, StyleSheet } from "react-native";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 
-import HomeHeader from "./src/components/HomeHeader";
-import BestSellerSection from "./src/components/BestSellerSection";
-import FloatingCartButton from "./src/components/FloatingCartButton";
-import BottomTabBar from "./src/components/BottomTabBar";
+import HomeHeader from "./src/components/HomeHeader.jsx";
+import BestSellerSection from "./src/components/BestSellerSection.jsx";
+import FloatingCartButton from "./src/components/FloatingCartButton.jsx";
+import BottomTabBar from "./src/components/BottomTabBar.jsx";
 
 export default function App() {
   return (
