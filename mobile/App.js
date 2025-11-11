@@ -14,12 +14,14 @@ import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import {
   heroBackground,
   heroContent,
+  headerContent,
   stats,
   categories,
   bestSellers,
   combos,
   promotions,
   aboutContent,
+  footerContent,
 } from "./src/data/homepage";
 
 const SectionHeader = ({ title, description }) => (
@@ -28,6 +30,44 @@ const SectionHeader = ({ title, description }) => (
     {description ? (
       <Text style={styles.sectionDescription}>{description}</Text>
     ) : null}
+  </View>
+);
+
+const HeaderSection = () => (
+  <View style={styles.header}>
+    <View style={styles.headerTop}>
+      <Text style={styles.headerTopText}>{headerContent.topMessage}</Text>
+    </View>
+    <View style={styles.headerMain}>
+      <View style={styles.headerBrand}>
+        <View style={styles.headerLogoWrapper}>
+          <Text style={styles.headerLogo}>FCO</Text>
+        </View>
+        <View>
+          <Text style={styles.headerBrandName}>{headerContent.brandName}</Text>
+          <Text style={styles.headerTagline}>{headerContent.tagline}</Text>
+        </View>
+      </View>
+      <View style={styles.headerActions}>
+        {headerContent.actions.map((action) => (
+          <View key={action.id} style={styles.headerAction}>
+            <Text style={styles.headerActionIcon}>{action.icon}</Text>
+            <Text style={styles.headerActionLabel}>{action.label}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.headerNav}
+    >
+      {headerContent.navigation.map((item) => (
+        <View key={item.id} style={styles.headerNavItem}>
+          <Text style={styles.headerNavLabel}>{item.label}</Text>
+        </View>
+      ))}
+    </ScrollView>
   </View>
 );
 
@@ -197,12 +237,48 @@ const AboutSection = () => (
   </View>
 );
 
+const FooterSection = () => {
+  const year = new Date().getFullYear();
+  const rightsText = footerContent.rights.replace("{year}", String(year));
+
+  return (
+    <View style={styles.footer}>
+      <View style={styles.footerBrand}>
+        <View style={styles.footerLogoWrapper}>
+          <Text style={styles.footerLogo}>FCO</Text>
+        </View>
+        <View style={styles.footerTextGroup}>
+          <Text style={styles.footerBrandName}>{headerContent.brandName}</Text>
+          <Text style={styles.footerDescription}>{footerContent.description}</Text>
+          <Text style={styles.footerAddress}>{footerContent.address}</Text>
+        </View>
+      </View>
+      <View style={styles.footerColumns}>
+        {footerContent.columns.map((column) => (
+          <View key={column.title} style={styles.footerColumn}>
+            <Text style={styles.footerColumnTitle}>{column.title}</Text>
+            {column.items.map((item) => (
+              <Text key={item} style={styles.footerColumnItem}>
+                {item}
+              </Text>
+            ))}
+          </View>
+        ))}
+      </View>
+      <View style={styles.footerBottom}>
+        <Text style={styles.footerRights}>{rightsText}</Text>
+      </View>
+    </View>
+  );
+};
+
 export default function App() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" />
       <ExpoStatusBar style="light" />
       <ScrollView contentContainerStyle={styles.container}>
+        <HeaderSection />
         <HeroSection />
         <StatsSection />
         <CategorySection />
@@ -210,6 +286,7 @@ export default function App() {
         <ComboSection />
         <PromotionSection />
         <AboutSection />
+        <FooterSection />
       </ScrollView>
     </SafeAreaView>
   );
@@ -223,6 +300,95 @@ const styles = StyleSheet.create({
   container: {
     paddingBottom: 48,
     backgroundColor: "#f8fafc",
+  },
+  header: {
+    backgroundColor: "#0b1120",
+    paddingTop: 12,
+    paddingBottom: 16,
+  },
+  headerTop: {
+    paddingHorizontal: 20,
+    paddingVertical: 6,
+  },
+  headerTopText: {
+    color: "#94a3b8",
+    fontSize: 12,
+    textAlign: "center",
+  },
+  headerMain: {
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  headerBrand: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  headerLogoWrapper: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#f97316",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  headerLogo: {
+    color: "#0b1120",
+    fontSize: 20,
+    fontWeight: "700",
+  },
+  headerBrandName: {
+    color: "#ffffff",
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  headerTagline: {
+    color: "#cbd5f5",
+    fontSize: 13,
+    marginTop: 4,
+  },
+  headerActions: {
+    flexDirection: "row",
+    marginLeft: 12,
+  },
+  headerAction: {
+    backgroundColor: "rgba(148, 163, 184, 0.18)",
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginLeft: 8,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  headerActionIcon: {
+    fontSize: 16,
+    marginRight: 6,
+  },
+  headerActionLabel: {
+    color: "#e2e8f0",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  headerNav: {
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 6,
+  },
+  headerNavItem: {
+    backgroundColor: "rgba(15, 23, 42, 0.6)",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  headerNavLabel: {
+    color: "#f8fafc",
+    fontSize: 13,
+    fontWeight: "600",
+    textTransform: "uppercase",
   },
   hero: {
     height: 420,
@@ -542,6 +708,78 @@ const styles = StyleSheet.create({
     color: "#e2e8f0",
     fontSize: 12,
     marginTop: 4,
+    textAlign: "center",
+  },
+  footer: {
+    backgroundColor: "#0f172a",
+    paddingHorizontal: 20,
+    paddingTop: 36,
+    paddingBottom: 48,
+    marginTop: 32,
+  },
+  footerBrand: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  footerLogoWrapper: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#f97316",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 16,
+  },
+  footerLogo: {
+    color: "#0b1120",
+    fontSize: 22,
+    fontWeight: "700",
+  },
+  footerTextGroup: {
+    flex: 1,
+  },
+  footerBrandName: {
+    color: "#f8fafc",
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  footerDescription: {
+    color: "#cbd5f5",
+    fontSize: 14,
+    marginTop: 6,
+    lineHeight: 20,
+  },
+  footerAddress: {
+    color: "#94a3b8",
+    fontSize: 13,
+    marginTop: 10,
+  },
+  footerColumns: {
+    marginTop: 28,
+  },
+  footerColumn: {
+    marginBottom: 20,
+  },
+  footerColumnTitle: {
+    color: "#f97316",
+    fontSize: 15,
+    fontWeight: "700",
+    marginBottom: 10,
+  },
+  footerColumnItem: {
+    color: "#e2e8f0",
+    fontSize: 14,
+    marginBottom: 6,
+  },
+  footerBottom: {
+    marginTop: 32,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(148, 163, 184, 0.2)",
+    paddingTop: 16,
+  },
+  footerRights: {
+    color: "#64748b",
+    fontSize: 12,
     textAlign: "center",
   },
 });
