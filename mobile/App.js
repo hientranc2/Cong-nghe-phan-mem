@@ -1,24 +1,26 @@
-import React from "react";
-import { SafeAreaView, StatusBar, ScrollView, View, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { SafeAreaView, StatusBar, View, StyleSheet } from "react-native";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 
-import HomeHeader from "./src/components/HomeHeader";
-import BestSellerSection from "./src/components/BestSellerSection";
-import FloatingCartButton from "./src/components/FloatingCartButton";
-import BottomTabBar from "./src/components/BottomTabBar";
+import HomeScreen from "./src/screens/HomeScreen";
+import AuthScreen from "./src/screens/AuthScreen";
 
 export default function App() {
+  const [activeScreen, setActiveScreen] = useState("home");
+
+  const handleOpenAuth = () => setActiveScreen("auth");
+  const handleCloseAuth = () => setActiveScreen("home");
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <ExpoStatusBar style="dark" />
       <View style={styles.screen}>
-        <ScrollView contentContainerStyle={styles.content}>
-          <HomeHeader />
-          <BestSellerSection />
-        </ScrollView>
-        <FloatingCartButton />
-        <BottomTabBar />
+        {activeScreen === "home" ? (
+          <HomeScreen onLoginPress={handleOpenAuth} />
+        ) : (
+          <AuthScreen onClose={handleCloseAuth} />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -33,8 +35,5 @@ const styles = StyleSheet.create({
     flex: 1,
     position: "relative",
     backgroundColor: "#fff8f2",
-  },
-  content: {
-    paddingBottom: 180,
   },
 });
