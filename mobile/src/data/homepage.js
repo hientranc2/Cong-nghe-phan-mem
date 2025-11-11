@@ -5,15 +5,8 @@ export const headerContent = {
   topMessage: "FCO giao nhanh trong 15 phút · Freeship đơn từ 199k",
   brandName: "FCO FoodFast Delivery",
   tagline: "Ăn ngon chuẩn vị - giao tận nhà chỉ trong 15 phút.",
-  navigation: [
-    { id: "best-seller", label: "Bán chạy" },
-    { id: "combo", label: "Combo ưu đãi" },
-    { id: "promo", label: "Khuyến mãi" }
-  ],
-  actions: [
-    { id: "login", icon: "👤", label: "Đăng nhập" },
-    { id: "cart", icon: "🛒", label: "Giỏ hàng" }
-  ]
+  navigation: [],
+  actions: [{ id: "login", icon: "👤", label: "Đăng nhập" }]
 };
 
 export const heroContent = {
