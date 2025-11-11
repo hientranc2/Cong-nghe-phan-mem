@@ -3,7 +3,7 @@ import { SafeAreaView, StatusBar, View, StyleSheet } from "react-native";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 
 import HomeScreen from "./src/screens/HomeScreen.jsx";
-import AuthScreen from "./src/screens/AuthScreen.jsx";
+import AuthScreen from "./src/features/auth/AuthScreen.jsx";
 
 const SCREENS = {
   home: "home",
