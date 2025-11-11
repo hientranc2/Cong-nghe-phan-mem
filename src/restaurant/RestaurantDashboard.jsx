@@ -1,5 +1,10 @@
 import { useMemo, useState } from "react";
 import "./RestaurantDashboard.css";
+import RestaurantHeader from "./components/RestaurantHeader";
+import RestaurantMenuSection from "./components/RestaurantMenuSection";
+import RestaurantOrdersSection from "./components/RestaurantOrdersSection";
+import RestaurantOverview from "./components/RestaurantOverview";
+import RestaurantSidebar from "./components/RestaurantSidebar";
 
 const DEFAULT_MENU_ITEMS = [
   {
@@ -108,9 +113,9 @@ const STATUS_VARIANTS = {
   "đã hoàn tất": "success",
   "đã hủy": "danger",
   "tạm dừng": "danger",
-  "available": "success",
+  available: "success",
   "đang bán": "success",
-  "soldout": "danger",
+  soldout: "danger",
   "sold out": "danger",
   "hết hàng": "danger",
 };
@@ -257,6 +262,7 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
       edit: texts.menu?.actions?.edit ?? "Sửa",
       delete: texts.menu?.actions?.delete ?? "Xóa",
     },
+    actionsLabel: texts.menu?.actionsLabel ?? "Hành động",
     form: {
       titleCreate: texts.menu?.form?.titleCreate ?? "Thêm món mới",
       titleUpdate: texts.menu?.form?.titleUpdate ?? "Cập nhật món",
@@ -523,27 +529,23 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
 
   const handleSubmitOrder = (event) => {
     event.preventDefault();
+    const sanitizedTotal = Math.max(Number(orderForm.total) || 0, 0);
+    const sanitizedItems = Math.max(Number(orderForm.items) || 0, 0);
 
-    const trimmedCustomer = orderForm.customer.trim();
-    if (!trimmedCustomer) {
-      return;
-    }
-
-    const parsedDate = parseDate(orderForm.placedAt) || new Date();
     const payload = {
-      id: orderForm.id || editingOrderId,
-      customer: trimmedCustomer,
-      items: Math.max(Number(orderForm.items) || 0, 0),
-      total: Math.max(Number(orderForm.total) || 0, 0),
-      status: orderForm.status || "Chờ xác nhận",
-      placedAt: parsedDate.toISOString(),
+      id: editingOrderId,
+      customer: orderForm.customer.trim() || "Khách lẻ",
+      items: sanitizedItems,
+      total: sanitizedTotal,
+      status: orderForm.status,
+      placedAt: orderForm.placedAt || new Date().toISOString(),
       address: orderForm.address.trim(),
     };
 
     setOrders((prevOrders) => {
       if (editingOrderId) {
         return prevOrders.map((order) =>
-          order.id === editingOrderId ? { ...order, ...payload, id: editingOrderId } : order
+          order.id === editingOrderId ? { ...order, ...payload } : order
         );
       }
 
@@ -552,11 +554,11 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
         .reduce((max, value) => Math.max(max, value), 0);
 
       return [
+        ...prevOrders,
         {
           ...payload,
           id: payload.id || `DH-${String(nextNumber + 1).padStart(4, "0")}`,
         },
-        ...prevOrders,
       ];
     });
 
@@ -586,538 +588,76 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
 
   return (
     <div className="restaurant-dashboard">
-      <aside className="restaurant-sidebar">
-        <div className="restaurant-sidebar__brand">
-          <span className="brand-dot" aria-hidden="true" />
-          <div>
-            <strong>FoodFast</strong>
-            <small>Partner</small>
-          </div>
-        </div>
-        <nav className="restaurant-nav" aria-label="Điều hướng nhà hàng">
-          <button
-            type="button"
-            className={
-              activeTab === "overview"
-                ? "restaurant-nav__item is-active"
-                : "restaurant-nav__item"
-            }
-            onClick={() => setActiveTab("overview")}
-          >
-            <span aria-hidden="true">📊</span>
-            {navigationTexts.overview}
-          </button>
-          <button
-            type="button"
-            className={
-              activeTab === "menu"
-                ? "restaurant-nav__item is-active"
-                : "restaurant-nav__item"
-            }
-            onClick={() => setActiveTab("menu")}
-          >
-            <span aria-hidden="true">🍽️</span>
-            {navigationTexts.menu}
-          </button>
-          <button
-            type="button"
-            className={
-              activeTab === "orders"
-                ? "restaurant-nav__item is-active"
-                : "restaurant-nav__item"
-            }
-            onClick={() => setActiveTab("orders")}
-          >
-            <span aria-hidden="true">🧾</span>
-            {navigationTexts.orders}
-          </button>
-        </nav>
-        <button
-          type="button"
-          className="restaurant-nav__secondary"
-          onClick={onBackHome}
-        >
-          ← {navigationTexts.backHome}
-        </button>
-      </aside>
+      <RestaurantSidebar
+        activeTab={activeTab}
+        navigationTexts={navigationTexts}
+        onChangeTab={setActiveTab}
+        onBackHome={onBackHome}
+      />
       <main className="restaurant-main" aria-live="polite">
-        <header className="restaurant-header">
-          <div className="restaurant-header__info">
-            <span className="restaurant-header__eyebrow">{headerTexts.eyebrow}</span>
-            <h1>{headerTexts.title}</h1>
-            <p>{headerTexts.subtitle}</p>
-          </div>
-          <div className="restaurant-header__actions">
-            {activeTab === "menu" && (
-              <button
-                type="button"
-                className="restaurant-btn"
-                onClick={handleStartAddDish}
-              >
-                + {menuTexts.addButton}
-              </button>
-            )}
-            {activeTab === "orders" && (
-              <button
-                type="button"
-                className="restaurant-btn"
-                onClick={handleStartAddOrder}
-              >
-                + {ordersTexts.addButton}
-              </button>
-            )}
-            <button
-              type="button"
-              className="restaurant-btn restaurant-btn--ghost"
-              onClick={onBackHome}
-            >
-              {navigationTexts.backHome}
-            </button>
-          </div>
-        </header>
+        <RestaurantHeader
+          activeTab={activeTab}
+          headerTexts={headerTexts}
+          navigationTexts={navigationTexts}
+          menuTexts={menuTexts}
+          ordersTexts={ordersTexts}
+          onAddDish={handleStartAddDish}
+          onAddOrder={handleStartAddOrder}
+          onBackHome={onBackHome}
+        />
 
         {activeTab === "overview" && (
-          <section className="restaurant-section">
-            <header className="restaurant-section__header">
-              <div>
-                <h2>{overviewTexts.heading}</h2>
-                <p>{overviewTexts.description}</p>
-              </div>
-              <div className="restaurant-section__chips">
-                <span>{uniqueCategories.length} danh mục</span>
-                <span>{menuItems.length} món ăn</span>
-                <span>{orders.length} đơn hàng/tháng</span>
-              </div>
-            </header>
-            <div className="restaurant-kpi-grid">
-              <div className="restaurant-kpi-card">
-                <span>{overviewTexts.revenueLabel}</span>
-                <strong>{formatCurrency(monthlyRevenue)}</strong>
-                <small>{processingOrders} đơn đang hoạt động</small>
-              </div>
-              <div className="restaurant-kpi-card">
-                <span>{overviewTexts.ordersTodayLabel}</span>
-                <strong>{todaysOrders}</strong>
-                <small>Trong ngày hôm nay</small>
-              </div>
-              <div className="restaurant-kpi-card">
-                <span>{overviewTexts.ratingLabel}</span>
-                <strong>{ratingValue}</strong>
-                <small>{ratingInfo.summary}</small>
-              </div>
-            </div>
-            <div className="restaurant-panels">
-              <section className="restaurant-card">
-                <header className="restaurant-card__header">
-                  <div>
-                    <h3>{overviewTexts.recentHeading}</h3>
-                    <p>Danh sách các đơn hàng mới nhất của nhà hàng.</p>
-                  </div>
-                </header>
-                {recentOrders.length === 0 ? (
-                  <p className="restaurant-empty">{overviewTexts.recentEmpty}</p>
-                ) : (
-                  <ul className="restaurant-recent-list">
-                    {recentOrders.map((order) => (
-                      <li key={order.id} className="restaurant-recent-item">
-                        <div className="recent-item__meta">
-                          <span className="recent-item__id">{order.id}</span>
-                          <strong>{order.customer}</strong>
-                          <time dateTime={order.placedAt}>{formatDateTime(order.placedAt)}</time>
-                        </div>
-                        <div className="recent-item__status">
-                          <span className={statusBadgeClass(order.status)}>
-                            {order.status}
-                          </span>
-                          <span className="recent-item__total">
-                            {formatCurrency(order.total)}
-                          </span>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </section>
-              <section className="restaurant-card restaurant-card--feedback">
-                <header className="restaurant-card__header">
-                  <div>
-                    <h3>{overviewTexts.reviewHeading}</h3>
-                    <p>
-                      Trung bình {ratingValue} dựa trên {ratingInfo.totalReviews} đánh giá.
-                    </p>
-                  </div>
-                </header>
-                <div className="restaurant-rating">
-                  <div className="restaurant-rating__value">{ratingValue}</div>
-                  <p>{ratingInfo.summary}</p>
-                  <ul className="restaurant-rating__breakdown">
-                    {ratingInfo.breakdown.map((item) => (
-                      <li key={item.label}>
-                        <span>{item.label}</span>
-                        <div className="rating-progress">
-                          <div
-                            className="rating-progress__bar"
-                            style={{ width: `${Math.min(item.percent, 100)}%` }}
-                          />
-                        </div>
-                        <span>{item.percent}%</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </section>
-            </div>
-          </section>
+          <RestaurantOverview
+            overviewTexts={overviewTexts}
+            uniqueCategories={uniqueCategories}
+            menuCount={menuItems.length}
+            orderCount={orders.length}
+            monthlyRevenue={monthlyRevenue}
+            processingOrders={processingOrders}
+            todaysOrders={todaysOrders}
+            ratingValue={ratingValue}
+            ratingInfo={ratingInfo}
+            recentOrders={recentOrders}
+            formatCurrency={formatCurrency}
+            formatDateTime={formatDateTime}
+            statusBadgeClass={statusBadgeClass}
+          />
         )}
 
         {activeTab === "menu" && (
-          <section className="restaurant-section">
-            <header className="restaurant-section__header">
-              <div>
-                <h2>{menuTexts.heading}</h2>
-                <p>{menuTexts.description}</p>
-              </div>
-            </header>
-
-            {isFormVisible && (
-              <form className="restaurant-card restaurant-form" onSubmit={handleSubmitDish}>
-                <div className="restaurant-form__header">
-                  <h3>
-                    {editingDishId
-                      ? menuTexts.form.titleUpdate
-                      : menuTexts.form.titleCreate}
-                  </h3>
-                </div>
-                <div className="restaurant-form__grid">
-                  <label>
-                    <span>{menuTexts.form.name}</span>
-                    <input
-                      required
-                      type="text"
-                      value={dishForm.name}
-                      onChange={(event) =>
-                        handleDishFieldChange("name", event.target.value)
-                      }
-                    />
-                  </label>
-                  <label>
-                    <span>{menuTexts.form.price}</span>
-                    <input
-                      required
-                      min="0"
-                      type="number"
-                      value={dishForm.price}
-                      onChange={(event) =>
-                        handleDishFieldChange("price", event.target.value)
-                      }
-                    />
-                  </label>
-                  <label>
-                    <span>{menuTexts.form.category}</span>
-                    <input
-                      type="text"
-                      placeholder={
-                        uniqueCategories.length > 0
-                          ? `VD: ${uniqueCategories[0]}`
-                          : "Burger"
-                      }
-                      value={dishForm.category}
-                      onChange={(event) =>
-                        handleDishFieldChange("category", event.target.value)
-                      }
-                    />
-                  </label>
-                  <label>
-                    <span>{menuTexts.form.status}</span>
-                    <select
-                      value={dishForm.status}
-                      onChange={(event) =>
-                        handleDishFieldChange("status", event.target.value)
-                      }
-                    >
-                      {menuTexts.form.statusOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="restaurant-form__full">
-                    <span>{menuTexts.form.description}</span>
-                    <textarea
-                      rows={3}
-                      value={dishForm.description}
-                      onChange={(event) =>
-                        handleDishFieldChange("description", event.target.value)
-                      }
-                    />
-                  </label>
-                  <label>
-                    <span>{menuTexts.form.tag}</span>
-                    <input
-                      type="text"
-                      value={dishForm.tag}
-                      onChange={(event) =>
-                        handleDishFieldChange("tag", event.target.value)
-                      }
-                    />
-                  </label>
-                </div>
-                <div className="restaurant-form__actions">
-                  <button
-                    type="button"
-                    className="restaurant-btn restaurant-btn--ghost"
-                    onClick={handleCancelForm}
-                  >
-                    {menuTexts.form.cancel}
-                  </button>
-                  <button type="submit" className="restaurant-btn">
-                    {editingDishId
-                      ? menuTexts.form.submitUpdate
-                      : menuTexts.form.submitCreate}
-                  </button>
-                </div>
-              </form>
-            )}
-
-            <div className="restaurant-card">
-              {menuItems.length === 0 ? (
-                <p className="restaurant-empty">{menuTexts.empty}</p>
-              ) : (
-                <div className="restaurant-table" role="table">
-                  <div className="restaurant-table__header" role="row">
-                    <span role="columnheader">{menuTexts.form.name}</span>
-                    <span role="columnheader">{menuTexts.form.category}</span>
-                    <span role="columnheader">{menuTexts.form.price}</span>
-                    <span role="columnheader">{menuTexts.form.status}</span>
-                    <span role="columnheader">{menuTexts.form.tag}</span>
-                    <span role="columnheader" className="table-actions">
-                      {menuTexts.actionsLabel ?? "Hành động"}
-                    </span>
-                  </div>
-                  {menuItems.map((dish) => (
-                    <div
-                      key={dish.id}
-                      className="restaurant-table__row"
-                      role="row"
-                    >
-                      <span role="cell">
-                        <strong>{dish.name}</strong>
-                        {dish.description && (
-                          <small>{dish.description}</small>
-                        )}
-                      </span>
-                      <span role="cell">{dish.category || "-"}</span>
-                      <span role="cell">{formatCurrency(dish.price)}</span>
-                      <span role="cell">
-                        <span className={statusBadgeClass(dish.status)}>
-                          {dish.status === "soldout" ? "Hết hàng" : "Đang bán"}
-                        </span>
-                      </span>
-                      <span role="cell">{dish.tag || "-"}</span>
-                      <span role="cell" className="table-actions">
-                        <button
-                          type="button"
-                          className="link-button"
-                          onClick={() => handleStartEditDish(dish)}
-                        >
-                          {menuTexts.actions.edit}
-                        </button>
-                        <button
-                          type="button"
-                          className="link-button link-button--danger"
-                          onClick={() => handleDeleteDish(dish)}
-                        >
-                          {menuTexts.actions.delete}
-                        </button>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </section>
+          <RestaurantMenuSection
+            texts={menuTexts}
+            isFormVisible={isFormVisible}
+            editingDishId={editingDishId}
+            dishForm={dishForm}
+            uniqueCategories={uniqueCategories}
+            menuItems={menuItems}
+            onFieldChange={handleDishFieldChange}
+            onSubmit={handleSubmitDish}
+            onCancel={handleCancelForm}
+            onEditDish={handleStartEditDish}
+            onDeleteDish={handleDeleteDish}
+            formatCurrency={formatCurrency}
+            statusBadgeClass={statusBadgeClass}
+          />
         )}
 
         {activeTab === "orders" && (
-          <section className="restaurant-section">
-            <header className="restaurant-section__header">
-              <div>
-                <h2>{ordersTexts.heading}</h2>
-                <p>{ordersTexts.description}</p>
-              </div>
-            </header>
-
-            {isOrderFormVisible && (
-              <form className="restaurant-card restaurant-form" onSubmit={handleSubmitOrder}>
-                <header className="restaurant-form__header">
-                  <h3>
-                    {editingOrderId
-                      ? ordersTexts.form.titleUpdate
-                      : ordersTexts.form.titleCreate}
-                  </h3>
-                </header>
-                <div className="restaurant-form__grid">
-                  <label>
-                    <span>{ordersTexts.form.customer}</span>
-                    <input
-                      type="text"
-                      value={orderForm.customer}
-                      onChange={(event) =>
-                        handleOrderFieldChange("customer", event.target.value)
-                      }
-                      required
-                    />
-                  </label>
-                  <label>
-                    <span>{ordersTexts.form.items}</span>
-                    <input
-                      type="number"
-                      min="0"
-                      value={orderForm.items}
-                      onChange={(event) =>
-                        handleOrderFieldChange("items", event.target.value)
-                      }
-                    />
-                  </label>
-                  <label>
-                    <span>{ordersTexts.form.total}</span>
-                    <input
-                      type="number"
-                      min="0"
-                      step="1000"
-                      value={orderForm.total}
-                      onChange={(event) =>
-                        handleOrderFieldChange("total", event.target.value)
-                      }
-                    />
-                  </label>
-                  <label>
-                    <span>{ordersTexts.form.status}</span>
-                    <select
-                      value={orderForm.status}
-                      onChange={(event) =>
-                        handleOrderFieldChange("status", event.target.value)
-                      }
-                    >
-                      {ordersTexts.form.statusOptions.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    <span>{ordersTexts.form.placedAt}</span>
-                    <input
-                      type="datetime-local"
-                      value={orderForm.placedAt}
-                      onChange={(event) =>
-                        handleOrderFieldChange("placedAt", event.target.value)
-                      }
-                    />
-                  </label>
-                  <label className="restaurant-form__full">
-                    <span>{ordersTexts.form.address}</span>
-                    <textarea
-                      rows={3}
-                      value={orderForm.address}
-                      onChange={(event) =>
-                        handleOrderFieldChange("address", event.target.value)
-                      }
-                    />
-                  </label>
-                </div>
-                <div className="restaurant-form__actions">
-                  <button
-                    type="button"
-                    className="restaurant-btn restaurant-btn--ghost"
-                    onClick={handleCancelOrderForm}
-                  >
-                    {ordersTexts.form.cancel}
-                  </button>
-                  <button type="submit" className="restaurant-btn">
-                    {editingOrderId
-                      ? ordersTexts.form.submitUpdate
-                      : ordersTexts.form.submitCreate}
-                  </button>
-                </div>
-              </form>
-            )}
-
-            <div className="restaurant-card">
-              {orders.length === 0 ? (
-                <p className="restaurant-empty">{ordersTexts.empty}</p>
-              ) : (
-                <div className="restaurant-table restaurant-table--orders" role="table">
-                  <div className="restaurant-table__header" role="row">
-                    <span role="columnheader">{ordersTexts.columns.id}</span>
-                    <span role="columnheader">{ordersTexts.columns.customer}</span>
-                    <span role="columnheader">{ordersTexts.columns.items}</span>
-                    <span role="columnheader">{ordersTexts.columns.total}</span>
-                    <span role="columnheader">{ordersTexts.columns.status}</span>
-                    <span role="columnheader">{ordersTexts.columns.placedAt}</span>
-                    <span role="columnheader" className="table-actions">
-                      {ordersTexts.actionsLabel}
-                    </span>
-                  </div>
-                  {orders.map((order) => (
-                    <div
-                      key={order.id}
-                      className="restaurant-table__row is-clickable"
-                      role="row"
-                      tabIndex={0}
-                      onClick={() => handleStartEditOrder(order)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          handleStartEditOrder(order);
-                        }
-                      }}
-                    >
-                      <span role="cell">{order.id}</span>
-                      <span role="cell">
-                        <strong>{order.customer}</strong>
-                        {order.address && <small>{order.address}</small>}
-                      </span>
-                      <span role="cell">{order.items}</span>
-                      <span role="cell">{formatCurrency(order.total)}</span>
-                      <span role="cell">
-                        <span className={statusBadgeClass(order.status)}>
-                          {order.status}
-                        </span>
-                      </span>
-                      <span role="cell">
-                        <time dateTime={order.placedAt}>{formatDateTime(order.placedAt)}</time>
-                      </span>
-                      <span role="cell" className="table-actions">
-                        <button
-                          type="button"
-                          className="link-button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            handleStartEditOrder(order);
-                          }}
-                        >
-                          {ordersTexts.actions.edit}
-                        </button>
-                        <button
-                          type="button"
-                          className="link-button link-button--danger"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            handleDeleteOrder(order);
-                          }}
-                        >
-                          {ordersTexts.actions.delete}
-                        </button>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </section>
+          <RestaurantOrdersSection
+            texts={ordersTexts}
+            isFormVisible={isOrderFormVisible}
+            editingOrderId={editingOrderId}
+            orderForm={orderForm}
+            orders={orders}
+            onFieldChange={handleOrderFieldChange}
+            onSubmit={handleSubmitOrder}
+            onCancel={handleCancelOrderForm}
+            onEditOrder={handleStartEditOrder}
+            onDeleteOrder={handleDeleteOrder}
+            formatCurrency={formatCurrency}
+            formatDateTime={formatDateTime}
+            statusBadgeClass={statusBadgeClass}
+          />
         )}
       </main>
     </div>
