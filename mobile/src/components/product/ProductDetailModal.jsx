@@ -11,10 +11,14 @@ import {
 } from "react-native";
 
 const formatCurrency = (value) => {
+  if (typeof value !== "number") {
+    return "--";
+  }
+
   try {
-    return `${new Intl.NumberFormat("vi-VN").format(value)}đ`;
+    return `${new Intl.NumberFormat("vi-VN").format(value)} đ`;
   } catch (error) {
-    return `${value}đ`;
+    return `${value} đ`;
   }
 };
 
@@ -37,7 +41,12 @@ const ProductDetailModal = ({ product, visible, onClose }) => {
 
   const totalPrice = useMemo(() => {
     if (!product) return 0;
-    return product.price * 1000 * quantity;
+    const unitPrice =
+      typeof product.price === "number" ? product.price : Number(product.price);
+    if (Number.isNaN(unitPrice)) {
+      return 0;
+    }
+    return unitPrice * quantity;
   }, [product, quantity]);
 
   if (!product) {
@@ -77,6 +86,11 @@ const ProductDetailModal = ({ product, visible, onClose }) => {
             <View style={styles.infoBlock}>
               <Text style={styles.productName}>{product.name}</Text>
               <Text style={styles.productDescription}>{product.description}</Text>
+              <Text style={styles.productPrice}>
+                {formatCurrency(
+                  typeof product.price === "number" ? product.price : null
+                )}
+              </Text>
             </View>
 
             <View style={styles.sectionDivider} />
@@ -197,6 +211,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 22,
     color: "#4a4a55",
+  },
+  productPrice: {
+    marginTop: 6,
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#f04e23",
   },
   sectionDivider: {
     height: 8,
