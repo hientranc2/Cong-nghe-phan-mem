@@ -9,6 +9,7 @@ import {
   ImageBackground,
   TouchableOpacity,
   Image,
+  Platform,
 } from "react-native";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import {
@@ -22,6 +23,7 @@ import {
   promotions,
   aboutContent,
   footerContent,
+  bottomTabItems,
 } from "./src/data/homepage";
 
 const SectionHeader = ({ title, description }) => (
@@ -54,17 +56,19 @@ const HeaderSection = () => (
         ))}
       </View>
     </View>
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.headerNav}
-    >
-      {headerContent.navigation.map((item) => (
-        <View key={item.id} style={styles.headerNavItem}>
-          <Text style={styles.headerNavLabel}>{item.label}</Text>
-        </View>
-      ))}
-    </ScrollView>
+    {headerContent.navigation.length ? (
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.headerNav}
+      >
+        {headerContent.navigation.map((item) => (
+          <View key={item.id} style={styles.headerNavItem}>
+            <Text style={styles.headerNavLabel}>{item.label}</Text>
+          </View>
+        ))}
+      </ScrollView>
+    ) : null}
   </View>
 );
 
@@ -274,28 +278,66 @@ export default function App() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" />
       <ExpoStatusBar style="light" />
-      <ScrollView contentContainerStyle={styles.container}>
-        <HeaderSection />
-        <HeroSection />
-        <StatsSection />
-        <CategorySection />
-        <BestSellerSection />
-        <ComboSection />
-        <PromotionSection />
-        <AboutSection />
-        <FooterSection />
-      </ScrollView>
+      <View style={styles.appContainer}>
+        <ScrollView contentContainerStyle={styles.container}>
+          <HeaderSection />
+          <HeroSection />
+          <StatsSection />
+          <CategorySection />
+          <BestSellerSection />
+          <ComboSection />
+          <PromotionSection />
+          <AboutSection />
+          <FooterSection />
+        </ScrollView>
+        <View style={styles.bottomBarWrapper}>
+          <BottomTabBar />
+          <FloatingCartButton />
+        </View>
+      </View>
     </SafeAreaView>
   );
 }
+
+const BottomTabBar = () => (
+  <View style={styles.bottomTabBar}>
+    {bottomTabItems.map((item, index) => {
+      const isActive = index === 0;
+      return (
+        <View
+          key={item.id}
+          style={[styles.bottomTabItem, isActive && styles.bottomTabItemActive]}
+        >
+          <Text style={[styles.bottomTabIcon, isActive && styles.bottomTabIconActive]}>
+            {item.icon}
+          </Text>
+          <Text
+            style={[styles.bottomTabLabel, isActive && styles.bottomTabLabelActive]}
+          >
+            {item.label}
+          </Text>
+        </View>
+      );
+    })}
+  </View>
+);
+
+const FloatingCartButton = () => (
+  <TouchableOpacity style={styles.cartButton} activeOpacity={0.85}>
+    <Text style={styles.cartButtonIcon}>🛒</Text>
+  </TouchableOpacity>
+);
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#fdf4ef",
   },
+  appContainer: {
+    flex: 1,
+  },
   container: {
-    paddingBottom: 48,
+    paddingBottom: 140,
     backgroundColor: "#fdf4ef",
   },
   header: {
@@ -379,6 +421,75 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
     textTransform: "uppercase",
+  },
+  bottomBarWrapper: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "transparent",
+  },
+  bottomTabBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    paddingBottom: Platform.select({ ios: 28, default: 20 }),
+    backgroundColor: "#ffffff",
+    borderTopWidth: 1,
+    borderTopColor: "#f1f5f9",
+    shadowColor: "#0f172a",
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: -2 },
+    elevation: 12,
+  },
+  bottomTabItem: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 4,
+  },
+  bottomTabItemActive: {
+    backgroundColor: "rgba(255, 90, 31, 0.08)",
+    borderRadius: 16,
+    paddingVertical: 6,
+  },
+  bottomTabIcon: {
+    fontSize: 20,
+    marginBottom: 4,
+  },
+  bottomTabIconActive: {
+    color: "#ff5a1f",
+  },
+  bottomTabLabel: {
+    fontSize: 12,
+    color: "#475569",
+    fontWeight: "600",
+  },
+  bottomTabLabelActive: {
+    color: "#ff5a1f",
+  },
+  cartButton: {
+    position: "absolute",
+    right: 20,
+    top: -32,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "#ff5a1f",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#ff5a1f",
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 10,
+  },
+  cartButtonIcon: {
+    fontSize: 28,
+    color: "#ffffff",
   },
   hero: {
     height: 420,

@@ -5,15 +5,8 @@ export const headerContent = {
   topMessage: "FCO giao nhanh trong 15 phút · Freeship đơn từ 199k",
   brandName: "FCO FoodFast Delivery",
   tagline: "Ăn ngon chuẩn vị - giao tận nhà chỉ trong 15 phút.",
-  navigation: [
-    { id: "best-seller", label: "Bán chạy" },
-    { id: "combo", label: "Combo ưu đãi" },
-    { id: "promo", label: "Khuyến mãi" }
-  ],
-  actions: [
-    { id: "login", icon: "👤", label: "Đăng nhập" },
-    { id: "cart", icon: "🛒", label: "Giỏ hàng" }
-  ]
+  navigation: [],
+  actions: [{ id: "login", icon: "👤", label: "Đăng nhập" }]
 };
 
 export const heroContent = {
@@ -180,3 +173,11 @@ export const footerContent = {
   address: "Tòa nhà FCO Tower, 88 Nguyễn Huệ, Quận 1, TP.HCM",
   rights: "© {year} FCO FoodFast Delivery. All rights reserved."
 };
+
+export const bottomTabItems = [
+  { id: "home", label: "Trang chủ", icon: "🏠" },
+  { id: "menu", label: "Thực đơn", icon: "📋" },
+  { id: "promo", label: "Khuyến mãi", icon: "🎁" },
+  { id: "orders", label: "Đơn hàng", icon: "🧾" },
+  { id: "more", label: "Xem thêm", icon: "☰" }
+];
