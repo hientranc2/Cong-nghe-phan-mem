@@ -39,18 +39,15 @@ const HeaderSection = () => (
       <Text style={styles.headerTopText}>{headerContent.topMessage}</Text>
     </View>
     <View style={styles.headerMain}>
-      <View style={styles.headerBrand}>
-        <View style={styles.headerLogoWrapper}>
-          <Text style={styles.headerLogo}>FCO</Text>
-        </View>
-        <View>
-          <Text style={styles.headerBrandName}>{headerContent.brandName}</Text>
-          <Text style={styles.headerTagline}>{headerContent.tagline}</Text>
-        </View>
+      <View style={styles.headerLogoWrapper}>
+        <Text style={styles.headerLogo}>FCO</Text>
       </View>
       <View style={styles.headerActions}>
-        {headerContent.actions.map((action) => (
-          <View key={action.id} style={styles.headerAction}>
+        {headerContent.actions.map((action, index) => (
+          <View
+            key={action.id}
+            style={[styles.headerAction, index === 0 && styles.headerActionFirst]}
+          >
             <Text style={styles.headerActionIcon}>{action.icon}</Text>
             <Text style={styles.headerActionLabel}>{action.label}</Text>
           </View>
@@ -295,23 +292,26 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#0b1120",
+    backgroundColor: "#fdf4ef",
   },
   container: {
     paddingBottom: 48,
-    backgroundColor: "#f8fafc",
+    backgroundColor: "#fdf4ef",
   },
   header: {
-    backgroundColor: "#0b1120",
+    backgroundColor: "#ff5a1f",
     paddingTop: 12,
     paddingBottom: 16,
   },
   headerTop: {
     paddingHorizontal: 20,
     paddingVertical: 6,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 999,
+    alignSelf: "center",
   },
   headerTopText: {
-    color: "#94a3b8",
+    color: "rgba(255, 255, 255, 0.92)",
     fontSize: 12,
     textAlign: "center",
   },
@@ -321,55 +321,45 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  headerBrand: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-  },
   headerLogoWrapper: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#f97316",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#ffffff",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.35)",
   },
   headerLogo: {
-    color: "#0b1120",
-    fontSize: 20,
-    fontWeight: "700",
-  },
-  headerBrandName: {
-    color: "#ffffff",
+    color: "#ff5a1f",
     fontSize: 18,
     fontWeight: "700",
   },
-  headerTagline: {
-    color: "#cbd5f5",
-    fontSize: 13,
-    marginTop: 4,
-  },
   headerActions: {
     flexDirection: "row",
-    marginLeft: 12,
+    alignItems: "center",
   },
   headerAction: {
-    backgroundColor: "rgba(148, 163, 184, 0.18)",
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: 18,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     marginLeft: 8,
     flexDirection: "row",
     alignItems: "center",
   },
+  headerActionFirst: {
+    marginLeft: 0,
+  },
   headerActionIcon: {
-    fontSize: 16,
-    marginRight: 6,
+    fontSize: 14,
+    marginRight: 4,
   },
   headerActionLabel: {
-    color: "#e2e8f0",
-    fontSize: 13,
+    color: "#ffffff",
+    fontSize: 12,
     fontWeight: "600",
   },
   headerNav: {
@@ -378,14 +368,14 @@ const styles = StyleSheet.create({
     paddingBottom: 6,
   },
   headerNavItem: {
-    backgroundColor: "rgba(15, 23, 42, 0.6)",
+    backgroundColor: "rgba(255, 255, 255, 0.22)",
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
     marginRight: 10,
   },
   headerNavLabel: {
-    color: "#f8fafc",
+    color: "#ffffff",
     fontSize: 13,
     fontWeight: "600",
     textTransform: "uppercase",
@@ -399,7 +389,7 @@ const styles = StyleSheet.create({
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(11, 17, 32, 0.65)",
+    backgroundColor: "rgba(31, 31, 31, 0.75)",
   },
   heroContent: {
     padding: 24,
@@ -413,7 +403,7 @@ const styles = StyleSheet.create({
   heroDescription: {
     fontSize: 16,
     lineHeight: 22,
-    color: "#e2e8f0",
+    color: "rgba(255, 255, 255, 0.88)",
   },
   heroActions: {
     flexDirection: "row",
@@ -428,20 +418,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   buttonPrimary: {
-    backgroundColor: "#f97316",
+    backgroundColor: "#ffffff",
   },
   buttonSecondary: {
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderColor: "rgba(255, 255, 255, 0.55)",
+    backgroundColor: "rgba(255, 90, 31, 0.2)",
   },
   buttonPrimaryLabel: {
-    color: "#0b1120",
+    color: "#ff5a1f",
     fontWeight: "600",
     fontSize: 16,
   },
   buttonSecondaryLabel: {
-    color: "#e2e8f0",
+    color: "#ffffff",
     fontWeight: "600",
     fontSize: 16,
   },
@@ -451,32 +441,44 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
   },
   heroHighlight: {
-    color: "#94a3b8",
+    color: "rgba(255, 255, 255, 0.85)",
     fontSize: 14,
     marginRight: 12,
     marginBottom: 8,
   },
   statsSection: {
-    backgroundColor: "#0f172a",
+    backgroundColor: "transparent",
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-around",
+    justifyContent: "space-between",
     paddingVertical: 24,
-    paddingHorizontal: 12,
+    paddingHorizontal: 20,
   },
   statCard: {
-    width: "45%",
-    marginVertical: 12,
+    width: "48%",
+    marginBottom: 16,
+    backgroundColor: "#ffffff",
+    borderRadius: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    shadowColor: "#ff5a1f",
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 4,
+    alignItems: "center",
   },
   statValue: {
     fontSize: 26,
     fontWeight: "700",
-    color: "#f97316",
+    color: "#ff5a1f",
+    textAlign: "center",
   },
   statLabel: {
-    color: "#e2e8f0",
+    color: "#5f5f5f",
     marginTop: 4,
     fontSize: 14,
+    textAlign: "center",
   },
   section: {
     paddingHorizontal: 20,
@@ -488,11 +490,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 24,
     fontWeight: "700",
-    color: "#0f172a",
+    color: "#1f1f1f",
   },
   sectionDescription: {
     marginTop: 8,
-    color: "#475569",
+    color: "#5f5f5f",
     fontSize: 15,
     lineHeight: 21,
   },
@@ -503,8 +505,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderRadius: 16,
     padding: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
+    shadowColor: "#ff5a1f",
+    shadowOpacity: 0.08,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
     elevation: 3,
@@ -517,16 +519,16 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     marginTop: 8,
-    color: "#0f172a",
+    color: "#1f1f1f",
   },
   categoryDescription: {
     marginTop: 6,
-    color: "#475569",
+    color: "#5f5f5f",
     lineHeight: 20,
   },
   link: {
     marginTop: 12,
-    color: "#f97316",
+    color: "#ff5a1f",
     fontWeight: "600",
   },
   menuList: {
@@ -538,8 +540,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginRight: 16,
     overflow: "hidden",
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
+    shadowColor: "#ff5a1f",
+    shadowOpacity: 0.12,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
     elevation: 4,
@@ -552,17 +554,17 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   menuTag: {
-    color: "#f97316",
+    color: "#ff5a1f",
     fontWeight: "600",
   },
   menuTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#0f172a",
+    color: "#1f1f1f",
     marginTop: 6,
   },
   menuDescription: {
-    color: "#475569",
+    color: "#5f5f5f",
     fontSize: 14,
     lineHeight: 19,
     marginTop: 6,
@@ -578,10 +580,10 @@ const styles = StyleSheet.create({
   menuPrice: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#0f172a",
+    color: "#1f1f1f",
   },
   addButton: {
-    backgroundColor: "#0f172a",
+    backgroundColor: "#ff5a1f",
     borderRadius: 999,
     paddingVertical: 6,
     paddingHorizontal: 16,
@@ -594,13 +596,18 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   comboCard: {
-    backgroundColor: "#111827",
+    backgroundColor: "#ffffff",
     borderRadius: 20,
     padding: 20,
     marginBottom: 16,
+    shadowColor: "#ff5a1f",
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 4,
   },
   comboBadge: {
-    backgroundColor: "rgba(249, 115, 22, 0.15)",
+    backgroundColor: "rgba(255, 90, 31, 0.15)",
     alignSelf: "flex-start",
     paddingVertical: 4,
     paddingHorizontal: 12,
@@ -608,16 +615,16 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   comboBadgeText: {
-    color: "#f97316",
+    color: "#ff5a1f",
     fontWeight: "600",
   },
   comboTitle: {
-    color: "#ffffff",
+    color: "#1f1f1f",
     fontSize: 18,
     fontWeight: "700",
   },
   comboDescription: {
-    color: "#cbd5f5",
+    color: "#5f5f5f",
     marginTop: 8,
     lineHeight: 20,
   },
@@ -628,18 +635,18 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   comboPrice: {
-    color: "#f97316",
+    color: "#ff5a1f",
     fontSize: 20,
     fontWeight: "700",
   },
   comboButton: {
-    backgroundColor: "#f97316",
+    backgroundColor: "#ff5a1f",
     borderRadius: 999,
     paddingVertical: 8,
     paddingHorizontal: 20,
   },
   comboButtonLabel: {
-    color: "#111827",
+    color: "#ffffff",
     fontWeight: "700",
   },
   promotionGrid: {
@@ -649,8 +656,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderRadius: 16,
     padding: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
+    shadowColor: "#ff5a1f",
+    shadowOpacity: 0.06,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
     elevation: 3,
@@ -659,23 +666,25 @@ const styles = StyleSheet.create({
   promotionTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#0f172a",
+    color: "#1f1f1f",
   },
   promotionDescription: {
     marginTop: 8,
-    color: "#475569",
+    color: "#5f5f5f",
     lineHeight: 20,
   },
   aboutContent: {
-    backgroundColor: "#0f172a",
+    backgroundColor: "#ffffff",
     borderRadius: 24,
     padding: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255, 90, 31, 0.2)",
   },
   aboutText: {
     marginBottom: 20,
   },
   aboutListItem: {
-    color: "#e2e8f0",
+    color: "#5f5f5f",
     fontSize: 15,
     lineHeight: 22,
     marginBottom: 12,
@@ -693,19 +702,19 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 16,
     right: 16,
-    backgroundColor: "rgba(15, 23, 42, 0.85)",
+    backgroundColor: "rgba(255, 90, 31, 0.15)",
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 16,
     alignItems: "center",
   },
   aboutBadgeValue: {
-    color: "#f97316",
+    color: "#ff5a1f",
     fontSize: 22,
     fontWeight: "700",
   },
   aboutBadgeLabel: {
-    color: "#e2e8f0",
+    color: "#5f5f5f",
     fontSize: 12,
     marginTop: 4,
     textAlign: "center",
@@ -725,13 +734,15 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#f97316",
+    backgroundColor: "#ffffff",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.35)",
   },
   footerLogo: {
-    color: "#0b1120",
+    color: "#ff5a1f",
     fontSize: 22,
     fontWeight: "700",
   },
@@ -744,13 +755,13 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   footerDescription: {
-    color: "#cbd5f5",
+    color: "rgba(226, 232, 240, 0.85)",
     fontSize: 14,
     marginTop: 6,
     lineHeight: 20,
   },
   footerAddress: {
-    color: "#94a3b8",
+    color: "rgba(148, 163, 184, 0.85)",
     fontSize: 13,
     marginTop: 10,
   },
@@ -761,7 +772,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   footerColumnTitle: {
-    color: "#f97316",
+    color: "#ff5a1f",
     fontSize: 15,
     fontWeight: "700",
     marginBottom: 10,
@@ -778,7 +789,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   footerRights: {
-    color: "#64748b",
+    color: "rgba(148, 163, 184, 0.75)",
     fontSize: 12,
     textAlign: "center",
   },

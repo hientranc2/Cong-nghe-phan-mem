@@ -6,10 +6,9 @@ export const headerContent = {
   brandName: "FCO FoodFast Delivery",
   tagline: "Ăn ngon chuẩn vị - giao tận nhà chỉ trong 15 phút.",
   navigation: [
-    { id: "menu", label: "Danh mục" },
     { id: "best-seller", label: "Bán chạy" },
-    { id: "combo", label: "Combo" },
-    { id: "promo", label: "Ưu đãi" }
+    { id: "combo", label: "Combo ưu đãi" },
+    { id: "promo", label: "Khuyến mãi" }
   ],
   actions: [
     { id: "login", icon: "👤", label: "Đăng nhập" },
