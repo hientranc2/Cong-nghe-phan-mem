@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from "react";
 import {
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -36,7 +35,7 @@ const formatCurrency = (value) => {
   }
 };
 
-const CheckoutScreen = ({ onBack, user }) => {
+const CheckoutScreen = ({ onBack, user, onOrderPlaced }) => {
   const { items, subtotal, clearCart } = useCart();
   const [selectedPayment, setSelectedPayment] = useState(PAYMENT_METHODS[0].id);
   const [customerName, setCustomerName] = useState(user?.fullName ?? "");
@@ -53,19 +52,44 @@ const CheckoutScreen = ({ onBack, user }) => {
       return;
     }
 
-    Alert.alert(
-      "Đặt hàng thành công",
-      "Đơn hàng của bạn đang được chuẩn bị. Xin cảm ơn!",
-      [
-        {
-          text: "Quay về trang chủ",
-          onPress: () => {
-            clearCart();
-            onBack?.();
-          },
-        },
-      ]
+    const orderItems = items.map((item) => ({
+      id: item?.product?.id,
+      name: item?.product?.name,
+      price: Number(item?.product?.price ?? 0),
+      quantity: item?.quantity ?? 0,
+    }));
+    const now = new Date();
+    const estimatedDelivery = new Date(now.getTime() + 45 * 60 * 1000);
+    const paymentMethod = PAYMENT_METHODS.find(
+      (method) => method.id === selectedPayment
     );
+
+    const orderPayload = {
+      id: `ORD-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(
+        now.getDate()
+      ).padStart(2, "0")}-${now.getTime()}`,
+      createdAt: now.toISOString(),
+      estimatedDelivery: estimatedDelivery.toISOString(),
+      paymentMethod: paymentMethod?.label,
+      paymentDescription: paymentMethod?.description,
+      subtotal,
+      customer: {
+        name: customerName,
+        phone: customerPhone,
+        email: customerEmail,
+      },
+      address: deliveryAddress,
+      items: orderItems,
+    };
+
+    clearCart();
+
+    if (onOrderPlaced) {
+      onOrderPlaced(orderPayload);
+      return;
+    }
+
+    onBack?.();
   };
 
   return (
