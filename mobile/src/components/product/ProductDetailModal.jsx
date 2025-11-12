@@ -85,10 +85,12 @@ const ProductDetailModal = ({ product, visible, onClose, onAddToCart }) => {
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.heroWrapper}>
-              <Image
-                source={resolveImageSource(product.image)}
-                style={styles.heroImage}
-              />
+              <View style={styles.heroImageContainer}>
+                <Image
+                  source={resolveImageSource(product.image)}
+                  style={styles.heroImage}
+                />
+              </View>
               {product.tag ? (
                 <View style={styles.tagChip}>
                   <Text style={styles.tagText}>{product.tag}</Text>
@@ -195,9 +197,17 @@ const styles = StyleSheet.create({
     position: "relative",
     backgroundColor: "#fff6ed",
   },
+  heroImageContainer: {
+    width: "100%",
+    aspectRatio: 1.2,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+  },
   heroImage: {
     width: "100%",
-    aspectRatio: 1.3,
+     height: "100%",
+    resizeMode: "contain",
   },
   tagChip: {
     position: "absolute",

@@ -13,6 +13,7 @@ import lavaCheesePizza from "../assets/pizzaphomai.jpg";
 import veggieMedley from "../assets/raucu.jpg";
 import tempuraShrimp from "../assets/tomchien.jpg";
 import peachTea from "../assets/tradao.jpg";
+import miso from "../assets/miso.jpg";
 
 export const menuCategories = [
   {
@@ -69,7 +70,7 @@ export const menuItems = [
     description:
       "Patty đậu gà, rau củ nướng và sốt miso ngọt mặn dành cho thực khách eat clean.",
     price: 72000,
-    image: veggieMedley,
+    image: miso,
   },
   {
     id: "fco-burger-double",
