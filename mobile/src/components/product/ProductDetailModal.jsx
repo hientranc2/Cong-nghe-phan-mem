@@ -22,7 +22,7 @@ const formatCurrency = (value) => {
   }
 };
 
-const ProductDetailModal = ({ product, visible, onClose }) => {
+const ProductDetailModal = ({ product, visible, onClose, onAddToCart }) => {
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
@@ -48,6 +48,14 @@ const ProductDetailModal = ({ product, visible, onClose }) => {
     }
     return unitPrice * quantity;
   }, [product, quantity]);
+
+  const handleAddToCart = () => {
+    if (!product) {
+      return;
+    }
+
+    onAddToCart?.(product, quantity);
+  };
 
   if (!product) {
     return null;
@@ -124,7 +132,11 @@ const ProductDetailModal = ({ product, visible, onClose }) => {
               <Text style={styles.totalLabel}>Tạm tính</Text>
               <Text style={styles.totalValue}>{formatCurrency(totalPrice)}</Text>
             </View>
-            <TouchableOpacity activeOpacity={0.9} style={styles.primaryButton}>
+            <TouchableOpacity
+              activeOpacity={0.9}
+              style={styles.primaryButton}
+              onPress={handleAddToCart}
+            >
               <Text style={styles.primaryButtonLabel}>Thêm vào giỏ hàng</Text>
             </TouchableOpacity>
           </View>

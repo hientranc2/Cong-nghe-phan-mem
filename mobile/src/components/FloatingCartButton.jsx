@@ -1,11 +1,23 @@
 import React from "react";
-import { TouchableOpacity, Text, StyleSheet } from "react-native";
+import { TouchableOpacity, Text, StyleSheet, View } from "react-native";
 
-const FloatingCartButton = () => (
-  <TouchableOpacity style={styles.button}>
-    <Text style={styles.icon}>🛒</Text>
-  </TouchableOpacity>
-);
+import { useCart } from "../context/CartContext.jsx";
+
+const FloatingCartButton = () => {
+  const { totalItems } = useCart();
+  const hasItems = totalItems > 0;
+
+  return (
+    <TouchableOpacity style={styles.button} activeOpacity={0.85}>
+      <Text style={styles.icon}>🛒</Text>
+      {hasItems ? (
+        <View style={styles.badge}>
+          <Text style={styles.badgeLabel}>{totalItems}</Text>
+        </View>
+      ) : null}
+    </TouchableOpacity>
+  );
+};
 
 const styles = StyleSheet.create({
   button: {
@@ -27,6 +39,23 @@ const styles = StyleSheet.create({
   icon: {
     fontSize: 24,
     color: "#161515ff",
+  },
+  badge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    minWidth: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: "#ef4444",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 6,
+  },
+  badgeLabel: {
+    color: "#ffffff",
+    fontSize: 12,
+    fontWeight: "700",
   },
 });
 

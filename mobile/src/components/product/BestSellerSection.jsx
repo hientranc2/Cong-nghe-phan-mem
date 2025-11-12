@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { bestSellers } from "../../data/homepage";
 import ProductGrid from "./ProductGrid";
 
-const BestSellerSection = ({ onProductPress }) => (
+const BestSellerSection = ({ onProductPress, onAddToCart }) => (
   <View style={styles.container}>
     <View style={styles.headerRow}>
       <View>
@@ -18,7 +18,11 @@ const BestSellerSection = ({ onProductPress }) => (
       </TouchableOpacity>
     </View>
 
-    <ProductGrid products={bestSellers} onProductPress={onProductPress} />
+    <ProductGrid
+      products={bestSellers}
+      onProductPress={onProductPress}
+      onAddToCart={onAddToCart}
+    />
   </View>
 );
 

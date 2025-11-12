@@ -11,7 +11,7 @@ import {
 import ProductCard from "../components/product/ProductCard";
 import { menuCategories, menuItems } from "../data/menu";
 
-const MenuScreen = ({ onProductPress }) => {
+const MenuScreen = ({ onProductPress, onAddToCart }) => {
   const [activeCategory, setActiveCategory] = useState(
     menuCategories[0]?.id ?? null
   );
@@ -97,6 +97,7 @@ const MenuScreen = ({ onProductPress }) => {
         <ProductCard
           product={item}
           onPressImage={onProductPress}
+          onPressAdd={(product) => onAddToCart?.(product, 1)}
           variant="menu"
         />
       )}
