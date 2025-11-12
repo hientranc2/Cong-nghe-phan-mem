@@ -4,11 +4,13 @@ import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 
 import HomeScreen from "./src/screens/HomeScreen.jsx";
 import AuthScreen from "./src/features/auth/AuthScreen.jsx";
+import CheckoutScreen from "./src/screens/CheckoutScreen.jsx";
 import { CartProvider } from "./src/context/CartContext.jsx";
 
 const SCREENS = {
   home: "home",
-  auth: "auth"
+  auth: "auth",
+  checkout: "checkout",
 };
 
 export default function App() {
@@ -21,6 +23,10 @@ export default function App() {
   );
   const goHome = useCallback(
     () => setActiveScreen(SCREENS.home),
+    [setActiveScreen]
+  );
+  const goToCheckout = useCallback(
+    () => setActiveScreen(SCREENS.checkout),
     [setActiveScreen]
   );
   const handleLoginSuccess = useCallback(
@@ -43,9 +49,10 @@ export default function App() {
     () => ({
       goToAuth,
       goHome,
-      handleLoginSuccess
+      goToCheckout,
+      handleLoginSuccess,
     }),
-    [goHome, goToAuth, handleLoginSuccess]
+    [goHome, goToAuth, goToCheckout, handleLoginSuccess]
   );
 
   return (
@@ -58,11 +65,17 @@ export default function App() {
             <HomeScreen
               onPressLogin={screenHandlers.goToAuth}
               user={authenticatedUser}
+              onCheckout={screenHandlers.goToCheckout}
             />
-          ) : (
+          ) : activeScreen === SCREENS.auth ? (
             <AuthScreen
               onBack={screenHandlers.goHome}
               onLoginSuccess={screenHandlers.handleLoginSuccess}
+            />
+          ) : (
+            <CheckoutScreen
+              onBack={screenHandlers.goHome}
+              user={authenticatedUser}
             />
           )}
         </View>
