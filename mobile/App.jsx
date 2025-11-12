@@ -29,6 +29,10 @@ export default function App() {
     () => setActiveScreen(SCREENS.checkout),
     [setActiveScreen]
   );
+  const goToCheckout = useCallback(
+    () => setActiveScreen(SCREENS.checkout),
+    [setActiveScreen]
+  );
   const handleLoginSuccess = useCallback(
     (user) => {
       if (user) {

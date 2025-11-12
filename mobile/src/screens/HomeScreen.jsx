@@ -24,6 +24,7 @@ const HomeScreen = ({ onPressLogin, user, onViewCart }) => {
     productName: "",
     quantity: 0,
   });
+  const [cartVisible, setCartVisible] = useState(false);
   const { addToCart } = useCart();
 
   const handleTabPress = useCallback((tabId) => {
@@ -128,6 +129,11 @@ const HomeScreen = ({ onPressLogin, user, onViewCart }) => {
         productName={confirmation.productName}
         quantity={confirmation.quantity}
         onDismiss={handleHideConfirmation}
+      />
+      <CartPreviewModal
+        visible={cartVisible}
+        onClose={handleCloseCart}
+        onCheckout={handleGoToCheckout}
       />
     </View>
   );
