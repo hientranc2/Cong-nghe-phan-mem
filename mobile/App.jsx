@@ -22,6 +22,11 @@ const SCREENS = {
 const HOME_TAB = "home";
 const ORDERS_TAB = "orders";
 
+const ACTIVE_STATUS = "Đang giao";
+const CANCELLED_STATUS = "Đã hủy";
+const ACTIVE_STATUS_COLOR = "#f97316";
+const CANCELLED_STATUS_COLOR = "#ef4444";
+
 const DEFAULT_ORDER_ACTIONS = [
   { id: "cancel", label: "Hủy đơn hàng", variant: "secondary" },
   { id: "summary", label: "Xem tóm tắt", variant: "ghost" },
@@ -81,6 +86,9 @@ const ensureISODate = (value, fallbackDate) => {
   return fallback.toISOString();
 };
 
+const isCancelledStatus = (status) =>
+  typeof status === "string" && status.toLowerCase().includes("hủy");
+
 const buildOrderViewModel = (rawOrder = {}) => {
   const now = new Date();
   const id = rawOrder.id ?? rawOrder.code ?? `ORD-${now.getTime()}`;
@@ -96,14 +104,19 @@ const buildOrderViewModel = (rawOrder = {}) => {
       : typeof rawOrder.subtotal === "number"
       ? formatCurrency(rawOrder.subtotal)
       : "--";
-  const statusLabel =
+  const rawStatusLabel =
     typeof rawOrder.status === "string"
       ? rawOrder.status
-      : rawOrder.status?.label ?? "Đang giao";
+      : rawOrder.status?.label ?? ACTIVE_STATUS;
+  const normalizedStatusLabel = isCancelledStatus(rawStatusLabel)
+    ? CANCELLED_STATUS
+    : rawStatusLabel;
   const statusColor =
     rawOrder.statusColor ??
     (rawOrder.status && typeof rawOrder.status === "object" ? rawOrder.status.color : undefined) ??
-    "#f97316";
+    (normalizedStatusLabel === CANCELLED_STATUS
+      ? CANCELLED_STATUS_COLOR
+      : ACTIVE_STATUS_COLOR);
   const actions =
     Array.isArray(rawOrder.actions) && rawOrder.actions.length > 0
       ? rawOrder.actions
@@ -115,7 +128,7 @@ const buildOrderViewModel = (rawOrder = {}) => {
     restaurantName: rawOrder.restaurantName ?? "FoodCourt Online",
     placedAt: placedAtLabel,
     totalAmount: totalAmountLabel,
-    status: statusLabel,
+    status: normalizedStatusLabel,
     statusColor,
     actions,
     details: {

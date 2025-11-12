@@ -1,5 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ScrollView, View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  ScrollView,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from "react-native";
 
 import OrderCard from "../components/OrderCard.jsx";
 
@@ -26,9 +33,7 @@ const isCancelledStatus = (status) =>
 
 const buildActionsForStatus = (status) => {
   if (status === CANCELLED_STATUS) {
-    return [
-      { id: "summary", label: "Xem tóm tắt", variant: "ghost" },
-    ];
+    return [];
   }
 
   return [
@@ -138,6 +143,16 @@ const OrdersScreen = ({
             return nextItem;
           })
         );
+
+        if (nextOrderSnapshot) {
+          const codeLabel = nextOrderSnapshot.code ?? nextOrderSnapshot.id;
+          Alert.alert(
+            "Đơn hàng đã được hủy",
+            codeLabel
+              ? `Đơn ${codeLabel} đã được hủy thành công.`
+              : "Đơn hàng của bạn đã được hủy thành công."
+          );
+        }
 
         if (typeof onActionPress === "function") {
           onActionPress(actionId, nextOrderSnapshot);
