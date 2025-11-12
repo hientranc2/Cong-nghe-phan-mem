@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
 import HomeHeader from "../components/HomeHeader.jsx";
@@ -20,8 +20,17 @@ const MENU_TAB = "menu";
 const PROMO_TAB = "promo";
 const ORDERS_TAB = "orders";
 
-const HomeScreen = ({ onPressLogin, user, onViewCart }) => {
-  const [activeTab, setActiveTab] = useState(HOME_TAB);
+const HomeScreen = ({
+  onPressLogin,
+  user,
+  onViewCart,
+  initialTab = HOME_TAB,
+  orders,
+  onOrdersChange,
+  onOrderAction,
+  onTabChange,
+}) => {
+  const [activeTab, setActiveTab] = useState(initialTab ?? HOME_TAB);
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [confirmation, setConfirmation] = useState({
     visible: false,
@@ -30,23 +39,43 @@ const HomeScreen = ({ onPressLogin, user, onViewCart }) => {
   });
   const { addToCart } = useCart();
 
-  const handleTabPress = useCallback((tabId) => {
-    if (
-      tabId === MENU_TAB ||
-      tabId === PROMO_TAB ||
-      tabId === HOME_TAB ||
-      tabId === ORDERS_TAB
-    ) {
-      setActiveTab(tabId);
+  useEffect(() => {
+    if (!initialTab) {
       return;
     }
 
-    setActiveTab(HOME_TAB);
-  }, []);
+    setActiveTab((current) => (current === initialTab ? current : initialTab));
+  }, [initialTab]);
+
+  const handleTabPress = useCallback(
+    (tabId) => {
+      if (
+        tabId === MENU_TAB ||
+        tabId === PROMO_TAB ||
+        tabId === HOME_TAB ||
+        tabId === ORDERS_TAB
+      ) {
+        setActiveTab(tabId);
+        if (typeof onTabChange === "function") {
+          onTabChange(tabId);
+        }
+        return;
+      }
+
+      setActiveTab(HOME_TAB);
+      if (typeof onTabChange === "function") {
+        onTabChange(HOME_TAB);
+      }
+    },
+    [onTabChange]
+  );
 
   const handleBackToHome = useCallback(() => {
     setActiveTab(HOME_TAB);
-  }, []);
+    if (typeof onTabChange === "function") {
+      onTabChange(HOME_TAB);
+    }
+  }, [onTabChange]);
 
   const handleProductPress = useCallback((product) => {
     setSelectedProductId(product?.id ?? null);
@@ -120,7 +149,12 @@ const HomeScreen = ({ onPressLogin, user, onViewCart }) => {
       ) : activeTab === PROMO_TAB ? (
         <PromoScreen />
       ) : activeTab === ORDERS_TAB ? (
-        <OrdersScreen onBackToHome={handleBackToHome} />
+        <OrdersScreen
+          onBackToHome={handleBackToHome}
+          orders={orders}
+          onOrdersChange={onOrdersChange}
+          onActionPress={onOrderAction}
+        />
       ) : (
         <ScrollView
           style={styles.scroll}

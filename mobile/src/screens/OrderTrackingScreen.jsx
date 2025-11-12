@@ -29,7 +29,7 @@ const formatTime = (value) => {
   }
 };
 
-const OrderTrackingScreen = ({ order, onBack }) => {
+const OrderTrackingScreen = ({ order, onBack, onGoHome }) => {
   const progress = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -113,6 +113,17 @@ const OrderTrackingScreen = ({ order, onBack }) => {
   outputRange: [1, 0.8, 0.7],
   });
 
+  const handleGoHome = () => {
+    if (typeof onGoHome === "function") {
+      onGoHome();
+      return;
+    }
+
+    if (typeof onBack === "function") {
+      onBack();
+    }
+  };
+
   if (!order) {
     return (
       <View style={styles.emptyContainer}>
@@ -124,7 +135,7 @@ const OrderTrackingScreen = ({ order, onBack }) => {
           <TouchableOpacity
             style={styles.emptyButton}
             activeOpacity={0.85}
-            onPress={onBack}
+            onPress={handleGoHome}
           >
             <Text style={styles.emptyButtonLabel}>Quay về trang chủ</Text>
           </TouchableOpacity>
@@ -268,6 +279,16 @@ const OrderTrackingScreen = ({ order, onBack }) => {
           </View>
         </View>
       </ScrollView>
+
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={styles.footerButton}
+          activeOpacity={0.85}
+          onPress={handleGoHome}
+        >
+          <Text style={styles.footerButtonLabel}>Quay về trang chủ</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -595,6 +616,23 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 14,
     fontWeight: "600",
+  },
+  footer: {
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#ffe8d9",
+    backgroundColor: "#fff8f2",
+  },
+  footerButton: {
+    backgroundColor: "#f97316",
+    paddingVertical: 16,
+    borderRadius: 999,
+    alignItems: "center",
+  },
+  footerButtonLabel: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "700",
   },
 });
 
