@@ -38,8 +38,12 @@ const formatDateTime = (value) => {
 
 const OrderConfirmationScreen = ({ order, onBack, onTrackOrder, onViewOrders }) => {
   const summaryItems = order?.items ?? [];
-  const totalItems = useMemo(
-    () => summaryItems.reduce((total, item) => total + Number(item?.quantity ?? 0), 0),
+  const productCount = useMemo(
+    () =>
+      summaryItems.reduce(
+        (count, item) => (Number(item?.quantity ?? 0) > 0 ? count + 1 : count),
+        0
+      ),
     [summaryItems]
   );
 
@@ -110,7 +114,7 @@ const OrderConfirmationScreen = ({ order, onBack, onTrackOrder, onViewOrders }) 
           <View style={styles.summaryTotalRow}>
             <View>
               <Text style={styles.summaryTotalLabel}>Tổng cộng</Text>
-              <Text style={styles.summaryTotalSubLabel}>{totalItems} món</Text>
+              <Text style={styles.summaryTotalSubLabel}>{productCount} món</Text>
             </View>
             <Text style={styles.summaryTotalValue}>{formatCurrency(order.subtotal)}</Text>
           </View>

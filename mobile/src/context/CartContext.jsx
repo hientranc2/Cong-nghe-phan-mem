@@ -96,7 +96,12 @@ export const CartProvider = ({ children }) => {
   }, []);
 
   const totalItems = useMemo(
-    () => items.reduce((total, item) => total + ensurePositiveInteger(item.quantity, 0), 0),
+    () =>
+      items.reduce(
+        (count, item) =>
+          ensurePositiveInteger(item?.quantity, 0) > 0 ? count + 1 : count,
+        0
+      ),
     [items]
   );
 

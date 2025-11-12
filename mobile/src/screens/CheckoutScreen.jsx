@@ -44,10 +44,30 @@ const CheckoutScreen = ({ onBack, user, onOrderPlaced }) => {
   const [deliveryAddress, setDeliveryAddress] = useState(
     "123 Đường Ẩm Thực, Quận 1, TP.HCM"
   );
+  const [formSubmitted, setFormSubmitted] = useState(false);
 
-  const canPlaceOrder = useMemo(() => items.length > 0, [items]);
+  const trimmedCustomerName = useMemo(() => customerName.trim(), [customerName]);
+  const trimmedCustomerPhone = useMemo(() => customerPhone.trim(), [customerPhone]);
+  const trimmedDeliveryAddress = useMemo(
+    () => deliveryAddress.trim(),
+    [deliveryAddress]
+  );
+
+  const hasItems = items.length > 0;
+  const hasCustomerName = trimmedCustomerName.length > 0;
+  const hasCustomerPhone = trimmedCustomerPhone.length > 0;
+  const hasDeliveryAddress = trimmedDeliveryAddress.length > 0;
+
+  const canPlaceOrder =
+    hasItems && hasCustomerName && hasCustomerPhone && hasDeliveryAddress;
+
+  const showNameError = formSubmitted && !hasCustomerName;
+  const showPhoneError = formSubmitted && !hasCustomerPhone;
+  const showAddressError = formSubmitted && !hasDeliveryAddress;
 
   const handlePlaceOrder = () => {
+    setFormSubmitted(true);
+
     if (!canPlaceOrder) {
       return;
     }
@@ -74,14 +94,15 @@ const CheckoutScreen = ({ onBack, user, onOrderPlaced }) => {
       paymentDescription: paymentMethod?.description,
       subtotal,
       customer: {
-        name: customerName,
-        phone: customerPhone,
-        email: customerEmail,
+        name: trimmedCustomerName,
+        phone: trimmedCustomerPhone,
+        email: customerEmail?.trim?.() ?? customerEmail,
       },
-      address: deliveryAddress,
+      address: trimmedDeliveryAddress,
       items: orderItems,
     };
 
+    setFormSubmitted(false);
     clearCart();
 
     if (onOrderPlaced) {
@@ -144,18 +165,24 @@ const CheckoutScreen = ({ onBack, user, onOrderPlaced }) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Thông tin khách hàng</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, showNameError && styles.inputError]}
             placeholder="Họ và tên"
             value={customerName}
             onChangeText={setCustomerName}
           />
+          {showNameError ? (
+            <Text style={styles.errorText}>Vui lòng nhập họ và tên của bạn</Text>
+          ) : null}
           <TextInput
-            style={styles.input}
+            style={[styles.input, showPhoneError && styles.inputError]}
             placeholder="Số điện thoại"
             keyboardType="phone-pad"
             value={customerPhone}
             onChangeText={setCustomerPhone}
           />
+          {showPhoneError ? (
+            <Text style={styles.errorText}>Vui lòng nhập số điện thoại liên hệ</Text>
+          ) : null}
           <TextInput
             style={styles.input}
             placeholder="Email (không bắt buộc)"
@@ -168,12 +195,15 @@ const CheckoutScreen = ({ onBack, user, onOrderPlaced }) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Địa chỉ giao hàng</Text>
           <TextInput
-            style={[styles.input, styles.addressInput]}
+            style={[styles.input, styles.addressInput, showAddressError && styles.inputError]}
             multiline
             numberOfLines={3}
             value={deliveryAddress}
             onChangeText={setDeliveryAddress}
           />
+          {showAddressError ? (
+            <Text style={styles.errorText}>Vui lòng nhập địa chỉ giao hàng</Text>
+          ) : null}
         </View>
 
         <View style={styles.section}>
@@ -338,6 +368,16 @@ const styles = StyleSheet.create({
     color: "#1f1f24",
     borderWidth: 1,
     borderColor: "#e2e8f0",
+  },
+  inputError: {
+    borderColor: "#ef4444",
+    backgroundColor: "#fef2f2",
+  },
+  errorText: {
+    fontSize: 12,
+    color: "#ef4444",
+    marginTop: -6,
+    alignSelf: "flex-start",
   },
   addressInput: {
     minHeight: 88,
