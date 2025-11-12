@@ -40,6 +40,7 @@ const OrderCard = ({ order, onActionPress }) => {
   const statusColor =
     order.statusColor ??
     (statusLabel === "Đã hủy" ? CANCELLED_COLOR : DEFAULT_ACTIVE_COLOR);
+  const hasActions = Array.isArray(order.actions) && order.actions.length > 0;
 
   const handlePress = (actionId) => {
     if (typeof onActionPress === "function") {
@@ -49,21 +50,24 @@ const OrderCard = ({ order, onActionPress }) => {
 
   return (
     <View style={styles.card}>
-      <View style={styles.headerRow}>
-        <Text style={styles.orderCode}>{order.code ?? ""}</Text>
-        <View
-          style={[
-            styles.statusPill,
-            { backgroundColor: `${statusColor}1a` },
-          ]}
-        >
+      <View style={styles.headerSection}>
+        <View style={styles.statusWrapper}>
           <View
-            style={[styles.statusDot, { backgroundColor: statusColor }]}
-          />
-          <Text style={[styles.statusText, { color: statusColor }]}>
-            Trạng thái: {statusLabel}
-          </Text>
+            style={[
+              styles.statusPill,
+              { borderColor: `${statusColor}33` },
+            ]}
+          >
+            <View
+              style={[styles.statusDot, { backgroundColor: statusColor }]}
+            />
+            <Text style={styles.statusText}>
+              Trạng thái:
+              <Text style={[styles.statusValue, { color: statusColor }]}> {statusLabel}</Text>
+            </Text>
+          </View>
         </View>
+        <Text style={styles.orderCode}>{order.code ?? ""}</Text>
       </View>
       <View style={styles.infoGroup}>
         <Text style={styles.infoLabel}>
@@ -76,22 +80,30 @@ const OrderCard = ({ order, onActionPress }) => {
           Tổng thanh toán: <Text style={styles.infoValue}>{order.totalAmount ?? "—"}</Text>
         </Text>
       </View>
-      <View style={styles.actionsRow}>
-        {order.actions?.map((action) => (
-          <TouchableOpacity
-            key={action.id}
-            style={[styles.actionButton, buttonVariants[action.variant] ?? buttonVariants.secondary]}
-            onPress={() => handlePress(action.id)}
-            activeOpacity={0.85}
-          >
-            <Text
-              style={[styles.actionText, textVariants[action.variant] ?? textVariants.secondary]}
+      {hasActions ? (
+        <View style={styles.actionsRow}>
+          {order.actions.map((action) => (
+            <TouchableOpacity
+              key={action.id}
+              style={[
+                styles.actionButton,
+                buttonVariants[action.variant] ?? buttonVariants.secondary,
+              ]}
+              onPress={() => handlePress(action.id)}
+              activeOpacity={0.85}
             >
-              {action.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+              <Text
+                style={[
+                  styles.actionText,
+                  textVariants[action.variant] ?? textVariants.secondary,
+                ]}
+              >
+                {action.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      ) : null}
     </View>
   );
 };
@@ -107,11 +119,12 @@ const styles = StyleSheet.create({
     shadowRadius: 28,
     elevation: 6,
   },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  headerSection: {
     marginBottom: 16,
+  },
+  statusWrapper: {
+    alignItems: "flex-end",
+    marginBottom: 10,
   },
   orderCode: {
     fontSize: 18,
@@ -122,9 +135,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 999,
+    borderWidth: 1,
+    backgroundColor: "#ffffff",
   },
   statusDot: {
     width: 8,
@@ -134,6 +149,10 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 13,
     fontWeight: "600",
+    color: "#111827",
+  },
+  statusValue: {
+    fontWeight: "700",
   },
   infoGroup: {
     gap: 8,
