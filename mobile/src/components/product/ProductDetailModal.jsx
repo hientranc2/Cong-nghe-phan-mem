@@ -10,6 +10,8 @@ import {
   ScrollView,
 } from "react-native";
 
+import { resolveImageSource } from "../../utils/image";
+
 const formatCurrency = (value) => {
   if (typeof value !== "number") {
     return "--";
@@ -83,7 +85,10 @@ const ProductDetailModal = ({ product, visible, onClose, onAddToCart }) => {
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.heroWrapper}>
-              <Image source={{ uri: product.image }} style={styles.heroImage} />
+              <Image
+                source={resolveImageSource(product.image)}
+                style={styles.heroImage}
+              />
               {product.tag ? (
                 <View style={styles.tagChip}>
                   <Text style={styles.tagText}>{product.tag}</Text>

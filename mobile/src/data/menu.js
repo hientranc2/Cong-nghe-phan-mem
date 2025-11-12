@@ -1,3 +1,19 @@
+import berrySoda from "../assets/bery.jpg";
+import burgerBlaze from "../assets/burger.jpg";
+import coldBrewOrange from "../assets/camxa.jpg";
+import wingsHoney from "../assets/canhgabo.jpg";
+import doubleCheese from "../assets/cheese.jpg";
+import mocktailSunrise from "../assets/matcha.jpg";
+import spicyFriedChicken from "../assets/garancay.jpg";
+import parmesanTwists from "../assets/gavien.jpg";
+import seafoodPizza from "../assets/haisan.jpg";
+import truffleBurger from "../assets/phomaixanh.jpg";
+import trufflePizza from "../assets/pizzanam.jpg";
+import lavaCheesePizza from "../assets/pizzaphomai.jpg";
+import veggieMedley from "../assets/raucu.jpg";
+import tempuraShrimp from "../assets/tomchien.jpg";
+import peachTea from "../assets/tradao.jpg";
+
 export const menuCategories = [
   {
     id: "cat-burger",
@@ -35,8 +51,7 @@ export const menuItems = [
     description:
       "Bánh burger bò Mỹ nướng than, sốt phô mai cheddar và bacon giòn.",
     price: 69000,
-    image:
-      "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80",
+    image: burgerBlaze,
   },
   {
     id: "fco-burger-truffle",
@@ -45,8 +60,7 @@ export const menuItems = [
     description:
       "Thịt bò Úc kết hợp sốt kem nấm truffle và phô mai gruyere nhập khẩu.",
     price: 95000,
-    image:
-      "https://images.unsplash.com/photo-1512152272829-e3139592d56f?auto=format&fit=crop&w=800&q=80",
+    image: truffleBurger,
   },
   {
     id: "fco-burger-veggie",
@@ -55,8 +69,7 @@ export const menuItems = [
     description:
       "Patty đậu gà, rau củ nướng và sốt miso ngọt mặn dành cho thực khách eat clean.",
     price: 72000,
-    image:
-      "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=800&q=80",
+    image: veggieMedley,
   },
   {
     id: "fco-burger-double",
@@ -64,8 +77,7 @@ export const menuItems = [
     name: "Double Cheese Smash",
     description: "Hai lớp bò smash, phô mai cheddar đôi và sốt tỏi nướng.",
     price: 89000,
-    image:
-      "https://images.unsplash.com/photo-1606755962773-0e7d6c1f87c6?auto=format&fit=crop&w=800&q=80",
+    image: doubleCheese,
   },
   {
     id: "fco-pizza-lava",
@@ -74,8 +86,7 @@ export const menuItems = [
     description:
       "Đế mỏng kiểu Ý, phủ phô mai mozzarella lava và pepperoni cay.",
     price: 119000,
-    image:
-      "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80",
+    image: lavaCheesePizza,
   },
   {
     id: "fco-pizza-seafood",
@@ -84,8 +95,7 @@ export const menuItems = [
     description:
       "Tôm, mực và nghêu tươi với sốt kem tỏi và phô mai parmesan.",
     price: 135000,
-    image:
-      "https://images.unsplash.com/photo-1514986888952-8cd320577b68?auto=format&fit=crop&w=800&q=80",
+    image: seafoodPizza,
   },
   {
     id: "fco-pizza-truffle",
@@ -93,8 +103,7 @@ export const menuItems = [
     name: "Pizza Truffle Rừng",
     description: "Nấm rừng, dầu truffle đen và ricotta tươi.",
     price: 145000,
-    image:
-      "https://images.unsplash.com/photo-1541745537411-b8046dc6d66c?auto=format&fit=crop&w=800&q=80",
+    image: trufflePizza,
   },
   {
     id: "fco-pizza-veggie",
@@ -103,8 +112,7 @@ export const menuItems = [
     description:
       "Ớt chuông, nấm, bông cải xanh cùng phô mai ricotta nhẹ nhàng.",
     price: 102000,
-    image:
-      "https://images.unsplash.com/photo-1525755662778-989d0524087e?auto=format&fit=crop&w=800&q=80",
+    image: veggieMedley,
   },
   {
     id: "fco-chicken-crispy",
@@ -113,8 +121,7 @@ export const menuItems = [
     description:
       "Gà rán sốt cay Nashville, phục vụ cùng salad bắp cải và khoai tây nghiền.",
     price: 82000,
-    image:
-      "https://images.unsplash.com/photo-1608039829572-78524f77de0a?auto=format&fit=crop&w=800&q=80",
+    image: spicyFriedChicken,
   },
   {
     id: "fco-wings-honey",
@@ -123,8 +130,7 @@ export const menuItems = [
     description:
       "Cánh gà chiên giòn phủ sốt mật ong bơ và mè rang thơm lừng.",
     price: 75000,
-    image:
-      "https://images.unsplash.com/photo-1608039829571-d7715ee78f23?auto=format&fit=crop&w=800&q=80",
+    image: wingsHoney,
   },
   {
     id: "fco-snack-parmesan",
@@ -133,8 +139,7 @@ export const menuItems = [
     description:
       "Khoai tây xoắn chiên bơ tỏi, rắc parmesan và rau thơm.",
     price: 59000,
-    image:
-      "https://images.unsplash.com/photo-1541592106381-b31e9677c0e5?auto=format&fit=crop&w=800&q=80",
+    image: parmesanTwists,
   },
   {
     id: "fco-snack-tempura",
@@ -142,8 +147,7 @@ export const menuItems = [
     name: "Tôm Tempura Sốt Ponzu",
     description: "Tôm chiên tempura, sốt ponzu cam và mè rang.",
     price: 92000,
-    image:
-      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80",
+    image: tempuraShrimp,
   },
   {
     id: "fco-mixology-sunrise",
@@ -152,8 +156,7 @@ export const menuItems = [
     description:
       "Nước ép cam, dứa và syrup hoa dâm bụt tạo nên tầng màu rực rỡ.",
     price: 49000,
-    image:
-      "https://images.unsplash.com/photo-1527169402691-feff5539e52c?auto=format&fit=crop&w=800&q=80",
+    image: mocktailSunrise,
   },
   {
     id: "fco-coldbrew-orange",
@@ -162,8 +165,7 @@ export const menuItems = [
     description:
       "Cold brew ủ lạnh 18h kết hợp syrup cam sả và đá viên đặc biệt.",
     price: 58000,
-    image:
-      "https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=800&q=80",
+    image: coldBrewOrange,
   },
   {
     id: "fco-berry-soda",
@@ -172,8 +174,7 @@ export const menuItems = [
     description:
       "Soda việt quất, dâu tằm và bạc hà tươi giúp giải nhiệt tức thì.",
     price: 45000,
-    image:
-      "https://images.unsplash.com/photo-1524592094714-0f0654e20314?auto=format&fit=crop&w=800&q=80",
+    image: berrySoda,
   },
   {
     id: "fco-drink-peachtea",
@@ -181,7 +182,6 @@ export const menuItems = [
     name: "Trà Đào Cam Sả",
     description: "Trà đen ủ lạnh, đào vàng, cam tươi và sả thơm.",
     price: 42000,
-    image:
-      "https://images.unsplash.com/photo-1451743502821-26b1c82c94c6?auto=format&fit=crop&w=800&q=80",
+    image: peachTea,
   },
 ];

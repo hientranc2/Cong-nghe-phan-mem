@@ -1,6 +1,8 @@
 import React, { memo } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
 
+import { resolveImageSource } from "../../utils/image";
+
 const formatCurrency = (value) => {
   if (typeof value !== "number") {
     return "--";
@@ -37,7 +39,10 @@ const ProductCard = ({
         onPress={handleImagePress}
         style={[styles.imageWrapper, { height: imageHeight }]}
       >
-        <Image source={{ uri: product.image }} style={styles.image} />
+        <Image
+          source={resolveImageSource(product.image)}
+          style={styles.image}
+        />
       </TouchableOpacity>
       <View style={styles.cardBody}>
         {product.tag ? <Text style={styles.tag}>{product.tag}</Text> : null}
