@@ -1,15 +1,64 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
 import { ScrollView, View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
 import OrderCard from "../components/OrderCard.jsx";
 import { activeOrders } from "../data/orders.js";
 
 const OrdersScreen = ({ onBackToHome, onActionPress }) => {
+  const [orders, setOrders] = useState(activeOrders);
+
   const handleBack = () => {
     if (typeof onBackToHome === "function") {
       onBackToHome();
     }
   };
+
+  const handleAction = useCallback(
+    (actionId, order) => {
+      if (!order) {
+        return;
+      }
+
+      if (actionId === "cancel") {
+        setOrders((prevOrders) =>
+          prevOrders.map((item) => {
+            if (item.id !== order.id) {
+              return item;
+            }
+
+            if (item.status?.label === "Đã hủy") {
+              return item;
+            }
+
+            return {
+              ...item,
+              status: {
+                label: "Đã hủy",
+                description:
+                  "Đơn hàng đã được hủy thành công. Drone giao hàng sẽ quay về trạm.",
+                color: "#ef4444",
+              },
+              actions: item.actions
+                ?.filter((action) => action.id !== "cancel" && action.id !== "track")
+                ?.map((action) => ({
+                  ...action,
+                  label: action.id === "summary" ? "Xem tóm tắt" : action.label,
+                })) ?? [{
+                id: "summary",
+                label: "Xem tóm tắt",
+                variant: "ghost",
+              }],
+            };
+          })
+        );
+      }
+
+      if (typeof onActionPress === "function") {
+        onActionPress(actionId, order);
+      }
+    },
+    [onActionPress]
+  );
 
   return (
     <ScrollView
@@ -21,7 +70,7 @@ const OrdersScreen = ({ onBackToHome, onActionPress }) => {
         <View style={styles.heroTextGroup}>
           <Text style={styles.title}>Đơn hàng đã đặt</Text>
           <Text style={styles.subtitle}>
-            Theo dõi các đơn đã xác nhận và xem hành trình giao hàng trực tiếp.
+            Theo dõi các đơn đã xác nhận và trạng thái drone giao hàng trong thời gian thực.
           </Text>
         </View>
         <TouchableOpacity
@@ -34,12 +83,12 @@ const OrdersScreen = ({ onBackToHome, onActionPress }) => {
       </View>
 
       <View style={styles.section}>
-        {activeOrders.length > 0 ? (
-          activeOrders.map((order) => (
+        {orders.length > 0 ? (
+          orders.map((order) => (
             <OrderCard
               key={order.id}
               order={order}
-              onActionPress={onActionPress}
+              onActionPress={handleAction}
             />
           ))
         ) : (
