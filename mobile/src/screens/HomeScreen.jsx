@@ -8,7 +8,6 @@ import BottomTabBar from "../components/BottomTabBar.jsx";
 import MenuScreen from "./MenuScreen.jsx";
 import ProductDetailModal from "../components/product/ProductDetailModal.jsx";
 import CartSuccessModal from "../components/feedback/CartSuccessModal.jsx";
-
 import { useCart } from "../context/CartContext.jsx";
 
 import { bestSellers } from "../data/homepage";
@@ -17,7 +16,7 @@ import { menuItems } from "../data/menu";
 const HOME_TAB = "home";
 const MENU_TAB = "menu";
 
-const HomeScreen = ({ onPressLogin, user }) => {
+const HomeScreen = ({ onPressLogin, user, onViewCart }) => {
   const [activeTab, setActiveTab] = useState(HOME_TAB);
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [confirmation, setConfirmation] = useState({
@@ -54,6 +53,12 @@ const HomeScreen = ({ onPressLogin, user }) => {
   const handleHideConfirmation = useCallback(() => {
     setConfirmation((prev) => ({ ...prev, visible: false }));
   }, []);
+
+  const handleViewCart = useCallback(() => {
+    if (typeof onViewCart === "function") {
+      onViewCart();
+    }
+  }, [onViewCart]);
 
   const handleAddToCart = useCallback(
     (product, quantity = 1) => {
@@ -95,15 +100,22 @@ const HomeScreen = ({ onPressLogin, user }) => {
           onAddToCart={handleAddToCart}
         />
       ) : (
-        <ScrollView contentContainerStyle={styles.content}>
-          <HomeHeader onLoginPress={onPressLogin} user={user} />
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.content}
+          stickyHeaderIndices={[0]}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.headerWrapper}>
+            <HomeHeader onLoginPress={onPressLogin} user={user} />
+          </View>
           <BestSellerSection
             onProductPress={handleProductPress}
             onAddToCart={handleAddToCart}
           />
         </ScrollView>
       )}
-      <FloatingCartButton />
+      <FloatingCartButton onPress={handleViewCart} />
       <BottomTabBar activeTab={activeTab} onTabPress={handleTabPress} />
       <ProductDetailModal
         product={selectedProduct}
@@ -127,8 +139,15 @@ const styles = StyleSheet.create({
     position: "relative",
     backgroundColor: "#fff8f2",
   },
+  scroll: {
+    flex: 1,
+  },
   content: {
     paddingBottom: 180,
+  },
+  headerWrapper: {
+    zIndex: 10,
+    backgroundColor: "#f97316",
   },
 });
 

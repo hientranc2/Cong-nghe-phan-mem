@@ -4,11 +4,15 @@ import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 
 import HomeScreen from "./src/screens/HomeScreen.jsx";
 import AuthScreen from "./src/features/auth/AuthScreen.jsx";
+import CartScreen from "./src/screens/CartScreen.jsx";
+import CheckoutScreen from "./src/screens/CheckoutScreen.jsx";
 import { CartProvider } from "./src/context/CartContext.jsx";
 
 const SCREENS = {
   home: "home",
-  auth: "auth"
+  auth: "auth",
+  cart: "cart",
+  checkout: "checkout",
 };
 
 export default function App() {
@@ -19,8 +23,10 @@ export default function App() {
     () => setActiveScreen(SCREENS.auth),
     [setActiveScreen]
   );
-  const goHome = useCallback(
-    () => setActiveScreen(SCREENS.home),
+  const goHome = useCallback(() => setActiveScreen(SCREENS.home), [setActiveScreen]);
+  const goToCart = useCallback(() => setActiveScreen(SCREENS.cart), [setActiveScreen]);
+  const goToCheckout = useCallback(
+    () => setActiveScreen(SCREENS.checkout),
     [setActiveScreen]
   );
   const handleLoginSuccess = useCallback(
@@ -43,9 +49,11 @@ export default function App() {
     () => ({
       goToAuth,
       goHome,
-      handleLoginSuccess
+      goToCart,
+      goToCheckout,
+      handleLoginSuccess,
     }),
-    [goHome, goToAuth, handleLoginSuccess]
+    [goHome, goToAuth, goToCart, goToCheckout, handleLoginSuccess]
   );
 
   return (
@@ -58,11 +66,22 @@ export default function App() {
             <HomeScreen
               onPressLogin={screenHandlers.goToAuth}
               user={authenticatedUser}
+              onViewCart={screenHandlers.goToCart}
             />
-          ) : (
+          ) : activeScreen === SCREENS.auth ? (
             <AuthScreen
               onBack={screenHandlers.goHome}
               onLoginSuccess={screenHandlers.handleLoginSuccess}
+            />
+          ) : activeScreen === SCREENS.cart ? (
+            <CartScreen
+              onBack={screenHandlers.goHome}
+              onCheckout={screenHandlers.goToCheckout}
+            />
+          ) : (
+            <CheckoutScreen
+              onBack={screenHandlers.goHome}
+              user={authenticatedUser}
             />
           )}
         </View>
