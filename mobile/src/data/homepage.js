@@ -1,3 +1,7 @@
+import burgerBlaze from "../assets/burger.jpg";
+import lavaCheesePizza from "../assets/pizzaphomai.jpg";
+import tacoFiesta from "../assets/tacos.jpg";
+
 export const heroBackground =
   "https://images.unsplash.com/photo-1550317138-10000687a72b?auto=format&fit=crop&w=1600&q=80";
 
@@ -60,8 +64,7 @@ export const bestSellers = [
     description: "Bánh burger bò Mỹ nướng than, sốt phô mai cheddar và bacon giòn.",
     price: 69000,
     tag: "Best Seller",
-    image:
-      "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80"
+    image: burgerBlaze
   },
   {
     id: "fco-pizza-lava",
@@ -69,8 +72,7 @@ export const bestSellers = [
     description: "Đế mỏng kiểu Ý, phô mai mozzarella tan chảy và sốt cà chua signature.",
     price: 189000,
     tag: "Signature",
-    image:
-      "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80"
+    image: lavaCheesePizza
   },
   {
     id: "fco-taco-fiesta",
@@ -78,8 +80,7 @@ export const bestSellers = [
     description: "Vỏ taco mềm, bò hầm Mexico và sốt salsa tươi mát.",
     price: 89000,
     tag: "Chef's Choice",
-    image:
-      "https://images.unsplash.com/photo-1552332386-f8dd00dc2f85?auto=format&fit=crop&w=800&q=80"
+    image: tacoFiesta
   }
 ];
 

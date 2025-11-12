@@ -1,6 +1,8 @@
 import React, { memo } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
 
+import { resolveImageSource } from "../../utils/image";
+
 const ProductCard = ({ product, onPressImage }) => {
   const handleImagePress = () => {
     onPressImage?.(product);
@@ -13,7 +15,10 @@ const ProductCard = ({ product, onPressImage }) => {
         onPress={handleImagePress}
         style={styles.imageWrapper}
       >
-        <Image source={{ uri: product.image }} style={styles.image} />
+        <Image
+          source={resolveImageSource(product.image)}
+          style={styles.image}
+        />
       </TouchableOpacity>
       <View style={styles.cardBody}>
         <Text style={styles.tag}>{product.tag}</Text>
