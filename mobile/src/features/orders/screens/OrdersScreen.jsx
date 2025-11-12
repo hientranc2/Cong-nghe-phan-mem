@@ -1,5 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { ScrollView, View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  ScrollView,
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from "react-native";
 
 import OrderCard from "../components/OrderCard.jsx";
 
@@ -9,11 +16,24 @@ const CANCELLED_STATUS = "Đã hủy";
 const getStatusColor = (status) =>
   status === CANCELLED_STATUS ? "#ef4444" : "#f97316";
 
+const getStatusLabel = (status) => {
+  if (typeof status === "string") {
+    return status;
+  }
+
+  if (status && typeof status === "object" && typeof status.label === "string") {
+    return status.label;
+  }
+
+  return undefined;
+};
+
+const isCancelledStatus = (status) =>
+  typeof status === "string" && status.toLowerCase().includes("hủy");
+
 const buildActionsForStatus = (status) => {
   if (status === CANCELLED_STATUS) {
-    return [
-      { id: "summary", label: "Xem tóm tắt", variant: "ghost" },
-    ];
+    return [];
   }
 
   return [
@@ -30,19 +50,22 @@ const normalizeOrders = (incomingOrders) =>
         return null;
       }
 
-      const status = order.status === CANCELLED_STATUS ? CANCELLED_STATUS : ACTIVE_STATUS;
+      const statusLabel = getStatusLabel(order.status) ?? order.status;
+      const isCancelled = isCancelledStatus(statusLabel);
+      const status = isCancelled ? CANCELLED_STATUS : statusLabel ?? ACTIVE_STATUS;
       const hasCustomActions = Array.isArray(order.actions) && order.actions.length > 0;
+      const baseActions = buildActionsForStatus(isCancelled ? CANCELLED_STATUS : ACTIVE_STATUS);
 
       return {
         ...order,
         status,
-        statusColor: order.statusColor ?? getStatusColor(status),
-        actions:
-          status === CANCELLED_STATUS
-            ? buildActionsForStatus(status)
-            : hasCustomActions
-            ? order.actions
-            : buildActionsForStatus(status),
+        statusColor:
+          order.statusColor ??
+          (order.status && typeof order.status === "object"
+            ? order.status.color
+            : undefined) ??
+          getStatusColor(isCancelled ? CANCELLED_STATUS : ACTIVE_STATUS),
+        actions: isCancelled ? baseActions : hasCustomActions ? order.actions : baseActions,
       };
     })
     .filter(Boolean);
@@ -120,6 +143,16 @@ const OrdersScreen = ({
             return nextItem;
           })
         );
+
+        if (nextOrderSnapshot) {
+          const codeLabel = nextOrderSnapshot.code ?? nextOrderSnapshot.id;
+          Alert.alert(
+            "Đơn hàng đã được hủy",
+            codeLabel
+              ? `Đơn ${codeLabel} đã được hủy thành công.`
+              : "Đơn hàng của bạn đã được hủy thành công."
+          );
+        }
 
         if (typeof onActionPress === "function") {
           onActionPress(actionId, nextOrderSnapshot);
