@@ -28,12 +28,18 @@ const textVariants = StyleSheet.create({
   },
 });
 
+const DEFAULT_ACTIVE_COLOR = "#f97316";
+const CANCELLED_COLOR = "#ef4444";
+
 const OrderCard = ({ order, onActionPress }) => {
   if (!order) {
     return null;
   }
 
-  const statusColor = order.status?.color ?? "#f97316";
+  const statusLabel = order.status ?? "";
+  const statusColor =
+    order.statusColor ??
+    (statusLabel === "Đã hủy" ? CANCELLED_COLOR : DEFAULT_ACTIVE_COLOR);
 
   const handlePress = (actionId) => {
     if (typeof onActionPress === "function") {
@@ -44,7 +50,7 @@ const OrderCard = ({ order, onActionPress }) => {
   return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
-        <Text style={styles.orderCode}>{order.code}</Text>
+        <Text style={styles.orderCode}>{order.code ?? ""}</Text>
         <View
           style={[
             styles.statusPill,
@@ -55,23 +61,20 @@ const OrderCard = ({ order, onActionPress }) => {
             style={[styles.statusDot, { backgroundColor: statusColor }]}
           />
           <Text style={[styles.statusText, { color: statusColor }]}>
-            Trạng thái: {order.status?.label ?? ""}
+            Trạng thái: {statusLabel}
           </Text>
         </View>
       </View>
       <View style={styles.infoGroup}>
         <Text style={styles.infoLabel}>
-          Đơn đặt tại: <Text style={styles.infoValue}>{order.restaurantName}</Text>
+          Đơn đặt tại: <Text style={styles.infoValue}>{order.restaurantName ?? "—"}</Text>
         </Text>
         <Text style={styles.infoLabel}>
-          Ngày đặt: <Text style={styles.infoValue}>{order.placedAt}</Text>
+          Ngày đặt: <Text style={styles.infoValue}>{order.placedAt ?? "—"}</Text>
         </Text>
         <Text style={styles.infoLabel}>
-          Tổng thanh toán: <Text style={styles.infoValue}>{order.totalAmount}</Text>
+          Tổng thanh toán: <Text style={styles.infoValue}>{order.totalAmount ?? "—"}</Text>
         </Text>
-        {order.status?.description ? (
-          <Text style={styles.statusDescription}>{order.status.description}</Text>
-        ) : null}
       </View>
       <View style={styles.actionsRow}>
         {order.actions?.map((action) => (
@@ -144,12 +147,6 @@ const styles = StyleSheet.create({
   infoValue: {
     color: "#1f1f23",
     fontWeight: "600",
-  },
-  statusDescription: {
-    marginTop: 4,
-    fontSize: 13,
-    color: "#f97316",
-    fontWeight: "500",
   },
   actionsRow: {
     flexDirection: "row",

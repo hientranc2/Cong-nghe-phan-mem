@@ -1,11 +1,87 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ScrollView, View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
 import OrderCard from "../components/OrderCard.jsx";
-import { activeOrders } from "../data/orders.js";
 
-const OrdersScreen = ({ onBackToHome, onActionPress }) => {
-  const [orders, setOrders] = useState(activeOrders);
+const ACTIVE_STATUS = "Đang giao";
+const CANCELLED_STATUS = "Đã hủy";
+
+const getStatusColor = (status) =>
+  status === CANCELLED_STATUS ? "#ef4444" : "#f97316";
+
+const buildActionsForStatus = (status) => {
+  if (status === CANCELLED_STATUS) {
+    return [
+      { id: "summary", label: "Xem tóm tắt", variant: "ghost" },
+    ];
+  }
+
+  return [
+    { id: "cancel", label: "Hủy đơn hàng", variant: "secondary" },
+    { id: "summary", label: "Xem tóm tắt", variant: "ghost" },
+    { id: "track", label: "Theo dõi hành trình", variant: "primary" },
+  ];
+};
+
+const normalizeOrders = (incomingOrders) =>
+  (Array.isArray(incomingOrders) ? incomingOrders : [])
+    .map((order) => {
+      if (!order) {
+        return null;
+      }
+
+      const status = order.status === CANCELLED_STATUS ? CANCELLED_STATUS : ACTIVE_STATUS;
+      const hasCustomActions = Array.isArray(order.actions) && order.actions.length > 0;
+
+      return {
+        ...order,
+        status,
+        statusColor: order.statusColor ?? getStatusColor(status),
+        actions:
+          status === CANCELLED_STATUS
+            ? buildActionsForStatus(status)
+            : hasCustomActions
+            ? order.actions
+            : buildActionsForStatus(status),
+      };
+    })
+    .filter(Boolean);
+
+const OrdersScreen = ({
+  onBackToHome,
+  onActionPress,
+  orders: initialOrders = [],
+  onOrdersChange,
+}) => {
+  const normalizedInitialOrders = useMemo(
+    () => normalizeOrders(initialOrders),
+    [initialOrders]
+  );
+
+  const [orders, setOrders] = useState(normalizedInitialOrders);
+
+  useEffect(() => {
+    setOrders(normalizedInitialOrders);
+  }, [normalizedInitialOrders]);
+
+  const updateOrdersState = useCallback(
+    (updater) => {
+      setOrders((previous) => {
+        const nextState =
+          typeof updater === "function" ? updater(previous) : updater;
+        const safeNextState = Array.isArray(nextState)
+          ? nextState
+          : previous;
+
+        if (typeof onOrdersChange === "function") {
+          onOrdersChange(safeNextState);
+        }
+
+        return safeNextState;
+      });
+    },
+    [onOrdersChange]
+  );
 
   const handleBack = () => {
     if (typeof onBackToHome === "function") {
@@ -20,44 +96,43 @@ const OrdersScreen = ({ onBackToHome, onActionPress }) => {
       }
 
       if (actionId === "cancel") {
-        setOrders((prevOrders) =>
+        let nextOrderSnapshot = order;
+
+        updateOrdersState((prevOrders) =>
           prevOrders.map((item) => {
             if (item.id !== order.id) {
               return item;
             }
 
-            if (item.status?.label === "Đã hủy") {
+            if (item.status === CANCELLED_STATUS) {
+              nextOrderSnapshot = item;
               return item;
             }
 
-            return {
+            const nextItem = {
               ...item,
-              status: {
-                label: "Đã hủy",
-                description:
-                  "Đơn hàng đã được hủy thành công. Drone giao hàng sẽ quay về trạm.",
-                color: "#ef4444",
-              },
-              actions: item.actions
-                ?.filter((action) => action.id !== "cancel" && action.id !== "track")
-                ?.map((action) => ({
-                  ...action,
-                  label: action.id === "summary" ? "Xem tóm tắt" : action.label,
-                })) ?? [{
-                id: "summary",
-                label: "Xem tóm tắt",
-                variant: "ghost",
-              }],
+              status: CANCELLED_STATUS,
+              statusColor: getStatusColor(CANCELLED_STATUS),
+              actions: buildActionsForStatus(CANCELLED_STATUS),
             };
+
+            nextOrderSnapshot = nextItem;
+            return nextItem;
           })
         );
+
+        if (typeof onActionPress === "function") {
+          onActionPress(actionId, nextOrderSnapshot);
+        }
+
+        return;
       }
 
       if (typeof onActionPress === "function") {
         onActionPress(actionId, order);
       }
     },
-    [onActionPress]
+    [onActionPress, updateOrdersState]
   );
 
   return (
