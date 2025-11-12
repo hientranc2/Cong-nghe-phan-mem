@@ -54,8 +54,59 @@ export const CartProvider = ({ children }) => {
     return { product, quantity: safeQuantity };
   }, []);
 
+  const removeFromCart = useCallback((productId) => {
+    if (!productId) {
+      return;
+    }
+
+    setItems((prevItems) =>
+      prevItems.filter((cartItem) => cartItem.product.id !== productId)
+    );
+  }, []);
+
+  const updateQuantity = useCallback((productId, quantity) => {
+    if (!productId) {
+      return;
+    }
+
+    const safeQuantity = ensurePositiveInteger(quantity);
+
+    setItems((prevItems) => {
+      const existingIndex = prevItems.findIndex(
+        (cartItem) => cartItem.product.id === productId
+      );
+
+      if (existingIndex === -1) {
+        return prevItems;
+      }
+
+      const nextItems = [...prevItems];
+
+      nextItems[existingIndex] = {
+        ...nextItems[existingIndex],
+        quantity: safeQuantity,
+      };
+
+      return nextItems;
+    });
+  }, []);
+
+  const clearCart = useCallback(() => {
+    setItems([]);
+  }, []);
+
   const totalItems = useMemo(
     () => items.reduce((total, item) => total + ensurePositiveInteger(item.quantity, 0), 0),
+    [items]
+  );
+
+  const subtotal = useMemo(
+    () =>
+      items.reduce((total, item) => {
+        const price = Number(item?.product?.price ?? 0);
+        const quantity = ensurePositiveInteger(item?.quantity, 0);
+        return total + price * quantity;
+      }, 0),
     [items]
   );
 
@@ -63,9 +114,13 @@ export const CartProvider = ({ children }) => {
     () => ({
       items,
       totalItems,
+      subtotal,
       addToCart,
+      removeFromCart,
+      updateQuantity,
+      clearCart,
     }),
-    [items, totalItems, addToCart]
+    [items, totalItems, subtotal, addToCart, removeFromCart, updateQuantity, clearCart]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

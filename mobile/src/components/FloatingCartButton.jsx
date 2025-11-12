@@ -3,12 +3,16 @@ import { TouchableOpacity, Text, StyleSheet, View } from "react-native";
 
 import { useCart } from "../context/CartContext.jsx";
 
-const FloatingCartButton = () => {
+const FloatingCartButton = ({ onPress }) => {
   const { totalItems } = useCart();
   const hasItems = totalItems > 0;
 
   return (
-    <TouchableOpacity style={styles.button} activeOpacity={0.85}>
+    <TouchableOpacity
+      style={[styles.button, !hasItems && styles.buttonIdle]}
+      activeOpacity={0.85}
+      onPress={onPress}
+    >
       <Text style={styles.icon}>🛒</Text>
       {hasItems ? (
         <View style={styles.badge}>
@@ -35,6 +39,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 12 },
     shadowRadius: 24,
     elevation: 8,
+  },
+  buttonIdle: {
+    backgroundColor: "#fed7aa",
   },
   icon: {
     fontSize: 24,
