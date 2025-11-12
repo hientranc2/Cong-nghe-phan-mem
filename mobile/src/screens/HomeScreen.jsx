@@ -10,6 +10,7 @@ import PromoScreen from "./PromoScreen.jsx";
 import ProductDetailModal from "../components/product/ProductDetailModal.jsx";
 import CartSuccessModal from "../components/feedback/CartSuccessModal.jsx";
 import { useCart } from "../context/CartContext.jsx";
+import OrdersScreen from "../features/orders/screens/OrdersScreen.jsx";
 
 import { bestSellers } from "../data/homepage";
 import { menuItems } from "../data/menu";
@@ -17,6 +18,7 @@ import { menuItems } from "../data/menu";
 const HOME_TAB = "home";
 const MENU_TAB = "menu";
 const PROMO_TAB = "promo";
+const ORDERS_TAB = "orders";
 
 const HomeScreen = ({ onPressLogin, user, onViewCart }) => {
   const [activeTab, setActiveTab] = useState(HOME_TAB);
@@ -29,11 +31,20 @@ const HomeScreen = ({ onPressLogin, user, onViewCart }) => {
   const { addToCart } = useCart();
 
   const handleTabPress = useCallback((tabId) => {
-    if (tabId === MENU_TAB || tabId === PROMO_TAB || tabId === HOME_TAB) {
+    if (
+      tabId === MENU_TAB ||
+      tabId === PROMO_TAB ||
+      tabId === HOME_TAB ||
+      tabId === ORDERS_TAB
+    ) {
       setActiveTab(tabId);
       return;
     }
 
+    setActiveTab(HOME_TAB);
+  }, []);
+
+  const handleBackToHome = useCallback(() => {
     setActiveTab(HOME_TAB);
   }, []);
 
@@ -108,6 +119,8 @@ const HomeScreen = ({ onPressLogin, user, onViewCart }) => {
         />
       ) : activeTab === PROMO_TAB ? (
         <PromoScreen />
+      ) : activeTab === ORDERS_TAB ? (
+        <OrdersScreen onBackToHome={handleBackToHome} />
       ) : (
         <ScrollView
           style={styles.scroll}
