@@ -4,6 +4,7 @@ import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 
 import HomeScreen from "./src/screens/HomeScreen.jsx";
 import AuthScreen from "./src/features/auth/AuthScreen.jsx";
+import { CartProvider } from "./src/context/CartContext.jsx";
 
 const SCREENS = {
   home: "home",
@@ -48,23 +49,25 @@ export default function App() {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <ExpoStatusBar style="dark" />
-      <View style={styles.screen}>
-        {activeScreen === SCREENS.home ? (
-          <HomeScreen
-            onPressLogin={screenHandlers.goToAuth}
-            user={authenticatedUser}
-          />
-        ) : (
-          <AuthScreen
-            onBack={screenHandlers.goHome}
-            onLoginSuccess={screenHandlers.handleLoginSuccess}
-          />
-        )}
-      </View>
-    </SafeAreaView>
+    <CartProvider>
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+        <ExpoStatusBar style="dark" />
+        <View style={styles.screen}>
+          {activeScreen === SCREENS.home ? (
+            <HomeScreen
+              onPressLogin={screenHandlers.goToAuth}
+              user={authenticatedUser}
+            />
+          ) : (
+            <AuthScreen
+              onBack={screenHandlers.goHome}
+              onLoginSuccess={screenHandlers.handleLoginSuccess}
+            />
+          )}
+        </View>
+      </SafeAreaView>
+    </CartProvider>
   );
 }
 
