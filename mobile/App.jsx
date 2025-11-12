@@ -6,6 +6,7 @@ import HomeScreen from "./src/screens/HomeScreen.jsx";
 import AuthScreen from "./src/features/auth/AuthScreen.jsx";
 import CartScreen from "./src/screens/CartScreen.jsx";
 import CheckoutScreen from "./src/screens/CheckoutScreen.jsx";
+import OrderConfirmationScreen from "./src/screens/OrderConfirmationScreen.jsx";
 import { CartProvider } from "./src/context/CartContext.jsx";
 
 const SCREENS = {
@@ -13,11 +14,13 @@ const SCREENS = {
   auth: "auth",
   cart: "cart",
   checkout: "checkout",
+  orderConfirmation: "orderConfirmation",
 };
 
 export default function App() {
   const [activeScreen, setActiveScreen] = useState(SCREENS.home);
   const [authenticatedUser, setAuthenticatedUser] = useState(null);
+  const [lastOrder, setLastOrder] = useState(null);
 
   const goToAuth = useCallback(
     () => setActiveScreen(SCREENS.auth),
@@ -29,13 +32,17 @@ export default function App() {
     () => setActiveScreen(SCREENS.checkout),
     [setActiveScreen]
   );
+  const goToOrderConfirmation = useCallback(
+    () => setActiveScreen(SCREENS.orderConfirmation),
+    [setActiveScreen]
+  );
   const handleLoginSuccess = useCallback(
     (user) => {
       if (user) {
         setAuthenticatedUser({
           fullName: user.fullName,
           phone: user.phone,
-          email: user.email
+          email: user.email,
         });
       } else {
         setAuthenticatedUser(null);
@@ -54,6 +61,19 @@ export default function App() {
       handleLoginSuccess,
     }),
     [goHome, goToAuth, goToCart, goToCheckout, handleLoginSuccess]
+  );
+
+  const handleOrderPlaced = useCallback(
+    (order) => {
+      if (order) {
+        setLastOrder(order);
+        goToOrderConfirmation();
+      } else {
+        setLastOrder(null);
+        goHome();
+      }
+    },
+    [goHome, goToOrderConfirmation]
   );
 
   return (
@@ -78,10 +98,18 @@ export default function App() {
               onBack={screenHandlers.goHome}
               onCheckout={screenHandlers.goToCheckout}
             />
-          ) : (
+          ) : activeScreen === SCREENS.checkout ? (
             <CheckoutScreen
               onBack={screenHandlers.goHome}
               user={authenticatedUser}
+              onOrderPlaced={handleOrderPlaced}
+            />
+          ) : (
+            <OrderConfirmationScreen
+              onBack={screenHandlers.goHome}
+              onViewOrders={screenHandlers.goHome}
+              onTrackOrder={screenHandlers.goHome}
+              order={lastOrder}
             />
           )}
         </View>
