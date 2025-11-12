@@ -15,6 +15,7 @@ import raucu from "../assets/raucu.jpg";
 import tacos from "../assets/tacos.jpg";
 import tomchien from "../assets/tomchien.jpg";
 import tradao from "../assets/tradao.jpg";
+import miso from "../assets/miso.jpg";
 export const categories = [
   {
     id: "cat-burger",
@@ -181,7 +182,7 @@ export const menuItems = [
     name: "Burger Rau Củ Sốt Miso",
     description: "Patty đậu gà, rau củ nướng và sốt miso ngọt mặn dành cho thực khách eat clean.",
     price: 72,
-    img: raucu,
+    img: miso,
     calories: 430,
     time: 11,
     tag: "Eat Clean",
@@ -259,7 +260,7 @@ export const menuItems = [
     name: "Pizza Rau Củ 4 Mùa",
     description: "Ớt chuông, nấm, bông cải xanh cùng phô mai ricotta nhẹ nhàng.",
     price: 102,
-    img: "https://images.unsplash.com/photo-1525755662778-989d0524087e?auto=format&fit=crop&w=800&q=80",
+    img: raucu,
     calories: 560,
     time: 14,
     tag: "Healthy",

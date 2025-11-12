@@ -34,24 +34,12 @@ const OrderTrackingScreen = ({ order, onBack }) => {
 
   useEffect(() => {
     progress.setValue(0);
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(progress, {
-          toValue: 1,
-          duration: 6000,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.delay(800),
-        Animated.timing(progress, {
-          toValue: 0,
-          duration: 6000,
-          easing: Easing.inOut(Easing.quad),
-          useNativeDriver: true,
-        }),
-        Animated.delay(600),
-      ])
-    );
+    const animation = Animated.timing(progress, {
+      toValue: 1,
+      duration: 8000,
+      easing: Easing.inOut(Easing.quad),
+      useNativeDriver: true,
+    });
 
     animation.start();
 
@@ -118,11 +106,11 @@ const OrderTrackingScreen = ({ order, onBack }) => {
   });
   const droneRotate = progress.interpolate({
     inputRange: [0, 0.5, 1],
-    outputRange: ["-8deg", "6deg", "-8deg"],
+   outputRange: ["-8deg", "4deg", "0deg"],
   });
   const droneShadowScale = progress.interpolate({
     inputRange: [0, 0.5, 1],
-    outputRange: [1, 0.7, 1],
+  outputRange: [1, 0.8, 0.7],
   });
 
   if (!order) {
