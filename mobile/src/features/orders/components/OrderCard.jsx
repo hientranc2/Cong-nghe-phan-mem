@@ -50,22 +50,24 @@ const OrderCard = ({ order, onActionPress }) => {
 
   return (
     <View style={styles.card}>
-      <View style={styles.headerRow}>
-        <Text style={styles.orderCode}>{order.code ?? ""}</Text>
-        <View
-          style={[
-            styles.statusPill,
-            { borderColor: `${statusColor}33` },
-          ]}
-        >
+      <View style={styles.headerSection}>
+        <View style={styles.statusWrapper}>
           <View
-            style={[styles.statusDot, { backgroundColor: statusColor }]}
-          />
-          <Text style={styles.statusText}>
-            Trạng thái:
-            <Text style={[styles.statusValue, { color: statusColor }]}> {statusLabel}</Text>
-          </Text>
+            style={[
+              styles.statusPill,
+              { borderColor: `${statusColor}33` },
+            ]}
+          >
+            <View
+              style={[styles.statusDot, { backgroundColor: statusColor }]}
+            />
+            <Text style={styles.statusText}>
+              Trạng thái:
+              <Text style={[styles.statusValue, { color: statusColor }]}> {statusLabel}</Text>
+            </Text>
+          </View>
         </View>
+        <Text style={styles.orderCode}>{order.code ?? ""}</Text>
       </View>
       <View style={styles.infoGroup}>
         <Text style={styles.infoLabel}>
@@ -117,11 +119,12 @@ const styles = StyleSheet.create({
     shadowRadius: 28,
     elevation: 6,
   },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  headerSection: {
     marginBottom: 16,
+  },
+  statusWrapper: {
+    alignItems: "flex-end",
+    marginBottom: 10,
   },
   orderCode: {
     fontSize: 18,
