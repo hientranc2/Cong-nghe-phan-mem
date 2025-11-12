@@ -7,6 +7,7 @@ import AuthScreen from "./src/features/auth/AuthScreen.jsx";
 import CartScreen from "./src/screens/CartScreen.jsx";
 import CheckoutScreen from "./src/screens/CheckoutScreen.jsx";
 import OrderConfirmationScreen from "./src/screens/OrderConfirmationScreen.jsx";
+import OrderTrackingScreen from "./src/screens/OrderTrackingScreen.jsx";
 import { CartProvider } from "./src/context/CartContext.jsx";
 
 const SCREENS = {
@@ -15,6 +16,7 @@ const SCREENS = {
   cart: "cart",
   checkout: "checkout",
   orderConfirmation: "orderConfirmation",
+  orderTracking: "orderTracking",
 };
 
 export default function App() {
@@ -34,6 +36,10 @@ export default function App() {
   );
   const goToOrderConfirmation = useCallback(
     () => setActiveScreen(SCREENS.orderConfirmation),
+    [setActiveScreen]
+  );
+  const goToOrderTracking = useCallback(
+    () => setActiveScreen(SCREENS.orderTracking),
     [setActiveScreen]
   );
   const handleLoginSuccess = useCallback(
@@ -59,8 +65,9 @@ export default function App() {
       goToCart,
       goToCheckout,
       handleLoginSuccess,
+      goToOrderTracking,
     }),
-    [goHome, goToAuth, goToCart, goToCheckout, handleLoginSuccess]
+    [goHome, goToAuth, goToCart, goToCheckout, goToOrderTracking, handleLoginSuccess]
   );
 
   const handleOrderPlaced = useCallback(
@@ -75,6 +82,15 @@ export default function App() {
     },
     [goHome, goToOrderConfirmation]
   );
+
+  const handleTrackOrder = useCallback(() => {
+    if (!lastOrder) {
+      goHome();
+      return;
+    }
+
+    goToOrderTracking();
+  }, [goHome, goToOrderTracking, lastOrder]);
 
   return (
     <CartProvider>
@@ -104,11 +120,16 @@ export default function App() {
               user={authenticatedUser}
               onOrderPlaced={handleOrderPlaced}
             />
+          ) : activeScreen === SCREENS.orderTracking ? (
+            <OrderTrackingScreen
+              order={lastOrder}
+              onBack={goToOrderConfirmation}
+            />
           ) : (
             <OrderConfirmationScreen
               onBack={screenHandlers.goHome}
               onViewOrders={screenHandlers.goHome}
-              onTrackOrder={screenHandlers.goHome}
+              onTrackOrder={handleTrackOrder}
               order={lastOrder}
             />
           )}
