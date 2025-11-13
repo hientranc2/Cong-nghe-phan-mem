@@ -7,6 +7,7 @@ import FloatingCartButton from "../components/FloatingCartButton.jsx";
 import BottomTabBar from "../components/BottomTabBar.jsx";
 import MenuScreen from "./MenuScreen.jsx";
 import PromoScreen from "./PromoScreen.jsx";
+import MoreScreen from "./MoreScreen.jsx";
 import ProductDetailModal from "../components/product/ProductDetailModal.jsx";
 import CartSuccessModal from "../components/feedback/CartSuccessModal.jsx";
 import { useCart } from "../context/CartContext.jsx";
@@ -19,6 +20,7 @@ const HOME_TAB = "home";
 const MENU_TAB = "menu";
 const PROMO_TAB = "promo";
 const ORDERS_TAB = "orders";
+const MORE_TAB = "more";
 
 const HomeScreen = ({
   onPressLogin,
@@ -53,7 +55,8 @@ const HomeScreen = ({
         tabId === MENU_TAB ||
         tabId === PROMO_TAB ||
         tabId === HOME_TAB ||
-        tabId === ORDERS_TAB
+        tabId === ORDERS_TAB ||
+        tabId === MORE_TAB
       ) {
         setActiveTab(tabId);
         if (typeof onTabChange === "function") {
@@ -155,6 +158,8 @@ const HomeScreen = ({
           onOrdersChange={onOrdersChange}
           onActionPress={onOrderAction}
         />
+      ) : activeTab === MORE_TAB ? (
+        <MoreScreen />
       ) : (
         <ScrollView
           style={styles.scroll}
