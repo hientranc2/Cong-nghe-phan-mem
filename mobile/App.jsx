@@ -152,6 +152,11 @@ export default function App() {
   const [homeTab, setHomeTab] = useState(HOME_TAB);
   const [orders, setOrders] = useState([]);
 
+  const handleLogout = useCallback(() => {
+    setAuthenticatedUser(null);
+    setActiveScreen(SCREENS.home);
+  }, [setActiveScreen, setAuthenticatedUser]);
+
   const goToAuth = useCallback(
     () => setActiveScreen(SCREENS.auth),
     [setActiveScreen]
@@ -281,6 +286,7 @@ export default function App() {
               onOrdersChange={handleOrdersChange}
               onOrderAction={handleOrderAction}
               onTabChange={handleHomeTabChange}
+              onLogout={handleLogout}
             />
           ) : activeScreen === SCREENS.auth ? (
             <AuthScreen
