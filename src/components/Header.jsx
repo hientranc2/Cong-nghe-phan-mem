@@ -4,12 +4,9 @@ import ukFlag from "../assets/flags/united-kingdom.svg";
 import "./Header.css";
 
 const DEFAULT_NAV_LINKS = [
-  { id: "menu", label: "Danh mục món" },
-  { id: "best-seller", label: "Bán chạy" },
-  { id: "combo", label: "Combo ưu đãi" },
-  { id: "promo", label: "Khuyến mãi" },
+  { id: "menu", label: "Danh muc mon" },
+  { id: "restaurants", label: "Nha hang" },
 ];
-
 const LANGUAGE_ICONS = {
   vi: vnFlag,
   en: ukFlag,
@@ -27,7 +24,6 @@ function Header({
   user = null,
   onShowLogin = () => {},
   onLogout = () => {},
- 
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
 

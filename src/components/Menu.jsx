@@ -8,7 +8,8 @@ function Menu({
   const prepTimeSuffix = labels.prepTimeSuffix ?? "phút chế biến";
   const addToCartLabel = labels.addToCart ?? "Thêm vào giỏ hàng";
   const viewDetailLabel = labels.viewDetail ?? "Xem chi tiết món";
-  
+  const providerLabel = labels.providerLabel ?? "Nha hang";
+
   return (
     <div className="menu-grid">
       {items.map((item) => (
@@ -30,6 +31,12 @@ function Menu({
               <span className="menu-card__price">{item.price}k</span>
             </div>
             <p className="menu-card__desc">{item.description}</p>
+            {item.restaurantName && (
+              <p className="menu-card__provider">
+                {providerLabel}: {item.restaurantName}
+                {item.restaurantCity ? ` - ${item.restaurantCity}` : ""}
+              </p>
+            )}
             <div className="menu-card__footer">
               <span className="menu-card__info">
                 🔥 {item.calories} {caloriesUnit} · ⏱ {item.time} {prepTimeSuffix}

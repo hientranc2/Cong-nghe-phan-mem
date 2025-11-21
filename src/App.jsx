@@ -14,7 +14,8 @@ import OrderTrackingPage from "./pages/OrderTrackingPage.jsx";
 import OrderHistoryPage from "./pages/OrderHistoryPage.jsx";
 import AdminDashboard from "./admin/AdminDashboard";
 import RestaurantDashboard from "./pages/RestaurantDashboard";
-import { categories as categoryData, menuItems } from "./data/menuData";
+import RestaurantDetailPage from "./pages/RestaurantDetailPage";
+import { categories as categoryData, menuItems, restaurants as restaurantData } from "./data/menuData";
 import { contentByLanguage } from "./i18n/translations";
 
 
@@ -104,6 +105,11 @@ const parseViewFromHash = () => {
     return { type: "restaurant" };
   }
 
+  const restaurantDetailMatch = hash.match(/^\/restaurants\/([\w-]+)/);
+  if (restaurantDetailMatch && restaurantDetailMatch[1]) {
+    return { type: "restaurantDetail", slug: restaurantDetailMatch[1] };
+  }
+
   if (/^\/checkout$/.test(hash)) {
     return { type: "checkout" };
   }
@@ -159,6 +165,38 @@ const translateMenuItems = (items, language) =>
     };
   });
 
+const DEFAULT_MEAL_CATEGORIES = [
+  { id: "breakfast", title: "Breakfast", description: "Morning bites and drinks", icon: "🌅" },
+  { id: "lunch", title: "Lunch", description: "Hearty midday combos", icon: "☀️" },
+  { id: "dinner", title: "Dinner", description: "Relaxed evening dishes", icon: "🌙" },
+  { id: "drinks", title: "Drinks", description: "Mixology and cold brews", icon: "🍹" },
+];
+
+const translateRestaurants = (restaurants, language, menuItems) => {
+  const itemMap = new Map(menuItems.map((item) => [item.id, item]));
+
+  return restaurants.map((restaurant) => {
+    const translation =
+      restaurant.translations?.[language] ?? restaurant.translations?.vi ?? {};
+
+    const resolvedMenuItems = (restaurant.menuItemIds ?? [])
+      .map((itemId) => itemMap.get(itemId))
+      .filter(Boolean);
+
+    return {
+      ...restaurant,
+      name: translation.name ?? restaurant.name ?? "",
+      description: translation.description ?? restaurant.description ?? "",
+      story: translation.story ?? restaurant.story ?? "",
+      city: translation.city ?? restaurant.city ?? "",
+      deliveryTime:
+        translation.deliveryTime ?? restaurant.deliveryTime ?? "",
+      tags: translation.tags ?? restaurant.tags ?? [],
+      menuItems: resolvedMenuItems,
+    };
+  });
+};
+
 function App() {
   const [language, setLanguage] = useState("vi");
   const [cart, setCart] = useState([]);
@@ -173,6 +211,7 @@ function App() {
   const [pendingOrder, setPendingOrder] = useState(null);
   const [recentReceipt, setRecentReceipt] = useState(null);
   const [orderHistory, setOrderHistory] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
 
 
@@ -291,6 +330,113 @@ function App() {
     () => translateMenuItems(menuItems, language),
     [language]
   );
+  const translatedRestaurants = useMemo(
+    () => translateRestaurants(restaurantData, language, translatedMenuItems),
+    [language, translatedMenuItems]
+  );
+  const restaurantsById = useMemo(() => {
+    const map = new Map();
+    translatedRestaurants.forEach((restaurant) => {
+      map.set(restaurant.id, restaurant);
+    });
+    return map;
+  }, [translatedRestaurants]);
+  const menuItemsWithRestaurant = useMemo(
+    () =>
+      translatedMenuItems.map((item) => {
+        const restaurant = restaurantsById.get(item.restaurantId ?? "");
+        return {
+          ...item,
+          restaurantName: restaurant?.name ?? "",
+          restaurantCity: restaurant?.city ?? "",
+          restaurantBadge: restaurant?.badge ?? "",
+        };
+      }),
+    [translatedMenuItems, restaurantsById]
+  );
+  const menuItemsMap = useMemo(() => {
+    const map = new Map();
+    menuItemsWithRestaurant.forEach((item) => {
+      map.set(item.id, item);
+    });
+    return map;
+  }, [menuItemsWithRestaurant]);
+  const restaurants = useMemo(
+    () =>
+      translatedRestaurants.map((restaurant) => ({
+        ...restaurant,
+        menuItems: (restaurant.menuItems ?? []).map(
+          (item) => menuItemsMap.get(item.id) ?? item
+        ),
+      })),
+    [translatedRestaurants, menuItemsMap]
+  );
+  const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+  const hasSearchQuery = normalizedSearchQuery.length > 0;
+
+  const restaurantSearchResults = useMemo(() => {
+    if (!hasSearchQuery) {
+      return [];
+    }
+
+    return restaurants.filter((restaurant) => {
+      const haystack = [
+        restaurant.name,
+        restaurant.description,
+        restaurant.city,
+        restaurant.badge,
+        (restaurant.tags ?? []).join(" "),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return haystack.includes(normalizedSearchQuery);
+    });
+  }, [hasSearchQuery, normalizedSearchQuery, restaurants]);
+
+  const dishSearchResults = useMemo(() => {
+    if (!hasSearchQuery) {
+      return [];
+    }
+
+    return menuItemsWithRestaurant.filter((item) => {
+      const haystack = [item.name, item.description, item.tag]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return haystack.includes(normalizedSearchQuery);
+    });
+  }, [hasSearchQuery, normalizedSearchQuery, menuItemsWithRestaurant]);
+  const suggestedDishes = useMemo(
+    () =>
+      menuItemsWithRestaurant
+        .filter((item) => item.isSuggested)
+        .slice(0, 6),
+    [menuItemsWithRestaurant]
+  );
+  const mealCategoryConfig =
+    content.home.mealCategories ?? DEFAULT_MEAL_CATEGORIES;
+  const mealCategories = useMemo(
+    () =>
+      mealCategoryConfig
+        .map((config, index) => {
+          const fallbackId =
+            DEFAULT_MEAL_CATEGORIES[index]?.id ?? `meal-${index + 1}`;
+          const id = config.id ?? fallbackId;
+          const items = menuItemsWithRestaurant.filter((item) =>
+            (item.mealTimes ?? []).includes(id)
+          );
+          return {
+            ...config,
+            id,
+            items,
+          };
+        })
+        .filter((category) => category.items.length > 0),
+    [mealCategoryConfig, menuItemsWithRestaurant]
+  );
 
   const customerOrders = useMemo(() => {
     if (!currentUser || currentUser.role !== "customer") {
@@ -359,40 +505,6 @@ function App() {
     );
   }, [translatedMenuItems]);
 
-  const bestSellers = useMemo(
-    () => translatedMenuItems.filter((item) => item.isBestSeller),
-    [translatedMenuItems]
-  );
-
-  const combos = useMemo(() => {
-    const rawCombos = content.combos ?? [];
-
-    return rawCombos.map((combo, index) => {
-      const safeName = combo.name ?? `Combo ${index + 1}`;
-      const generatedId = slugify(safeName);
-      const id =
-        combo.id ??
-        (generatedId ? `combo-${generatedId}` : `combo-${index + 1}`);
-      const description = combo.desc ?? combo.description ?? "";
-      const price =
-        typeof combo.price === "number"
-          ? combo.price
-          : Number.parseFloat(combo.price) || 0;
-      const image = combo.img ?? combo.image ?? null;
-
-      return {
-        ...combo,
-        id,
-        name: safeName,
-        desc: description,
-        description,
-        price,
-        img: image,
-        type: combo.type ?? "combo",
-      };
-    });
-  }, [content.combos]);
-  const promotions = content.promotions ?? [];
   const stats = content.stats ?? [];
   const loginTexts = content.login ?? content.auth?.login ?? {};
   const registerTexts = content.register ?? content.auth?.register ?? {};
@@ -400,6 +512,7 @@ function App() {
     content.orderConfirmation ?? content.auth?.orderConfirmation ?? {};
   const orderHistoryTexts = content.orderHistory ?? {};
   const restaurantTexts = content.restaurant ?? {};
+  const restaurantDetailTexts = content.restaurantDetail ?? {};
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
@@ -472,6 +585,19 @@ function App() {
     }
   };
 
+  const handleSearchChange = (value) => {
+    setSearchQuery(value);
+
+    if (!value.trim()) {
+      return;
+    }
+
+    if (view.type !== "home") {
+      pendingSectionRef.current = "search-results";
+      redirectToHome();
+    }
+  };
+
   useEffect(() => {
     if (view.type === "home" && pendingSectionRef.current) {
       const sectionId = pendingSectionRef.current;
@@ -484,6 +610,16 @@ function App() {
     pendingSectionRef.current = null;
     if (typeof window !== "undefined") {
       window.location.hash = `/category/${slug}`;
+    }
+  };
+
+  const handleViewRestaurantDetail = (slug) => {
+    if (!slug) {
+      return;
+    }
+    pendingSectionRef.current = null;
+    if (typeof window !== "undefined") {
+      window.location.hash = `/restaurants/${slug}`;
     }
   };
 
@@ -563,10 +699,10 @@ function App() {
       return [];
     }
 
-    return translatedMenuItems.filter(
+    return menuItemsWithRestaurant.filter(
       (item) => item.categoryId === activeCategory.id
     );
-  }, [activeCategory, translatedMenuItems]);
+  }, [activeCategory, menuItemsWithRestaurant]);
 
   const activeProduct = useMemo(() => {
     if (view.type !== "product") {
@@ -574,9 +710,9 @@ function App() {
     }
 
     return (
-      translatedMenuItems.find((item) => item.id === view.id) ?? null
+      menuItemsWithRestaurant.find((item) => item.id === view.id) ?? null
     );
-  }, [view, translatedMenuItems]);
+  }, [view, menuItemsWithRestaurant]);
 
   const activeProductCategory = useMemo(() => {
     if (!activeProduct) {
@@ -589,6 +725,38 @@ function App() {
       ) ?? null
     );
   }, [activeProduct, translatedCategories]);
+
+  const productSuggestions = useMemo(() => {
+    if (!activeProduct) {
+      return [];
+    }
+
+    const pool = menuItemsWithRestaurant.filter(
+      (item) => item.id !== activeProduct.id
+    );
+    const sameRestaurant = pool.filter(
+      (item) => item.restaurantId === activeProduct.restaurantId
+    );
+    const sameCategory = pool.filter(
+      (item) => item.categoryId === activeProduct.categoryId
+    );
+    const ordered = [...sameRestaurant, ...sameCategory, ...pool];
+    const unique = [];
+    const seen = new Set();
+
+    ordered.forEach((item) => {
+      if (unique.length >= 4) {
+        return;
+      }
+      if (seen.has(item.id)) {
+        return;
+      }
+      seen.add(item.id);
+      unique.push(item);
+    });
+
+    return unique;
+  }, [activeProduct, menuItemsWithRestaurant]);
 
   useEffect(() => {
     if (
@@ -1028,6 +1196,8 @@ function App() {
         addToCart={addToCart}
         onNavigateHome={handleNavigateHome}
         onNavigateCategory={handleSelectCategory}
+        onViewProduct={handleViewProduct}
+        relatedItems={productSuggestions}
         texts={content.productDetail}
         menuLabels={content.menuLabels}
       />
@@ -1098,8 +1268,25 @@ function App() {
         onTrackOrder={handleTrackOrderFromHistory}
         onCancelOrder={handleCancelOrderFromHistory}
 
-        
+ 
         onBackHome={handleNavigateHome}
+      />
+    );
+  } else if (view.type === "restaurantDetail") {
+    const selectedRestaurant =
+      restaurants.find(
+        (restaurant) =>
+          restaurant.slug === view.slug || restaurant.id === view.slug
+      ) ?? null;
+
+    pageContent = (
+      <RestaurantDetailPage
+        restaurant={selectedRestaurant}
+        detailTexts={restaurantDetailTexts}
+        menuLabels={content.menuLabels}
+        addToCart={addToCart}
+        onViewProduct={handleViewProduct}
+        onBack={handleNavigateHome}
       />
     );
   } else {
@@ -1107,17 +1294,23 @@ function App() {
       <HomePage
         heroBackground={heroBackground}
         stats={stats}
-        categories={translatedCategories}
-        bestSellers={bestSellers}
-        combos={combos}
-        promotions={promotions}
-        addToCart={addToCart}
-        onSelectCategory={handleSelectCategory}
-        onViewProduct={handleViewProduct}
-        texts={content.home}
-        menuLabels={content.menuLabels}
-      />
-    );
+          categories={translatedCategories}
+          restaurantDishes={menuItemsWithRestaurant}
+          addToCart={addToCart}
+          onSelectCategory={handleSelectCategory}
+          onViewProduct={handleViewProduct}
+          restaurants={restaurants}
+          searchQuery={searchQuery}
+          searchRestaurants={restaurantSearchResults}
+          searchDishes={dishSearchResults}
+          suggestedDishes={suggestedDishes}
+          mealCategories={mealCategories}
+          onNavigateSection={handleNavigateSection}
+          onViewRestaurant={handleViewRestaurantDetail}
+          texts={content.home}
+          menuLabels={content.menuLabels}
+        />
+      );
   }
 
   if (view.type === "admin") {
@@ -1140,6 +1333,8 @@ function App() {
         onNavigateHome={handleNavigateHome}
         onNavigateSection={handleNavigateSection}
         texts={content.header}
+        searchQuery={searchQuery}
+        onSearchChange={handleSearchChange}
 
         language={language}
         onLanguageChange={setLanguage}
