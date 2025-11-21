@@ -33,7 +33,7 @@ const DEFAULT_ORDER_ACTIONS = [
   { id: "track", label: "Theo dõi hành trình", variant: "primary" },
 ];
 
-const DEFAULT_ADDRESS = "123 Đường Ẩm Thực, Quận 1, TP.HCM";
+const DEFAULT_ADDRESS = "";
 const createDefaultCustomer = () => ({
   name: "Bạn thân FoodCourt",
   phone: "0123 456 789",
@@ -164,10 +164,14 @@ export default function App() {
     [setActiveScreen]
   );
   const goToCart = useCallback(() => setActiveScreen(SCREENS.cart), [setActiveScreen]);
-  const goToCheckout = useCallback(
-    () => setActiveScreen(SCREENS.checkout),
-    [setActiveScreen]
-  );
+ const goToCheckout = useCallback(() => {
+    if (!authenticatedUser) {
+      goToAuth();
+      return;
+    }
+
+    setActiveScreen(SCREENS.checkout);
+  }, [authenticatedUser, goToAuth, setActiveScreen]);
   const goToOrderConfirmation = useCallback(
     () => setActiveScreen(SCREENS.orderConfirmation),
     [setActiveScreen]
@@ -287,6 +291,8 @@ export default function App() {
             <CartScreen
               onBack={screenHandlers.goHome}
               onCheckout={screenHandlers.goToCheckout}
+              isAuthenticated={Boolean(authenticatedUser)}
+              
             />
           ) : activeScreen === SCREENS.checkout ? (
             <CheckoutScreen

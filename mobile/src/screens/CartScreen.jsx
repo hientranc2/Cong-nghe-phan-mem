@@ -21,7 +21,7 @@ const formatCurrency = (value) => {
   }
 };
 
-const CartScreen = ({ onBack, onCheckout }) => {
+const CartScreen = ({ onBack, onCheckout, isAuthenticated = false }) => {
   const { items, subtotal, totalItems, updateQuantity, removeFromCart } = useCart();
   const hasItems = items.length > 0;
 
@@ -153,6 +153,11 @@ const CartScreen = ({ onBack, onCheckout }) => {
             <Text style={styles.actionLabel}>Đi đến thanh toán</Text>
           </TouchableOpacity>
         </View>
+         {!isAuthenticated && (
+          <Text style={styles.authNotice}>
+            Vui lòng đăng nhập để tiếp tục thanh toán.
+          </Text>
+        )}
       </View>
     </View>
   );
@@ -319,6 +324,12 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#111827",
     marginBottom: 12,
+  },
+  authNotice: {
+    marginTop: 12,
+    fontSize: 13,
+    color: "#dc2626",
+    textAlign: "right",
   },
   actions: {
     flexDirection: "row",
