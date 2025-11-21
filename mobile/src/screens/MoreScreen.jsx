@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -46,6 +46,7 @@ const socialLinks = [
 ];
 
 const MoreScreen = ({ user, onLogout }) => {
+  const [activeSectionId, setActiveSectionId] = useState(null);
   const isLoggedIn = Boolean(user);
   const displayName =
     (user?.fullName && user.fullName.trim()) ||
@@ -53,11 +54,68 @@ const MoreScreen = ({ user, onLogout }) => {
     (user?.email && user.email.trim()) ||
     "Quý khách";
 
+  const activeSection = useMemo(
+    () => infoSections.find((section) => section.id === activeSectionId) ?? null,
+    [activeSectionId]
+  );
+
   const handleLogoutPress = () => {
     if (typeof onLogout === "function") {
       onLogout();
     }
   };
+
+  const handleOpenSection = (sectionId) => {
+    setActiveSectionId(sectionId);
+  };
+
+  const handleBackToMore = () => {
+    setActiveSectionId(null);
+  };
+
+  if (activeSection) {
+    return (
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <TouchableOpacity style={styles.backButton} activeOpacity={0.7} onPress={handleBackToMore}>
+          <Text style={styles.backIcon}>‹</Text>
+          <Text style={styles.backLabel}>Quay lại</Text>
+        </TouchableOpacity>
+
+        <View style={styles.infoCard}>
+          <Text style={styles.infoTitle}>{activeSection.title}</Text>
+          {activeSection.description?.map((paragraph, index) => (
+            <Text key={`${activeSection.id}-paragraph-${index}`} style={styles.infoParagraph}>
+              {paragraph}
+            </Text>
+          ))}
+          {activeSection.highlights && (
+            <View style={styles.highlightRow}>
+              {activeSection.highlights.map((highlight) => (
+                <View key={highlight.id} style={styles.highlightItem}>
+                  <Text style={styles.highlightValue}>{highlight.value}</Text>
+                  <Text style={styles.highlightLabel}>{highlight.label}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+          {activeSection.bullets && (
+            <View style={styles.policyList}>
+              {activeSection.bullets.map((bullet, index) => (
+                <View key={`${activeSection.id}-bullet-${index}`} style={styles.policyItem}>
+                  <View style={styles.policyBullet} />
+                  <Text style={styles.policyText}>{bullet}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+      </ScrollView>
+    );
+  }
 
   return (
     <ScrollView
@@ -71,6 +129,7 @@ const MoreScreen = ({ user, onLogout }) => {
             key={item.id}
             style={[styles.linkRow, index < quickLinks.length - 1 && styles.linkDivider]}
             activeOpacity={0.6}
+            onPress={() => handleOpenSection(item.id)}
           >
             <View>
               <Text style={styles.linkLabel}>{item.label}</Text>
@@ -84,37 +143,6 @@ const MoreScreen = ({ user, onLogout }) => {
           </TouchableOpacity>
         ))}
       </View>
-
-      {infoSections.map((section) => (
-        <View key={section.id} style={styles.infoCard}>
-          <Text style={styles.infoTitle}>{section.title}</Text>
-          {section.description?.map((paragraph, index) => (
-            <Text key={`${section.id}-paragraph-${index}`} style={styles.infoParagraph}>
-              {paragraph}
-            </Text>
-          ))}
-          {section.highlights && (
-            <View style={styles.highlightRow}>
-              {section.highlights.map((highlight) => (
-                <View key={highlight.id} style={styles.highlightItem}>
-                  <Text style={styles.highlightValue}>{highlight.value}</Text>
-                  <Text style={styles.highlightLabel}>{highlight.label}</Text>
-                </View>
-              ))}
-            </View>
-          )}
-          {section.bullets && (
-            <View style={styles.policyList}>
-              {section.bullets.map((bullet, index) => (
-                <View key={`${section.id}-bullet-${index}`} style={styles.policyItem}>
-                  <View style={styles.policyBullet} />
-                  <Text style={styles.policyText}>{bullet}</Text>
-                </View>
-              ))}
-            </View>
-          )}
-        </View>
-      ))}
 
       <View style={styles.hotlineSection}>
         <View style={styles.logoBadge}>
@@ -168,6 +196,21 @@ const styles = StyleSheet.create({
     paddingTop: 32,
     paddingBottom: 120,
     gap: 24,
+  },
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  backIcon: {
+    fontSize: 22,
+    color: "#f97316",
+  },
+  backLabel: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#f97316",
+    textTransform: "uppercase",
   },
   linksCard: {
     borderRadius: 20,
