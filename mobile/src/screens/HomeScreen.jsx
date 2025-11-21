@@ -31,6 +31,7 @@ const HomeScreen = ({
   onOrdersChange,
   onOrderAction,
   onTabChange,
+  onLogout,
 }) => {
   const [activeTab, setActiveTab] = useState(initialTab ?? HOME_TAB);
   const [selectedProductId, setSelectedProductId] = useState(null);
@@ -159,7 +160,7 @@ const HomeScreen = ({
           onActionPress={onOrderAction}
         />
       ) : activeTab === MORE_TAB ? (
-        <MoreScreen />
+        <MoreScreen user={user} onLogout={onLogout} />
       ) : (
         <ScrollView
           style={styles.scroll}
