@@ -2,6 +2,7 @@ const NAV_ITEMS = [
   { id: "overview", label: "Tổng quan" },
   { id: "fleet", label: "Đội bay" },
   { id: "customers", label: "Khách hàng" },
+  { id: "restaurants", label: "Nhà hàng" },
   { id: "orders", label: "Đơn hàng" },
 ];
 
