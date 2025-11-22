@@ -5,6 +5,7 @@ import AdminFleetSection from "./components/AdminFleetSection";
 import AdminFormDrawer from "./components/AdminFormDrawer";
 import AdminHeader from "./components/AdminHeader";
 import AdminOrdersSection from "./components/AdminOrdersSection";
+import AdminRestaurantsSection from "./components/AdminRestaurantsSection";
 import AdminOverview from "./components/AdminOverview";
 import AdminSidebar from "./components/AdminSidebar";
 
@@ -114,6 +115,12 @@ const EMPTY_FORMS = {
     total: 0,
     status: "Đang chuẩn bị",
   },
+  restaurant: {
+    id: "",
+    name: "",
+    address: "",
+    hotline: "",
+  },
 };
 
 const STATUS_OPTIONS = {
@@ -148,6 +155,7 @@ function AdminDashboard() {
   const [drones, setDrones] = useState(DEFAULT_DRONES);
   const [customers, setCustomers] = useState(DEFAULT_CUSTOMERS);
   const [orders, setOrders] = useState(DEFAULT_ORDERS);
+  const [restaurants, setRestaurants] = useState([]);
   const [activeForm, setActiveForm] = useState(null);
   const [activeSection, setActiveSection] = useState("overview");
   const [search, setSearch] = useState("");
@@ -200,6 +208,18 @@ function AdminDashboard() {
         order.status.toLowerCase().includes(term)
     );
   }, [search, orders]);
+
+  const filteredRestaurants = useMemo(() => {
+    if (!search.trim()) return restaurants;
+    const term = search.toLowerCase();
+    return restaurants.filter(
+      (restaurant) =>
+        restaurant.id.toLowerCase().includes(term) ||
+        restaurant.name.toLowerCase().includes(term) ||
+        restaurant.address.toLowerCase().includes(term) ||
+        (restaurant.hotline || "").toLowerCase().includes(term)
+    );
+  }, [search, restaurants]);
 
   const handleOpenForm = (type, mode, payload = null) => {
     setActiveForm({
@@ -273,6 +293,21 @@ function AdminDashboard() {
       }
     }
 
+    if (type === "restaurant") {
+      if (mode === "create") {
+        const id = values.id?.trim() || nextId("nh", restaurants);
+        setRestaurants([...restaurants, { ...values, id }]);
+      } else {
+        setRestaurants(
+          restaurants.map((restaurant) =>
+            restaurant.id === values.id
+              ? { ...restaurant, ...values }
+              : restaurant
+          )
+        );
+      }
+    }
+
     handleCloseForm();
   };
 
@@ -285,6 +320,9 @@ function AdminDashboard() {
     }
     if (type === "order") {
       setOrders(orders.filter((order) => order.id !== id));
+    }
+    if (type === "restaurant") {
+      setRestaurants(restaurants.filter((restaurant) => restaurant.id !== id));
     }
   };
 
@@ -392,21 +430,31 @@ function AdminDashboard() {
           />
         )}
 
-        {activeSection === "customers" && (
-          <AdminCustomersSection
-            customers={filteredCustomers}
-            onCreate={() => handleOpenForm("customer", "create")}
-            onEdit={(customer) => handleOpenForm("customer", "edit", customer)}
-            onDelete={(id) => handleDelete("customer", id)}
-            emptyMessage={emptyMessage}
-          />
-        )}
+      {activeSection === "customers" && (
+        <AdminCustomersSection
+          customers={filteredCustomers}
+          onCreate={() => handleOpenForm("customer", "create")}
+          onEdit={(customer) => handleOpenForm("customer", "edit", customer)}
+          onDelete={(id) => handleDelete("customer", id)}
+          emptyMessage={emptyMessage}
+        />
+      )}
 
-        {activeSection === "orders" && (
-          <AdminOrdersSection
-            orders={filteredOrders}
-            onCreate={() => handleOpenForm("order", "create")}
-            onEdit={(order) => handleOpenForm("order", "edit", order)}
+      {activeSection === "restaurants" && (
+        <AdminRestaurantsSection
+          restaurants={filteredRestaurants}
+          onCreate={() => handleOpenForm("restaurant", "create")}
+          onEdit={(restaurant) => handleOpenForm("restaurant", "edit", restaurant)}
+          onDelete={(id) => handleDelete("restaurant", id)}
+          emptyMessage={emptyMessage}
+        />
+      )}
+
+      {activeSection === "orders" && (
+        <AdminOrdersSection
+          orders={filteredOrders}
+          onCreate={() => handleOpenForm("order", "create")}
+          onEdit={(order) => handleOpenForm("order", "edit", order)}
             onDelete={(id) => handleDelete("order", id)}
             emptyMessage={emptyMessage}
             formatCurrency={formatCurrency}

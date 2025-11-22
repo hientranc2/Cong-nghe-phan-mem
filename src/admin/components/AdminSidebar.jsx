@@ -2,6 +2,7 @@ const NAV_ITEMS = [
   { id: "overview", label: "Tổng quan" },
   { id: "fleet", label: "Đội bay" },
   { id: "customers", label: "Khách hàng" },
+  { id: "restaurants", label: "Nhà hàng" },
   { id: "orders", label: "Đơn hàng" },
 ];
 
@@ -41,6 +42,9 @@ function AdminSidebar({ activeSection, onSectionChange, onCreate }) {
         </button>
         <button type="button" onClick={() => onCreate?.("customer")}>
           + Khách hàng
+        </button>
+        <button type="button" onClick={() => onCreate?.("restaurant")}>
+          + Nhà hàng
         </button>
         <button type="button" onClick={() => onCreate?.("order")}>
           + Đơn hàng
