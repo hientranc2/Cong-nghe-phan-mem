@@ -2,7 +2,7 @@ import burger from "../assets/burger.jpg";
 import pizza from "../assets/pizzaphomai.jpg";
 import friedChicken from "../assets/gavien.jpg";
 import drinks from "../assets/expresso.jpg";
-import tacos from "../assets/tacos.jpg";
+import tacoHubImage from "../assets/tacos.jpg";
 
 export const restaurants = [
   {
@@ -128,7 +128,7 @@ export const restaurants = [
     id: "fco-taco-hub",
     slug: "taco-hub",
     badge: "Taco Hub",
-    img: tacos,
+    img: tacoHubImage,
     name: "FCO Taco Hub",
     description: "Nhà hàng taco Mexico đặc biệt với burger fusion đa dạng.",
     story:

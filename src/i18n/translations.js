@@ -137,6 +137,15 @@ export const contentByLanguage = {
       emptyMessage: "Danh mục đang được cập nhật món ăn. Vui lòng quay lại sau.",
       emptyCta: "Quay về danh mục chính",
     },
+    restaurantPage: {
+      breadcrumbHome: "Trang chủ",
+      backLabel: "← Về chuỗi nhà hàng",
+      menuHeading: "Thực đơn tại {restaurantName}",
+      menuDescription:
+        "Khám phá các món đặc trưng do bếp {restaurantName} chuẩn bị.",
+      storyHeading: "Câu chuyện",
+      emptyMessage: "Nhà hàng đang cập nhật món ăn. Vui lòng quay lại sau.",
+    },
     cart: {
       title: "🛒 Giỏ hàng của bạn",
       subtitleEmpty: "Chưa có sản phẩm",
@@ -384,6 +393,15 @@ export const contentByLanguage = {
         "Enjoy curated {categoryLower} crafted by FCO chefs for every palate.",
       emptyMessage: "We're updating this category. Please check back soon.",
       emptyCta: "Return to categories",
+    },
+    restaurantPage: {
+      breadcrumbHome: "Home",
+      backLabel: "← Back to restaurants",
+      menuHeading: "Menu at {restaurantName}",
+      menuDescription:
+        "Discover the signature dishes crafted by {restaurantName}.",
+      storyHeading: "Our story",
+      emptyMessage: "This restaurant is updating its menu. Please check back soon.",
     },
     cart: {
       title: "🛒 Your cart",

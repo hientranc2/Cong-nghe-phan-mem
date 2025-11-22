@@ -10,6 +10,7 @@ function HomePage({
   promotions = [],
   addToCart,
   onSelectCategory = () => {},
+  onSelectRestaurant = () => {},
   onViewProduct = () => {},
   texts = {},
   menuLabels = {},
@@ -123,6 +124,15 @@ function HomePage({
               className="restaurant-card"
               style={{
                 backgroundImage: `linear-gradient(160deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url(${restaurant.img})`,
+              }}
+              role="button"
+              tabIndex={0}
+              onClick={() => onSelectRestaurant(restaurant.slug)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  onSelectRestaurant(restaurant.slug);
+                }
               }}
             >
               <div className="restaurant-card__top">
