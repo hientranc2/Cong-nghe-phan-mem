@@ -24,6 +24,11 @@ const heroBackground =
 const USERS_STORAGE_KEY = "fcoUsers";
 const CURRENT_USER_STORAGE_KEY = "fcoCurrentUser";
 const ORDER_HISTORY_STORAGE_KEY = "fcoOrderHistory";
+const ADMIN_CUSTOMERS_STORAGE_KEY = "fcoAdminCustomers";
+const ADMIN_ORDERS_STORAGE_KEY = "fcoAdminOrders";
+const RESTAURANTS_STORAGE_KEY = "fcoRestaurants";
+const PARTNER_MENU_STORAGE_KEY = "fcoPartnerMenu";
+const PARTNER_ORDERS_STORAGE_KEY = "fcoPartnerOrders";
 const DEFAULT_USERS = [
   {
     id: "admin",
@@ -57,6 +62,97 @@ const mergeUsersByEmail = (users = []) => {
   });
 
   return Array.from(byEmail.values());
+};
+
+const mergeCustomersByEmail = (customers = []) => {
+  const byEmail = new Map();
+
+  customers.forEach((customer) => {
+    const emailKey = normalizeEmail(customer.email);
+    if (!emailKey) return;
+
+    const existing = byEmail.get(emailKey) ?? {};
+    byEmail.set(emailKey, { ...existing, ...customer });
+  });
+
+  return Array.from(byEmail.values());
+};
+
+const defaultRestaurantImage =
+  "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80";
+
+const normalizeRestaurantDish = (dish, index = 0) => {
+  const id = dish?.id || `dish-${String(index + 1).padStart(2, "0")}`;
+  const name = dish?.name?.trim() || "Món mới";
+  const description = dish?.description?.trim() || "Món do nhà hàng đối tác thêm.";
+  const category = dish?.category?.trim() || "Món mới";
+  const baseCategorySlug = slugify(category) || `partner-${index + 1}`;
+  const categoryId = `partner-${baseCategorySlug}`;
+  const rawPrice = Number(dish?.price) || 0;
+  const price = Math.max(1, Math.round(rawPrice / 1000)) || 1;
+  const tag = dish?.tag?.trim() || null;
+  const calories = Number.isFinite(dish?.calories)
+    ? Math.max(50, Math.round(dish.calories))
+    : 450;
+  const time = Number.isFinite(dish?.time) ? Math.max(5, Math.round(dish.time)) : 15;
+
+  return {
+    id,
+    name,
+    description,
+    category,
+    categoryId,
+    price,
+    calories,
+    time,
+    tag,
+    img: dish?.img || defaultRestaurantImage,
+    translations: {
+      vi: { name, description, tag },
+      en: { name, description, tag },
+    },
+    isBestSeller: String(tag || "")
+      .toLowerCase()
+      .includes("best"),
+  };
+};
+
+const collectDynamicCategories = (dishes = []) => {
+  const categories = new Map();
+
+  dishes.forEach((dish, index) => {
+    if (!dish.category) return;
+    const baseSlug = slugify(dish.category) || `partner-${index + 1}`;
+    const slug = `partner-${baseSlug}`;
+
+    if (!categories.has(slug)) {
+      categories.set(slug, {
+        id: `partner-${baseSlug}`,
+        slug,
+        icon: "🍽️",
+        title: dish.category,
+        description: "Món mới từ nhà hàng đối tác.",
+        heroTitle: dish.category,
+        heroDescription: "Khám phá món mới được thêm từ nhà hàng.",
+        translations: {
+          vi: {
+            title: dish.category,
+            description: "Món mới từ nhà hàng đối tác.",
+            heroTitle: dish.category,
+            heroDescription: "Khám phá món mới được thêm từ nhà hàng.",
+          },
+          en: {
+            title: dish.category,
+            description: "New dishes from partner restaurants.",
+            heroTitle: dish.category,
+            heroDescription: "Explore newly added partner dishes.",
+          },
+        },
+      });
+    }
+  });
+
+  return Array.from(categories.values());
 };
 
 const slugify = (value = "") =>
@@ -173,6 +269,11 @@ function App() {
   const [pendingOrder, setPendingOrder] = useState(null);
   const [recentReceipt, setRecentReceipt] = useState(null);
   const [orderHistory, setOrderHistory] = useState([]);
+  const [adminCustomers, setAdminCustomers] = useState(DEFAULT_CUSTOMERS);
+  const [adminOrders, setAdminOrders] = useState(DEFAULT_ORDERS);
+  const [restaurants, setRestaurants] = useState([]);
+  const [partnerMenuItems, setPartnerMenuItems] = useState([]);
+  const [partnerOrders, setPartnerOrders] = useState(DEFAULT_ORDERS);
 
 
 
@@ -204,6 +305,65 @@ function App() {
       setUsers(merged);
     } catch (error) {
       setUsers(DEFAULT_USERS);
+    }
+
+    try {
+      const storedCustomers = JSON.parse(
+        window.localStorage.getItem(ADMIN_CUSTOMERS_STORAGE_KEY) ?? "[]"
+      );
+      const mergedCustomers = mergeCustomersByEmail([
+        ...DEFAULT_CUSTOMERS,
+        ...(Array.isArray(storedCustomers) ? storedCustomers : []),
+      ]);
+      setAdminCustomers(mergedCustomers);
+    } catch (error) {
+      setAdminCustomers(DEFAULT_CUSTOMERS);
+    }
+
+    try {
+      const storedAdminOrders = JSON.parse(
+        window.localStorage.getItem(ADMIN_ORDERS_STORAGE_KEY) ?? "[]"
+      );
+      setAdminOrders(
+        Array.isArray(storedAdminOrders) && storedAdminOrders.length > 0
+          ? storedAdminOrders
+          : DEFAULT_ORDERS
+      );
+    } catch (error) {
+      setAdminOrders(DEFAULT_ORDERS);
+    }
+
+    try {
+      const storedRestaurants = JSON.parse(
+        window.localStorage.getItem(RESTAURANTS_STORAGE_KEY) ?? "[]"
+      );
+      setRestaurants(Array.isArray(storedRestaurants) ? storedRestaurants : []);
+    } catch (error) {
+      setRestaurants([]);
+    }
+
+    try {
+      const storedPartnerMenu = JSON.parse(
+        window.localStorage.getItem(PARTNER_MENU_STORAGE_KEY) ?? "[]"
+      );
+      setPartnerMenuItems(
+        Array.isArray(storedPartnerMenu) ? storedPartnerMenu : []
+      );
+    } catch (error) {
+      setPartnerMenuItems([]);
+    }
+
+    try {
+      const storedPartnerOrders = JSON.parse(
+        window.localStorage.getItem(PARTNER_ORDERS_STORAGE_KEY) ?? "[]"
+      );
+      setPartnerOrders(
+        Array.isArray(storedPartnerOrders) && storedPartnerOrders.length > 0
+          ? storedPartnerOrders
+          : DEFAULT_ORDERS
+      );
+    } catch (error) {
+      setPartnerOrders(DEFAULT_ORDERS);
     }
 
     try {
@@ -252,6 +412,21 @@ function App() {
       return;
     }
 
+    try {
+      window.localStorage.setItem(
+        ADMIN_CUSTOMERS_STORAGE_KEY,
+        JSON.stringify(adminCustomers)
+      );
+    } catch (error) {
+      /* ignore persistence errors */
+    }
+  }, [adminCustomers]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
     if (currentUser?.email) {
       window.localStorage.setItem(
         CURRENT_USER_STORAGE_KEY,
@@ -277,19 +452,122 @@ function App() {
     }
   }, [orderHistory]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(
+        ADMIN_ORDERS_STORAGE_KEY,
+        JSON.stringify(adminOrders)
+      );
+    } catch (error) {
+      /* ignore persistence errors */
+    }
+  }, [adminOrders]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(
+        RESTAURANTS_STORAGE_KEY,
+        JSON.stringify(restaurants)
+      );
+    } catch (error) {
+      /* ignore persistence errors */
+    }
+  }, [restaurants]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(
+        PARTNER_MENU_STORAGE_KEY,
+        JSON.stringify(partnerMenuItems)
+      );
+    } catch (error) {
+      /* ignore persistence errors */
+    }
+  }, [partnerMenuItems]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(
+        PARTNER_ORDERS_STORAGE_KEY,
+        JSON.stringify(partnerOrders)
+      );
+    } catch (error) {
+      /* ignore persistence errors */
+    }
+  }, [partnerOrders]);
+
+  useEffect(() => {
+    const derivedCustomers = users
+      .filter((user) => user.role === "customer")
+      .map((user) => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: "",
+        tier: "Tiêu chuẩn",
+        active: true,
+        joinedAt: new Date().toISOString().slice(0, 10),
+      }));
+
+    setAdminCustomers((prev) => mergeCustomersByEmail([...prev, ...derivedCustomers]));
+  }, [users]);
+
   const content = useMemo(
     () => contentByLanguage[language] ?? contentByLanguage.vi,
     [language]
   );
 
+  const partnerMenuForDisplay = useMemo(
+    () => partnerMenuItems.map((dish, index) => normalizeRestaurantDish(dish, index)),
+    [partnerMenuItems]
+  );
+
+  const dynamicCategories = useMemo(
+    () => collectDynamicCategories(partnerMenuForDisplay),
+    [partnerMenuForDisplay]
+  );
+
+  const mergedCategories = useMemo(() => {
+    const categories = [...categoryData, ...dynamicCategories];
+    const seen = new Set();
+
+    return categories.filter((category) => {
+      const slug = category.slug || slugify(category.title);
+      if (seen.has(slug)) return false;
+      seen.add(slug);
+      return true;
+    });
+  }, [dynamicCategories]);
+
   const translatedCategories = useMemo(
-    () => translateCategories(categoryData, language),
-    [language]
+    () => translateCategories(mergedCategories, language),
+    [language, mergedCategories]
+  );
+
+  const mergedMenuItems = useMemo(
+    () => [...menuItems, ...partnerMenuForDisplay],
+    [partnerMenuForDisplay]
   );
 
   const translatedMenuItems = useMemo(
-    () => translateMenuItems(menuItems, language),
-    [language]
+    () => translateMenuItems(mergedMenuItems, language),
+    [language, mergedMenuItems]
   );
 
   const customerOrders = useMemo(() => {
@@ -700,6 +978,26 @@ function App() {
     }
   };
 
+  const handleAdminCustomersChange = useCallback((nextCustomers = []) => {
+    setAdminCustomers(mergeCustomersByEmail(nextCustomers));
+  }, []);
+
+  const handleAdminOrdersChange = useCallback((nextOrders = []) => {
+    setAdminOrders(Array.isArray(nextOrders) ? nextOrders : []);
+  }, []);
+
+  const handleRestaurantsChange = useCallback((nextRestaurants = []) => {
+    setRestaurants(Array.isArray(nextRestaurants) ? nextRestaurants : []);
+  }, []);
+
+  const handlePartnerMenuChange = useCallback((nextMenuItems = []) => {
+    setPartnerMenuItems(Array.isArray(nextMenuItems) ? nextMenuItems : []);
+  }, []);
+
+  const handlePartnerOrdersChange = useCallback((nextOrders = []) => {
+    setPartnerOrders(Array.isArray(nextOrders) ? nextOrders : []);
+  }, []);
+
   
 
   const handleLogin = ({ email = "", password = "" }) => {
@@ -771,6 +1069,21 @@ function App() {
     };
 
     setUsers((prevUsers) => mergeUsersByEmail([...prevUsers, newUser]));
+
+    if (normalizedRole === "customer") {
+      const customerProfile = {
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+        phone: "",
+        tier: "Tiêu chuẩn",
+        active: true,
+        joinedAt: new Date().toISOString().slice(0, 10),
+      };
+      setAdminCustomers((prev) =>
+        mergeCustomersByEmail([...prev, customerProfile])
+      );
+    }
     const { password: _password, ...safeUser } = newUser;
     setCurrentUser(safeUser);
     setIsCartOpen(false);
@@ -865,16 +1178,51 @@ function App() {
         phone,
         email,
         address,
-        paymentMethod,
-      },
-      id: `ORD-${Date.now()}`,
-      confirmedAt: new Date().toISOString(),
-      ownerEmail,
-    };
+      paymentMethod,
+    },
+    id: `ORD-${Date.now()}`,
+    confirmedAt: new Date().toISOString(),
+    ownerEmail,
+  };
 
-    setRecentReceipt(receipt);
-    setPendingOrder(null);
-    setCart([]);
+  const itemsCount = receipt.items?.reduce(
+    (sum, item) => sum + (item.quantity || 1),
+    0
+  );
+  const orderTotalVnd = Math.max(0, Number(receipt.total || 0) * 1000);
+
+  const adminOrderEntry = {
+    id: receipt.id,
+    customer: receipt.customer.name,
+    destination: receipt.customer.address,
+    droneId: "dr-01",
+    total: orderTotalVnd,
+    status: "Đang chuẩn bị",
+  };
+
+  const restaurantOrderEntry = {
+    id: receipt.id,
+    customer: receipt.customer.name,
+    items: itemsCount,
+    total: orderTotalVnd,
+    status: "Chờ xác nhận",
+    placedAt: receipt.confirmedAt,
+    address: receipt.customer.address,
+  };
+
+  setAdminOrders((prev) => {
+    const filtered = prev.filter((order) => order.id !== adminOrderEntry.id);
+    return [adminOrderEntry, ...filtered];
+  });
+
+  setPartnerOrders((prev) => {
+    const filtered = prev.filter((order) => order.id !== restaurantOrderEntry.id);
+    return [restaurantOrderEntry, ...filtered];
+  });
+
+  setRecentReceipt(receipt);
+  setPendingOrder(null);
+  setCart([]);
 
     setOrderHistory((prevHistory) => {
       const filtered = prevHistory.filter((order) => order.id !== receipt.id);
@@ -1111,6 +1459,7 @@ function App() {
         bestSellers={bestSellers}
         combos={combos}
         promotions={promotions}
+        restaurants={restaurants}
         addToCart={addToCart}
         onSelectCategory={handleSelectCategory}
         onViewProduct={handleViewProduct}
@@ -1121,7 +1470,16 @@ function App() {
   }
 
   if (view.type === "admin") {
-    return <AdminDashboard />;
+    return (
+      <AdminDashboard
+        customers={adminCustomers}
+        orders={adminOrders}
+        restaurants={restaurants}
+        onCustomersChange={handleAdminCustomersChange}
+        onOrdersChange={handleAdminOrdersChange}
+        onRestaurantsChange={handleRestaurantsChange}
+      />
+    );
   }
   if (view.type === "restaurant") {
     return (
@@ -1129,6 +1487,10 @@ function App() {
         user={currentUser}
         texts={restaurantTexts}
         onBackHome={handleNavigateHome}
+        menuItems={partnerMenuItems}
+        orders={partnerOrders}
+        onMenuItemsChange={handlePartnerMenuChange}
+        onOrdersChange={handlePartnerOrdersChange}
       />
     );
   }

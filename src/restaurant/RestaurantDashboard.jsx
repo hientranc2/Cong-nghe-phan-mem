@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./RestaurantDashboard.css";
 import RestaurantHeader from "./components/RestaurantHeader";
 import RestaurantMenuSection from "./components/RestaurantMenuSection";
@@ -202,20 +202,56 @@ const isSameDay = (value, reference) => {
   );
 };
 
-function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} }) {
+function RestaurantDashboard({
+  user = null,
+  texts = {},
+  onBackHome = () => {},
+  menuItems: incomingMenuItems = [],
+  orders: incomingOrders = [],
+  onMenuItemsChange = () => {},
+  onOrdersChange = () => {},
+}) {
   const [activeTab, setActiveTab] = useState("overview");
   const [menuItems, setMenuItems] = useState(() => {
+    if (Array.isArray(incomingMenuItems)) {
+      return incomingMenuItems.map(normalizeDish);
+    }
+
     if (Array.isArray(texts.menuItems) && texts.menuItems.length > 0) {
       return texts.menuItems.map(normalizeDish);
     }
+
     return DEFAULT_MENU_ITEMS;
   });
   const [orders, setOrders] = useState(() => {
+    if (Array.isArray(incomingOrders)) {
+      return incomingOrders.map(normalizeOrder);
+    }
+
     if (Array.isArray(texts.orders) && texts.orders.length > 0) {
       return texts.orders.map(normalizeOrder);
     }
     return DEFAULT_ORDERS;
   });
+  useEffect(() => {
+    if (Array.isArray(incomingMenuItems)) {
+      setMenuItems(incomingMenuItems.map(normalizeDish));
+    }
+  }, [incomingMenuItems]);
+
+  useEffect(() => {
+    if (Array.isArray(incomingOrders)) {
+      setOrders(incomingOrders.map(normalizeOrder));
+    }
+  }, [incomingOrders]);
+
+  useEffect(() => {
+    onMenuItemsChange(menuItems);
+  }, [menuItems, onMenuItemsChange]);
+
+  useEffect(() => {
+    onOrdersChange(orders);
+  }, [orders, onOrdersChange]);
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [dishForm, setDishForm] = useState(EMPTY_DISH_FORM);
   const [editingDishId, setEditingDishId] = useState(null);

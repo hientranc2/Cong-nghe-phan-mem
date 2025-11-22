@@ -7,6 +7,7 @@ function HomePage({
   bestSellers = [],
   combos = [],
   promotions = [],
+  restaurants = [],
   addToCart,
   onSelectCategory = () => {},
   onViewProduct = () => {},
@@ -36,6 +37,12 @@ function HomePage({
   const promotionDescription =
     texts.promotionDescription ?? "Tham gia FCO Rewards để không bỏ lỡ bất kỳ deal nào.";
   const promotionCta = texts.promotionCta ?? "Tìm hiểu thêm →";
+  const restaurantHeading = texts.restaurantHeading ?? "Nhà hàng & đối tác";
+  const restaurantDescription =
+    texts.restaurantDescription ??
+    "Các nhà hàng được admin phê duyệt sẽ hiển thị ngay cho khách đặt món.";
+  const restaurantEmpty =
+    texts.restaurantEmpty ?? "Chưa có nhà hàng nào được bật. Vui lòng quay lại sau.";
   const aboutHeading =
     texts.aboutHeading ?? "FCO - FoodFast Delivery chuẩn chuyên nghiệp";
   const aboutDescription =
@@ -104,6 +111,38 @@ function HomePage({
             </article>
           ))}
         </div>
+      </section>
+
+      <section className="restaurant-showcase" id="restaurants">
+        <div className="section-heading">
+          <h2>{restaurantHeading}</h2>
+          <p>{restaurantDescription}</p>
+        </div>
+
+        {restaurants.length > 0 ? (
+          <div className="restaurant-grid">
+            {restaurants.map((restaurant) => (
+              <article key={restaurant.id} className="restaurant-card">
+                <div className="restaurant-card__header">
+                  <span className="restaurant-card__icon" aria-hidden="true">
+                    🍽️
+                  </span>
+                  <div>
+                    <h3>{restaurant.name}</h3>
+                    <p>{restaurant.address || "Đang cập nhật địa chỉ"}</p>
+                  </div>
+                </div>
+                <div className="restaurant-card__meta">
+                  <span>Hotline: {restaurant.hotline || "Chưa cập nhật"}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="category-empty">
+            <p>{restaurantEmpty}</p>
+          </div>
+        )}
       </section>
 
       <section className="best-seller" id="best-seller">

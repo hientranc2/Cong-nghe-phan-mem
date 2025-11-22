@@ -151,11 +151,28 @@ const nextId = (prefix, existing) => {
   return `${prefix}-${String(numeric + 1).padStart(2, "0")}`;
 };
 
-function AdminDashboard() {
+function AdminDashboard({
+  customers: incomingCustomers = DEFAULT_CUSTOMERS,
+  orders: incomingOrders = DEFAULT_ORDERS,
+  restaurants: incomingRestaurants = [],
+  onCustomersChange = () => {},
+  onOrdersChange = () => {},
+  onRestaurantsChange = () => {},
+}) {
   const [drones, setDrones] = useState(DEFAULT_DRONES);
-  const [customers, setCustomers] = useState(DEFAULT_CUSTOMERS);
-  const [orders, setOrders] = useState(DEFAULT_ORDERS);
-  const [restaurants, setRestaurants] = useState([]);
+  const [customers, setCustomers] = useState(
+    Array.isArray(incomingCustomers) && incomingCustomers.length > 0
+      ? incomingCustomers
+      : DEFAULT_CUSTOMERS
+  );
+  const [orders, setOrders] = useState(
+    Array.isArray(incomingOrders) && incomingOrders.length > 0
+      ? incomingOrders
+      : DEFAULT_ORDERS
+  );
+  const [restaurants, setRestaurants] = useState(
+    Array.isArray(incomingRestaurants) ? incomingRestaurants : []
+  );
   const [activeForm, setActiveForm] = useState(null);
   const [activeSection, setActiveSection] = useState("overview");
   const [search, setSearch] = useState("");
@@ -163,6 +180,38 @@ function AdminDashboard() {
   useEffect(() => {
     setSearch("");
   }, [activeSection]);
+
+  useEffect(() => {
+    setCustomers(
+      Array.isArray(incomingCustomers) && incomingCustomers.length > 0
+        ? incomingCustomers
+        : DEFAULT_CUSTOMERS
+    );
+  }, [incomingCustomers]);
+
+  useEffect(() => {
+    setOrders(
+      Array.isArray(incomingOrders) && incomingOrders.length > 0
+        ? incomingOrders
+        : DEFAULT_ORDERS
+    );
+  }, [incomingOrders]);
+
+  useEffect(() => {
+    setRestaurants(Array.isArray(incomingRestaurants) ? incomingRestaurants : []);
+  }, [incomingRestaurants]);
+
+  useEffect(() => {
+    onCustomersChange(customers);
+  }, [customers, onCustomersChange]);
+
+  useEffect(() => {
+    onOrdersChange(orders);
+  }, [orders, onOrdersChange]);
+
+  useEffect(() => {
+    onRestaurantsChange(restaurants);
+  }, [restaurants, onRestaurantsChange]);
 
   const filteredDrones = useMemo(() => {
     if (!search.trim()) return drones;
