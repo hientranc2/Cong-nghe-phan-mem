@@ -14,9 +14,21 @@ function AdminFormDrawer({
   const { type, mode, values } = activeForm;
 
   const typeLabel =
-    type === "drone" ? "drone" : type === "customer" ? "khách hàng" : "đơn hàng";
+    type === "drone"
+      ? "drone"
+      : type === "customer"
+        ? "khách hàng"
+        : type === "restaurant"
+          ? "nhà hàng"
+          : "đơn hàng";
   const typeDescription =
-    type === "drone" ? "thiết bị bay" : type === "customer" ? "khách hàng" : "đơn giao hàng";
+    type === "drone"
+      ? "thiết bị bay"
+      : type === "customer"
+        ? "khách hàng"
+        : type === "restaurant"
+          ? "đối tác nhà hàng"
+          : "đơn giao hàng";
 
   const renderDroneFields = () => (
     <>
@@ -208,9 +220,49 @@ function AdminFormDrawer({
     </>
   );
 
+  const renderRestaurantFields = () => (
+    <>
+      <div className="field-grid">
+        <label>
+          Mã nhà hàng
+          <input
+            value={values.id}
+            onChange={(event) => onChangeField("id", event.target.value)}
+            placeholder="Tự tạo nếu để trống"
+          />
+        </label>
+        <label>
+          Tên nhà hàng
+          <input
+            value={values.name}
+            onChange={(event) => onChangeField("name", event.target.value)}
+            required
+          />
+        </label>
+      </div>
+      <label>
+        Địa chỉ
+        <input
+          value={values.address}
+          onChange={(event) => onChangeField("address", event.target.value)}
+          required
+        />
+      </label>
+      <label>
+        Hotline
+        <input
+          value={values.hotline}
+          onChange={(event) => onChangeField("hotline", event.target.value)}
+          placeholder="VD: 1900 1234"
+        />
+      </label>
+    </>
+  );
+
   const renderFields = () => {
     if (type === "drone") return renderDroneFields();
     if (type === "customer") return renderCustomerFields();
+    if (type === "restaurant") return renderRestaurantFields();
     return renderOrderFields();
   };
 

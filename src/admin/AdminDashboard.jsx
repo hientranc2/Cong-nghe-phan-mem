@@ -114,6 +114,12 @@ const EMPTY_FORMS = {
     total: 0,
     status: "Đang chuẩn bị",
   },
+  restaurant: {
+    id: "",
+    name: "",
+    address: "",
+    hotline: "",
+  },
 };
 
 const STATUS_OPTIONS = {
@@ -148,6 +154,7 @@ function AdminDashboard() {
   const [drones, setDrones] = useState(DEFAULT_DRONES);
   const [customers, setCustomers] = useState(DEFAULT_CUSTOMERS);
   const [orders, setOrders] = useState(DEFAULT_ORDERS);
+  const [restaurants, setRestaurants] = useState([]);
   const [activeForm, setActiveForm] = useState(null);
   const [activeSection, setActiveSection] = useState("overview");
   const [search, setSearch] = useState("");
@@ -273,6 +280,21 @@ function AdminDashboard() {
       }
     }
 
+    if (type === "restaurant") {
+      if (mode === "create") {
+        const id = values.id?.trim() || nextId("nh", restaurants);
+        setRestaurants([...restaurants, { ...values, id }]);
+      } else {
+        setRestaurants(
+          restaurants.map((restaurant) =>
+            restaurant.id === values.id
+              ? { ...restaurant, ...values }
+              : restaurant
+          )
+        );
+      }
+    }
+
     handleCloseForm();
   };
 
@@ -285,6 +307,9 @@ function AdminDashboard() {
     }
     if (type === "order") {
       setOrders(orders.filter((order) => order.id !== id));
+    }
+    if (type === "restaurant") {
+      setRestaurants(restaurants.filter((restaurant) => restaurant.id !== id));
     }
   };
 
