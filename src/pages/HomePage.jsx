@@ -5,6 +5,7 @@ function HomePage({
   stats = [],
   categories = [],
   bestSellers = [],
+  restaurants = [],
   combos = [],
   promotions = [],
   addToCart,
@@ -27,6 +28,10 @@ function HomePage({
   const bestSellerHeading = texts.bestSellerHeading ?? "Món bán chạy tại FCO";
   const bestSellerDescription =
     texts.bestSellerDescription ?? "Chọn món yêu thích và thêm vào giỏ trong một chạm.";
+  const restaurantHeading = texts.restaurantHeading ?? "Chuỗi nhà hàng FCO";
+  const restaurantDescription =
+    texts.restaurantDescription ??
+    "Tìm nhà hàng yêu thích và các món đặc trưng được các bếp FCO phát triển riêng.";
   const comboHeading = texts.comboHeading ?? "Combo chia sẻ siêu tiết kiệm";
   const comboDescription =
     texts.comboDescription ??
@@ -117,6 +122,39 @@ function HomePage({
           labels={menuLabels}
           onViewItem={onViewProduct}
         />
+      </section>
+
+      <section className="restaurants" id="restaurants">
+        <div className="section-heading">
+          <h2>{restaurantHeading}</h2>
+          <p>{restaurantDescription}</p>
+        </div>
+        <div className="restaurant-grid">
+          {restaurants.map((restaurant) => (
+            <article
+              key={restaurant.id}
+              className="restaurant-card"
+              style={{
+                backgroundImage: `linear-gradient(160deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url(${restaurant.img})`,
+              }}
+            >
+              <div className="restaurant-card__top">
+                <span className="restaurant-badge">{restaurant.badge}</span>
+                <span className="restaurant-time">{restaurant.deliveryTime}</span>
+              </div>
+              <h3>{restaurant.name}</h3>
+              <p className="restaurant-meta">{restaurant.city}</p>
+              <p className="restaurant-description">{restaurant.description}</p>
+              {restaurant.tags?.length > 0 && (
+                <div className="restaurant-tags">
+                  {restaurant.tags.map((tag) => (
+                    <span key={tag}>{tag}</span>
+                  ))}
+                </div>
+              )}
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="combo" id="combo">

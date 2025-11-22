@@ -15,6 +15,7 @@ import OrderHistoryPage from "./pages/OrderHistoryPage.jsx";
 import AdminDashboard from "./admin/AdminDashboard";
 import RestaurantDashboard from "./pages/RestaurantDashboard";
 import { categories as categoryData, menuItems } from "./data/menuData";
+import { restaurants as restaurantData } from "./data/restaurants";
 import { contentByLanguage } from "./i18n/translations";
 
 
@@ -159,6 +160,21 @@ const translateMenuItems = (items, language) =>
     };
   });
 
+const translateRestaurants = (restaurants, language) =>
+  restaurants.map((restaurant) => {
+    const translation =
+      restaurant.translations?.[language] ?? restaurant.translations?.vi ?? {};
+
+    return {
+      ...restaurant,
+      name: translation.name ?? restaurant.name ?? "",
+      description: translation.description ?? restaurant.description ?? "",
+      story: translation.story ?? restaurant.story ?? "",
+      city: translation.city ?? restaurant.city ?? "",
+      deliveryTime: translation.deliveryTime ?? restaurant.deliveryTime ?? "",
+    };
+  });
+
 function App() {
   const [language, setLanguage] = useState("vi");
   const [cart, setCart] = useState([]);
@@ -289,6 +305,11 @@ function App() {
 
   const translatedMenuItems = useMemo(
     () => translateMenuItems(menuItems, language),
+    [language]
+  );
+
+  const translatedRestaurants = useMemo(
+    () => translateRestaurants(restaurantData, language),
     [language]
   );
 
@@ -1109,6 +1130,7 @@ function App() {
         stats={stats}
         categories={translatedCategories}
         bestSellers={bestSellers}
+        restaurants={translatedRestaurants}
         combos={combos}
         promotions={promotions}
         addToCart={addToCart}

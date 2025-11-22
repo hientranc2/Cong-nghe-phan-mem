@@ -9,6 +9,7 @@ export const contentByLanguage = {
       navLinks: [
         { id: "menu", label: "Danh mục món" },
         { id: "best-seller", label: "Bán chạy" },
+        { id: "restaurants", label: "Chuỗi nhà hàng" },
         { id: "combo", label: "Combo ưu đãi" },
         { id: "promo", label: "Khuyến mãi" },
       ],
@@ -44,6 +45,9 @@ export const contentByLanguage = {
       categoryCta: "Xem món",
       bestSellerHeading: "Món bán chạy tại FCO",
       bestSellerDescription: "Chọn món yêu thích và thêm vào giỏ trong một chạm.",
+      restaurantHeading: "Chuỗi nhà hàng FCO",
+      restaurantDescription:
+        "Tìm nhà hàng yêu thích và các món đặc trưng được bếp FCO phát triển riêng.",
       comboHeading: "Combo chia sẻ siêu tiết kiệm",
       comboDescription:
         "Thiết kế riêng cho từng bữa ăn của bạn: gia đình, hẹn hò hay văn phòng.",
@@ -254,6 +258,7 @@ export const contentByLanguage = {
       navLinks: [
         { id: "menu", label: "Menu" },
         { id: "best-seller", label: "Best sellers" },
+        { id: "restaurants", label: "Our restaurants" },
         { id: "combo", label: "Value combos" },
         { id: "promo", label: "Promotions" },
       ],
@@ -289,6 +294,9 @@ export const contentByLanguage = {
       categoryCta: "View items",
       bestSellerHeading: "FCO best sellers",
       bestSellerDescription: "Pick your favorites and add to cart in one tap.",
+      restaurantHeading: "FCO restaurant chain",
+      restaurantDescription:
+        "Find your favorite location and the signature menus crafted by FCO chefs.",
       comboHeading: "Share-worthy combo deals",
       comboDescription:
         "Curated for every occasion: family feasts, date nights or office lunches.",
