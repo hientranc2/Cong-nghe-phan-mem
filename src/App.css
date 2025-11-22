@@ -138,6 +138,99 @@ main {
   font-weight: 600;
 }
 
+.restaurants {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.restaurant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.restaurant-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  padding: 24px;
+  min-height: 260px;
+  color: #fff;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 24px 48px rgba(31, 31, 31, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.restaurant-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 28px 64px rgba(31, 31, 31, 0.32);
+}
+
+.restaurant-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.restaurant-badge {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--primary);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: 0.4px;
+}
+
+.restaurant-time {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.restaurant-card h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.restaurant-meta {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-weight: 600;
+}
+
+.restaurant-description {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.5;
+}
+
+.restaurant-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+
+.restaurant-tags span {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 700;
+  color: #fff;
+  backdrop-filter: blur(4px);
+}
+
 .section-heading {
   max-width: 620px;
   display: flex;
