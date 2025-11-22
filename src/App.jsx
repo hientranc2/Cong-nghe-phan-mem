@@ -14,6 +14,7 @@ import OrderTrackingPage from "./pages/OrderTrackingPage.jsx";
 import OrderHistoryPage from "./pages/OrderHistoryPage.jsx";
 import AdminDashboard from "./admin/AdminDashboard";
 import RestaurantDashboard from "./pages/RestaurantDashboard";
+import RestaurantPage from "./pages/RestaurantPage";
 import { categories as categoryData, menuItems } from "./data/menuData";
 import { restaurants as restaurantData } from "./data/restaurants";
 import { contentByLanguage } from "./i18n/translations";
@@ -95,6 +96,12 @@ const parseViewFromHash = () => {
 
   if (/^\/orders$/.test(hash)) {
     return { type: "orders" };
+  }
+
+  const restaurantDetailMatch = hash.match(/^\/restaurant\/([\w-]+)/);
+
+  if (restaurantDetailMatch && restaurantDetailMatch[1]) {
+    return { type: "restaurantDetail", slug: restaurantDetailMatch[1] };
   }
 
   if (/^\/admin$/.test(hash)) {
@@ -313,6 +320,29 @@ function App() {
     [language]
   );
 
+  const restaurantMenuMap = useMemo(() => {
+    const map = new Map();
+
+    restaurantData.forEach((restaurant) => {
+      (restaurant.menuItemIds ?? []).forEach((itemId) => {
+        if (!map.has(itemId)) {
+          map.set(itemId, restaurant.id);
+        }
+      });
+    });
+
+    return map;
+  }, []);
+
+  const translatedMenuItemsWithRestaurant = useMemo(
+    () =>
+      translatedMenuItems.map((item) => ({
+        ...item,
+        restaurantId: restaurantMenuMap.get(item.id) ?? null,
+      })),
+    [translatedMenuItems, restaurantMenuMap]
+  );
+
   const customerOrders = useMemo(() => {
     if (!currentUser || currentUser.role !== "customer") {
       return [];
@@ -365,7 +395,9 @@ function App() {
   useEffect(() => {
     setCart((prevCart) =>
       prevCart.map((cartItem) => {
-        const latest = translatedMenuItems.find((item) => item.id === cartItem.id);
+        const latest = translatedMenuItemsWithRestaurant.find(
+          (item) => item.id === cartItem.id
+        );
         if (!latest) {
           return cartItem;
         }
@@ -378,11 +410,11 @@ function App() {
         };
       })
     );
-  }, [translatedMenuItems]);
+  }, [translatedMenuItemsWithRestaurant]);
 
   const bestSellers = useMemo(
-    () => translatedMenuItems.filter((item) => item.isBestSeller),
-    [translatedMenuItems]
+    () => translatedMenuItemsWithRestaurant.filter((item) => item.isBestSeller),
+    [translatedMenuItemsWithRestaurant]
   );
 
   const combos = useMemo(() => {
@@ -421,6 +453,7 @@ function App() {
     content.orderConfirmation ?? content.auth?.orderConfirmation ?? {};
   const orderHistoryTexts = content.orderHistory ?? {};
   const restaurantTexts = content.restaurant ?? {};
+  const restaurantPageTexts = content.restaurantPage ?? {};
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
@@ -508,6 +541,13 @@ function App() {
     }
   };
 
+  const handleSelectRestaurant = (slug) => {
+    pendingSectionRef.current = null;
+    if (typeof window !== "undefined") {
+      window.location.hash = `/restaurant/${slug}`;
+    }
+  };
+
   
 
   const addToCart = (item) => {
@@ -584,10 +624,10 @@ function App() {
       return [];
     }
 
-    return translatedMenuItems.filter(
+    return translatedMenuItemsWithRestaurant.filter(
       (item) => item.categoryId === activeCategory.id
     );
-  }, [activeCategory, translatedMenuItems]);
+  }, [activeCategory, translatedMenuItemsWithRestaurant]);
 
   const activeProduct = useMemo(() => {
     if (view.type !== "product") {
@@ -595,9 +635,38 @@ function App() {
     }
 
     return (
-      translatedMenuItems.find((item) => item.id === view.id) ?? null
+      translatedMenuItemsWithRestaurant.find((item) => item.id === view.id) ??
+      null
     );
-  }, [view, translatedMenuItems]);
+  }, [view, translatedMenuItemsWithRestaurant]);
+
+  const activeRestaurant = useMemo(() => {
+    if (view.type !== "restaurantDetail") {
+      return null;
+    }
+
+    return (
+      translatedRestaurants.find((restaurant) => restaurant.slug === view.slug) ??
+      null
+    );
+  }, [view, translatedRestaurants]);
+
+  const activeRestaurantMenu = useMemo(() => {
+    if (!activeRestaurant) {
+      return [];
+    }
+
+    const itemIds = activeRestaurant.menuItemIds ?? [];
+
+    return itemIds
+      .map((itemId) =>
+        translatedMenuItemsWithRestaurant.find(
+          (item) =>
+            item.id === itemId && item.restaurantId === activeRestaurant.id
+        )
+      )
+      .filter(Boolean);
+  }, [activeRestaurant, translatedMenuItemsWithRestaurant]);
 
   const activeProductCategory = useMemo(() => {
     if (!activeProduct) {
@@ -621,7 +690,8 @@ function App() {
       view.type === "orderConfirmation" ||
       view.type === "orderTracking" ||
       view.type === "admin" ||
-      view.type === "restaurant"
+      view.type === "restaurant" ||
+      view.type === "restaurantDetail"
     ) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -632,6 +702,12 @@ function App() {
       redirectToHome();
     }
   }, [view, activeProduct, redirectToHome]);
+
+  useEffect(() => {
+    if (view.type === "restaurantDetail" && !activeRestaurant) {
+      redirectToHome();
+    }
+  }, [view, activeRestaurant, redirectToHome]);
 
   useEffect(() => {
     if (view.type === "checkout") {
@@ -1118,9 +1194,20 @@ function App() {
         onSelectOrder={handleSelectOrderFromHistory}
         onTrackOrder={handleTrackOrderFromHistory}
         onCancelOrder={handleCancelOrderFromHistory}
-
-        
         onBackHome={handleNavigateHome}
+      />
+    );
+  } else if (view.type === "restaurantDetail" && activeRestaurant) {
+    pageContent = (
+      <RestaurantPage
+        restaurant={activeRestaurant}
+        items={activeRestaurantMenu}
+        addToCart={addToCart}
+        onNavigateHome={handleNavigateHome}
+        onBackToRestaurants={() => handleNavigateSection("restaurants")}
+        onViewProduct={handleViewProduct}
+        texts={restaurantPageTexts}
+        menuLabels={content.menuLabels}
       />
     );
   } else {
@@ -1135,6 +1222,7 @@ function App() {
         promotions={promotions}
         addToCart={addToCart}
         onSelectCategory={handleSelectCategory}
+        onSelectRestaurant={handleSelectRestaurant}
         onViewProduct={handleViewProduct}
         texts={content.home}
         menuLabels={content.menuLabels}
