@@ -5,6 +5,7 @@ import RestaurantMenuSection from "./components/RestaurantMenuSection";
 import RestaurantOrdersSection from "./components/RestaurantOrdersSection";
 import RestaurantOverview from "./components/RestaurantOverview";
 import RestaurantSidebar from "./components/RestaurantSidebar";
+import { useOrders, useStore } from "../store/store";
 
 const DEFAULT_MENU_ITEMS = [
   {
@@ -163,26 +164,6 @@ const isSameMonth = (value, reference = new Date()) => {
   );
 };
 
-const normalizeDish = (dish, index) => ({
-  id: dish?.id || `dish-${String(index + 1).padStart(2, "0")}`,
-  name: dish?.name?.trim() || "",
-  price: Number(dish?.price) || 0,
-  category: dish?.category?.trim() || "",
-  description: dish?.description?.trim() || "",
-  status: dish?.status === "soldout" ? "soldout" : "available",
-  tag: dish?.tag?.trim() || "",
-});
-
-const normalizeOrder = (order, index) => ({
-  id: order?.id || `DH-${String(index + 1000).padStart(4, "0")}`,
-  customer: order?.customer || "Khách lẻ",
-  items: Number(order?.items) || 0,
-  total: Number(order?.total) || 0,
-  status: order?.status || "Chờ xác nhận",
-  placedAt: order?.placedAt || new Date().toISOString(),
-  address: order?.address || "",
-});
-
 const parseDate = (value) => {
   if (!value) return null;
   const date = new Date(value);
@@ -203,19 +184,9 @@ const isSameDay = (value, reference) => {
 };
 
 function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} }) {
+  const { menuItems, addMenuItem, updateMenuItem, removeMenuItem } = useStore();
+  const { orders, createOrder, updateOrder, setOrders } = useOrders();
   const [activeTab, setActiveTab] = useState("overview");
-  const [menuItems, setMenuItems] = useState(() => {
-    if (Array.isArray(texts.menuItems) && texts.menuItems.length > 0) {
-      return texts.menuItems.map(normalizeDish);
-    }
-    return DEFAULT_MENU_ITEMS;
-  });
-  const [orders, setOrders] = useState(() => {
-    if (Array.isArray(texts.orders) && texts.orders.length > 0) {
-      return texts.orders.map(normalizeOrder);
-    }
-    return DEFAULT_ORDERS;
-  });
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [dishForm, setDishForm] = useState(EMPTY_DISH_FORM);
   const [editingDishId, setEditingDishId] = useState(null);
@@ -440,38 +411,30 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
       tag: dishForm.tag.trim(),
     };
 
-    setMenuItems((prevItems) => {
-      if (editingDishId) {
-        return prevItems.map((item) =>
-          item.id === editingDishId ? { ...item, ...payload } : item
-        );
-      }
-
-      const nextNumber = prevItems
+    if (editingDishId) {
+      updateMenuItem(editingDishId, payload);
+    } else {
+      const nextNumber = menuItems
         .map((item) => Number(String(item.id).replace(/\D+/g, "")) || 0)
         .reduce((max, value) => Math.max(max, value), 0);
 
-      return [
-        ...prevItems,
-        {
-          ...payload,
-          id: payload.id || `dish-${String(nextNumber + 1).padStart(2, "0")}`,
-        },
-      ];
-    });
+      addMenuItem({
+        ...payload,
+        id: payload.id || `dish-${String(nextNumber + 1).padStart(2, "0")}`,
+      });
+    }
 
     handleCancelForm();
   };
 
   const handleDeleteDish = (dish) => {
     const message = menuTexts.confirmDelete ?? "Bạn có chắc muốn xóa món này?";
-    // eslint-disable-next-line no-alert
     const shouldDelete = typeof window === "undefined" ? true : window.confirm(message);
     if (!shouldDelete) {
       return;
     }
 
-    setMenuItems((prevItems) => prevItems.filter((item) => item.id !== dish.id));
+    removeMenuItem(dish.id);
 
     if (editingDishId === dish.id) {
       handleCancelForm();
@@ -542,32 +505,25 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
       address: orderForm.address.trim(),
     };
 
-    setOrders((prevOrders) => {
-      if (editingOrderId) {
-        return prevOrders.map((order) =>
-          order.id === editingOrderId ? { ...order, ...payload } : order
-        );
-      }
-
-      const nextNumber = prevOrders
+    if (editingOrderId) {
+      updateOrder(editingOrderId, payload);
+    } else {
+      const nextNumber = orders
         .map((order) => Number(String(order.id).replace(/\D+/g, "")) || 0)
         .reduce((max, value) => Math.max(max, value), 0);
 
-      return [
-        ...prevOrders,
-        {
-          ...payload,
-          id: payload.id || `DH-${String(nextNumber + 1).padStart(4, "0")}`,
-        },
-      ];
-    });
+      createOrder({
+        ...payload,
+        id: payload.id || `DH-${String(nextNumber + 1).padStart(4, "0")}`,
+        source: "restaurant",
+      });
+    }
 
     handleCancelOrderForm();
   };
 
   const handleDeleteOrder = (order) => {
     const message = ordersTexts.confirmDelete ?? "Bạn có chắc muốn xóa đơn hàng này?";
-    // eslint-disable-next-line no-alert
     const shouldDelete = typeof window === "undefined" ? true : window.confirm(message);
     if (!shouldDelete) {
       return;

@@ -7,6 +7,7 @@ import AdminHeader from "./components/AdminHeader";
 import AdminOrdersSection from "./components/AdminOrdersSection";
 import AdminOverview from "./components/AdminOverview";
 import AdminSidebar from "./components/AdminSidebar";
+import { useOrders } from "../store/store";
 
 const DEFAULT_DRONES = [
   {
@@ -59,33 +60,6 @@ const DEFAULT_CUSTOMERS = [
     tier: "Tiêu chuẩn",
     active: false,
     joinedAt: "2024-04-28",
-  },
-];
-
-const DEFAULT_ORDERS = [
-  {
-    id: "od-4521",
-    customer: "Phan Nhật",
-    destination: "Sunrise Riverside, Q7",
-    droneId: "dr-01",
-    total: 350000,
-    status: "Đang giao",
-  },
-  {
-    id: "od-4522",
-    customer: "Lý Thanh",
-    destination: "Vinhomes Grand Park",
-    droneId: "dr-03",
-    total: 215000,
-    status: "Đang chuẩn bị",
-  },
-  {
-    id: "od-4523",
-    customer: "Đoàn Mai",
-    destination: "ETown, Tân Bình",
-    droneId: "dr-02",
-    total: 540000,
-    status: "Tạm hoãn",
   },
 ];
 
@@ -145,9 +119,9 @@ const nextId = (prefix, existing) => {
 };
 
 function AdminDashboard() {
+  const { orders, createOrder, updateOrder, setOrders } = useOrders();
   const [drones, setDrones] = useState(DEFAULT_DRONES);
   const [customers, setCustomers] = useState(DEFAULT_CUSTOMERS);
-  const [orders, setOrders] = useState(DEFAULT_ORDERS);
   const [activeForm, setActiveForm] = useState(null);
   const [activeSection, setActiveSection] = useState("overview");
   const [search, setSearch] = useState("");
@@ -263,13 +237,9 @@ function AdminDashboard() {
     if (type === "order") {
       if (mode === "create") {
         const id = values.id?.trim() || nextId("od", orders);
-        setOrders([...orders, { ...values, id }]);
+        createOrder({ ...values, id, source: "admin" });
       } else {
-        setOrders(
-          orders.map((order) =>
-            order.id === values.id ? { ...order, ...values } : order
-          )
-        );
+        updateOrder(values.id, { ...values, source: "admin" });
       }
     }
 

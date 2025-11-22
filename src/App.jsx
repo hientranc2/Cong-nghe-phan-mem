@@ -14,32 +14,14 @@ import OrderTrackingPage from "./pages/OrderTrackingPage.jsx";
 import OrderHistoryPage from "./pages/OrderHistoryPage.jsx";
 import AdminDashboard from "./admin/AdminDashboard";
 import RestaurantDashboard from "./pages/RestaurantDashboard";
-import { categories as categoryData, menuItems } from "./data/menuData";
 import { contentByLanguage } from "./i18n/translations";
+import { useMenu, useOrders, useUsers } from "./store/store";
 
 
 const heroBackground =
   "https://images.unsplash.com/photo-1550317138-10000687a72b?auto=format&fit=crop&w=1600&q=80";
 
-const USERS_STORAGE_KEY = "fcoUsers";
 const CURRENT_USER_STORAGE_KEY = "fcoCurrentUser";
-const ORDER_HISTORY_STORAGE_KEY = "fcoOrderHistory";
-const DEFAULT_USERS = [
-  {
-    id: "admin",
-    name: "Quản trị viên FCO",
-    email: "admin@fco.vn",
-    password: "admin123",
-    role: "admin",
-  },
-  {
-    id: "restaurant",
-    name: "Nhà hàng FCO",
-    email: "restaurant@fco.vn",
-    password: "fco123",
-    role: "restaurant",
-  },
-];
 
 const normalizeEmail = (email = "") => email.trim().toLowerCase();
 
@@ -160,19 +142,20 @@ const translateMenuItems = (items, language) =>
   });
 
 function App() {
+  const { menuItems, categories } = useMenu();
+  const { orders, createOrder, updateOrder } = useOrders();
+  const { users, setUsers } = useUsers();
   const [language, setLanguage] = useState("vi");
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const pendingSectionRef = useRef(null);
   const [view, setView] = useState(() => parseViewFromHash());
   const parseHash = useCallback(() => parseViewFromHash(), []);
-  const [users, setUsers] = useState(DEFAULT_USERS);
   const [currentUser, setCurrentUser] = useState(null);
   const [authRedirect, setAuthRedirect] = useState(null);
   const [authMessage, setAuthMessage] = useState("");
   const [pendingOrder, setPendingOrder] = useState(null);
   const [recentReceipt, setRecentReceipt] = useState(null);
-  const [orderHistory, setOrderHistory] = useState([]);
 
 
 
@@ -194,58 +177,16 @@ function App() {
     }
 
     try {
-      const storedUsers = JSON.parse(
-        window.localStorage.getItem(USERS_STORAGE_KEY) ?? "[]"
-      );
-      const merged = mergeUsersByEmail([
-        ...DEFAULT_USERS,
-        ...(Array.isArray(storedUsers) ? storedUsers : []),
-      ]);
-      setUsers(merged);
-    } catch (error) {
-      setUsers(DEFAULT_USERS);
-    }
-
-    try {
       const storedCurrent = JSON.parse(
         window.localStorage.getItem(CURRENT_USER_STORAGE_KEY) ?? "null"
       );
       if (storedCurrent?.email) {
         setCurrentUser(storedCurrent);
       }
-    } catch (error) {
+    } catch {
       setCurrentUser(null);
     }
   }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    try {
-      const storedHistory = JSON.parse(
-        window.localStorage.getItem(ORDER_HISTORY_STORAGE_KEY) ?? "[]"
-      );
-      if (Array.isArray(storedHistory)) {
-        setOrderHistory(storedHistory);
-      }
-    } catch (error) {
-      setOrderHistory([]);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    try {
-      window.localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-    } catch (error) {
-      /* ignore persistence errors */
-    }
-  }, [users]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -266,16 +207,7 @@ function App() {
     if (typeof window === "undefined") {
       return;
     }
-
-    try {
-      window.localStorage.setItem(
-        ORDER_HISTORY_STORAGE_KEY,
-        JSON.stringify(orderHistory)
-      );
-    } catch (error) {
-      /* ignore persistence errors */
-    }
-  }, [orderHistory]);
+  }, []);
 
   const content = useMemo(
     () => contentByLanguage[language] ?? contentByLanguage.vi,
@@ -283,13 +215,13 @@ function App() {
   );
 
   const translatedCategories = useMemo(
-    () => translateCategories(categoryData, language),
-    [language]
+    () => translateCategories(categories, language),
+    [categories, language]
   );
 
   const translatedMenuItems = useMemo(
     () => translateMenuItems(menuItems, language),
-    [language]
+    [language, menuItems]
   );
 
   const customerOrders = useMemo(() => {
@@ -302,7 +234,7 @@ function App() {
       return [];
     }
 
-    const filtered = orderHistory.filter((order) => {
+    const filtered = orders.filter((order) => {
       const orderEmail = normalizeEmail(
         order.ownerEmail ?? order.customer?.email ?? ""
       );
@@ -316,7 +248,7 @@ function App() {
         const bTime = new Date(b.confirmedAt ?? b.createdAt ?? 0).getTime();
         return bTime - aTime;
       });
-  }, [currentUser, orderHistory]);
+  }, [currentUser, orders]);
     const activeCustomerOrdersCount = useMemo(() => {
     if (customerOrders.length === 0) {
       return 0;
@@ -858,8 +790,14 @@ function App() {
     const ownerEmail = normalizedCustomerEmail
       || normalizeEmail(currentUser?.email ?? "");
 
-    const receipt = {
+    const normalizedItems = (pendingOrder.items ?? []).map((item) => ({
+      ...item,
+    }));
+
+    const receipt = createOrder({
       ...pendingOrder,
+      items: normalizedItems,
+      itemsCount: normalizedItems.length,
       customer: {
         name,
         phone,
@@ -870,22 +808,15 @@ function App() {
       id: `ORD-${Date.now()}`,
       confirmedAt: new Date().toISOString(),
       ownerEmail,
-    };
+      status: pendingOrder?.status ?? "Đang chuẩn bị",
+      address,
+      destination: address,
+      source: "customer",
+    });
 
     setRecentReceipt(receipt);
     setPendingOrder(null);
     setCart([]);
-
-    setOrderHistory((prevHistory) => {
-      const filtered = prevHistory.filter((order) => order.id !== receipt.id);
-      const updated = [receipt, ...filtered];
-
-      return updated.sort((a, b) => {
-        const aTime = new Date(a.confirmedAt ?? a.createdAt ?? 0).getTime();
-        const bTime = new Date(b.confirmedAt ?? b.createdAt ?? 0).getTime();
-        return bTime - aTime;
-      });
-    });
 
     return {
       success: true,
@@ -970,41 +901,32 @@ function App() {
       return;
     }
 
-    setOrderHistory((prevHistory) =>
-      prevHistory.map((entry) => {
-        if (entry.id !== orderId) {
-          return entry;
-        }
+    const progress =
+      typeof order.deliveryProgress === "number"
+        ? order.deliveryProgress
+        : typeof order.progress === "number"
+          ? order.progress
+          : null;
 
-        const progress =
-          typeof entry.deliveryProgress === "number"
-            ? entry.deliveryProgress
-            : typeof entry.progress === "number"
-              ? entry.progress
-              : null;
+    const statusText = String(order.status ?? "").toLowerCase();
+    const isCompleted =
+      (typeof progress === "number" && progress >= 0.99) ||
+      statusText.includes("hoàn") ||
+      statusText.includes("complete") ||
+      statusText.includes("done");
+    const isCancelled =
+      statusText.includes("hủy") ||
+      statusText.includes("huy") ||
+      statusText.includes("cancel");
 
-        const statusText = String(entry.status ?? "").toLowerCase();
-        const isCompleted =
-          (typeof progress === "number" && progress >= 0.99) ||
-          statusText.includes("hoàn") ||
-          statusText.includes("complete") ||
-          statusText.includes("done");
-        const isCancelled =
-          statusText.includes("hủy") ||
-          statusText.includes("huy") ||
-          statusText.includes("cancel");
+    if (isCompleted || isCancelled) {
+      return;
+    }
 
-        if (isCompleted || isCancelled) {
-          return entry;
-        }
-
-        return {
-          ...entry,
-          status: orderHistoryTexts.statusCancelled ?? "Đã hủy",
-          cancelledAt: new Date().toISOString(),
-        };
-      })
-    );
+    updateOrder(orderId, {
+      status: orderHistoryTexts.statusCancelled ?? "Đã hủy",
+      cancelledAt: new Date().toISOString(),
+    });
   };
 
   let pageContent;
