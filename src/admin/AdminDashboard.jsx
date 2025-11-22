@@ -151,14 +151,50 @@ const nextId = (prefix, existing) => {
   return `${prefix}-${String(numeric + 1).padStart(2, "0")}`;
 };
 
-function AdminDashboard() {
+function AdminDashboard({
+  orders = DEFAULT_ORDERS,
+  onOrdersChange,
+  customers = DEFAULT_CUSTOMERS,
+  onCustomersChange,
+  restaurants = [],
+  onRestaurantsChange,
+}) {
   const [drones, setDrones] = useState(DEFAULT_DRONES);
-  const [customers, setCustomers] = useState(DEFAULT_CUSTOMERS);
-  const [orders, setOrders] = useState(DEFAULT_ORDERS);
-  const [restaurants, setRestaurants] = useState([]);
+  const [customersState, setCustomersState] = useState(customers);
+  const [ordersState, setOrdersState] = useState(orders);
+  const [restaurantsState, setRestaurantsState] = useState(restaurants);
   const [activeForm, setActiveForm] = useState(null);
   const [activeSection, setActiveSection] = useState("overview");
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    if (!onCustomersChange) {
+      setCustomersState(customers);
+    }
+  }, [customers, onCustomersChange]);
+
+  useEffect(() => {
+    if (!onOrdersChange) {
+      setOrdersState(orders);
+    }
+  }, [orders, onOrdersChange]);
+
+  useEffect(() => {
+    if (!onRestaurantsChange) {
+      setRestaurantsState(restaurants);
+    }
+  }, [restaurants, onRestaurantsChange]);
+
+  const currentCustomers = onCustomersChange ? customers : customersState;
+  const setCurrentCustomers = onCustomersChange ?? setCustomersState;
+
+  const currentOrders = onOrdersChange ? orders : ordersState;
+  const setCurrentOrders = onOrdersChange ?? setOrdersState;
+
+  const currentRestaurants = onRestaurantsChange
+    ? restaurants
+    : restaurantsState;
+  const setCurrentRestaurants = onRestaurantsChange ?? setRestaurantsState;
 
   useEffect(() => {
     setSearch("");
@@ -176,12 +212,12 @@ function AdminDashboard() {
   }, [search, drones]);
 
   const filteredCustomers = useMemo(() => {
-    if (!search.trim()) return customers;
+    if (!search.trim()) return currentCustomers;
     const term = search.toLowerCase();
     const normalizedTerm = term.replace(/\s+/g, "");
     const numericTerm = normalizedTerm.replace(/\D+/g, "");
 
-    return customers.filter((customer) => {
+    return currentCustomers.filter((customer) => {
       const nameMatch = customer.name.toLowerCase().includes(term);
       const emailMatch = customer.email.toLowerCase().includes(term);
       const tierMatch = customer.tier.toLowerCase().includes(term);
@@ -195,31 +231,31 @@ function AdminDashboard() {
 
       return nameMatch || emailMatch || tierMatch || phoneMatch;
     });
-  }, [search, customers]);
+  }, [search, currentCustomers]);
 
   const filteredOrders = useMemo(() => {
-    if (!search.trim()) return orders;
+    if (!search.trim()) return currentOrders;
     const term = search.toLowerCase();
-    return orders.filter(
+    return currentOrders.filter(
       (order) =>
         order.id.toLowerCase().includes(term) ||
         order.customer.toLowerCase().includes(term) ||
         order.destination.toLowerCase().includes(term) ||
         order.status.toLowerCase().includes(term)
     );
-  }, [search, orders]);
+  }, [search, currentOrders]);
 
   const filteredRestaurants = useMemo(() => {
-    if (!search.trim()) return restaurants;
+    if (!search.trim()) return currentRestaurants;
     const term = search.toLowerCase();
-    return restaurants.filter(
+    return currentRestaurants.filter(
       (restaurant) =>
         restaurant.id.toLowerCase().includes(term) ||
         restaurant.name.toLowerCase().includes(term) ||
         restaurant.address.toLowerCase().includes(term) ||
         (restaurant.hotline || "").toLowerCase().includes(term)
     );
-  }, [search, restaurants]);
+  }, [search, currentRestaurants]);
 
   const handleOpenForm = (type, mode, payload = null) => {
     setActiveForm({
@@ -266,14 +302,14 @@ function AdminDashboard() {
 
     if (type === "customer") {
       if (mode === "create") {
-        const id = values.id?.trim() || nextId("kh", customers);
+        const id = values.id?.trim() || nextId("kh", currentCustomers);
         const joinedAt = values.joinedAt?.trim()
           ? values.joinedAt
           : new Date().toISOString().slice(0, 10);
-        setCustomers([...customers, { ...values, id, joinedAt }]);
+        setCurrentCustomers([...currentCustomers, { ...values, id, joinedAt }]);
       } else {
-        setCustomers(
-          customers.map((customer) =>
+        setCurrentCustomers(
+          currentCustomers.map((customer) =>
             customer.id === values.id ? { ...customer, ...values } : customer
           )
         );
@@ -282,11 +318,11 @@ function AdminDashboard() {
 
     if (type === "order") {
       if (mode === "create") {
-        const id = values.id?.trim() || nextId("od", orders);
-        setOrders([...orders, { ...values, id }]);
+        const id = values.id?.trim() || nextId("od", currentOrders);
+        setCurrentOrders([...currentOrders, { ...values, id }]);
       } else {
-        setOrders(
-          orders.map((order) =>
+        setCurrentOrders(
+          currentOrders.map((order) =>
             order.id === values.id ? { ...order, ...values } : order
           )
         );
@@ -295,11 +331,11 @@ function AdminDashboard() {
 
     if (type === "restaurant") {
       if (mode === "create") {
-        const id = values.id?.trim() || nextId("nh", restaurants);
-        setRestaurants([...restaurants, { ...values, id }]);
+        const id = values.id?.trim() || nextId("nh", currentRestaurants);
+        setCurrentRestaurants([...currentRestaurants, { ...values, id }]);
       } else {
-        setRestaurants(
-          restaurants.map((restaurant) =>
+        setCurrentRestaurants(
+          currentRestaurants.map((restaurant) =>
             restaurant.id === values.id
               ? { ...restaurant, ...values }
               : restaurant
@@ -316,19 +352,21 @@ function AdminDashboard() {
       setDrones(drones.filter((drone) => drone.id !== id));
     }
     if (type === "customer") {
-      setCustomers(customers.filter((customer) => customer.id !== id));
+      setCurrentCustomers(currentCustomers.filter((customer) => customer.id !== id));
     }
     if (type === "order") {
-      setOrders(orders.filter((order) => order.id !== id));
+      setCurrentOrders(currentOrders.filter((order) => order.id !== id));
     }
     if (type === "restaurant") {
-      setRestaurants(restaurants.filter((restaurant) => restaurant.id !== id));
+      setCurrentRestaurants(
+        currentRestaurants.filter((restaurant) => restaurant.id !== id)
+      );
     }
   };
 
   const totalRevenue = useMemo(
-    () => orders.reduce((sum, order) => sum + Number(order.total || 0), 0),
-    [orders]
+    () => currentOrders.reduce((sum, order) => sum + Number(order.total || 0), 0),
+    [currentOrders]
   );
 
   const metrics = useMemo(
@@ -341,12 +379,12 @@ function AdminDashboard() {
       {
         id: "orders-today",
         label: "Tổng đơn hàng hôm nay",
-        value: orders.length,
+        value: currentOrders.length,
       },
       {
         id: "customers",
         label: "Tổng khách hàng",
-        value: customers.length,
+        value: currentCustomers.length,
       },
       {
         id: "revenue",
@@ -354,23 +392,23 @@ function AdminDashboard() {
         value: formatCurrency(totalRevenue),
       },
     ],
-    [drones, orders, customers, totalRevenue]
+    [drones, currentOrders, currentCustomers, totalRevenue]
   );
 
   const overviewSummary = useMemo(() => {
-    const newestCustomer = [...customers]
+    const newestCustomer = [...currentCustomers]
       .filter((customer) => Boolean(customer.joinedAt))
       .sort(
         (a, b) => new Date(b.joinedAt).getTime() - new Date(a.joinedAt).getTime()
-      )[0] || customers[0] || null;
+      )[0] || currentCustomers[0] || null;
 
-    const topTierCustomer = [...customers]
+    const topTierCustomer = [...currentCustomers]
       .sort(
         (a, b) =>
           CUSTOMER_TIERS.indexOf(b.tier) - CUSTOMER_TIERS.indexOf(a.tier)
       )[0] || null;
 
-    const largestOrder = [...orders]
+    const largestOrder = [...currentOrders]
       .sort((a, b) => Number(b.total || 0) - Number(a.total || 0))[0] || null;
 
     return {
@@ -378,7 +416,7 @@ function AdminDashboard() {
       topTierCustomer,
       largestOrder,
     };
-  }, [customers, orders]);
+  }, [currentCustomers, currentOrders]);
 
   const searchPlaceholder = useMemo(() => {
     if (activeSection === "fleet") {

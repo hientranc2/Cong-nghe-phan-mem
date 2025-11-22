@@ -24,6 +24,9 @@ const heroBackground =
 const USERS_STORAGE_KEY = "fcoUsers";
 const CURRENT_USER_STORAGE_KEY = "fcoCurrentUser";
 const ORDER_HISTORY_STORAGE_KEY = "fcoOrderHistory";
+const MENU_STORAGE_KEY = "fcoMenuItems";
+const BACKEND_STATE_STORAGE_KEY = "fcoBackendState";
+const BACKEND_CHANNEL_NAME = "fco-backend-sync";
 const DEFAULT_USERS = [
   {
     id: "admin",
@@ -42,6 +45,53 @@ const DEFAULT_USERS = [
 ];
 
 const normalizeEmail = (email = "") => email.trim().toLowerCase();
+
+const readBackendSnapshot = () => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(BACKEND_STATE_STORAGE_KEY);
+    if (!raw) {
+      return null;
+    }
+
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") {
+      return parsed;
+    }
+  } catch (error) {
+    /* ignore parse errors */
+  }
+
+  return null;
+};
+
+const persistBackendSnapshot = (snapshot, sourceId = null) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(
+      BACKEND_STATE_STORAGE_KEY,
+      JSON.stringify(snapshot)
+    );
+  } catch (error) {
+    /* ignore storage errors */
+  }
+
+  try {
+    if (typeof BroadcastChannel !== "undefined") {
+      const channel = new BroadcastChannel(BACKEND_CHANNEL_NAME);
+      channel.postMessage({ type: "sync", snapshot, source: sourceId });
+      channel.close();
+    }
+  } catch (error) {
+    /* ignore broadcast errors */
+  }
+};
 
 const mergeUsersByEmail = (users = []) => {
   const byEmail = new Map();
@@ -68,6 +118,15 @@ const slugify = (value = "") =>
     .toLowerCase()
     .replace(/[\s_-]+/g, "-")
     .replace(/^-+|-+$/g, "");
+
+const findCategoryIdByName = (name = "") => {
+  const normalized = slugify(name);
+  const matchedBySlug = categoryData.find(
+    (category) => category.slug === normalized || slugify(category.title) === normalized
+  );
+
+  return matchedBySlug?.id ?? categoryData[0]?.id ?? null;
+};
 
 const parseViewFromHash = () => {
   if (typeof window === "undefined") {
@@ -164,6 +223,9 @@ function App() {
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const pendingSectionRef = useRef(null);
+  const backendInstanceIdRef = useRef(
+    `fco-${Date.now()}-${Math.random().toString(16).slice(2)}`
+  );
   const [view, setView] = useState(() => parseViewFromHash());
   const parseHash = useCallback(() => parseViewFromHash(), []);
   const [users, setUsers] = useState(DEFAULT_USERS);
@@ -173,6 +235,7 @@ function App() {
   const [pendingOrder, setPendingOrder] = useState(null);
   const [recentReceipt, setRecentReceipt] = useState(null);
   const [orderHistory, setOrderHistory] = useState([]);
+  const [menuState, setMenuState] = useState(menuItems);
 
 
 
@@ -190,6 +253,14 @@ function App() {
 
   useEffect(() => {
     if (typeof window === "undefined") {
+      return;
+    }
+
+    const backendSnapshot = readBackendSnapshot();
+    if (Array.isArray(backendSnapshot?.users) && backendSnapshot.users.length > 0) {
+      setUsers(
+        mergeUsersByEmail([...DEFAULT_USERS, ...backendSnapshot.users])
+      );
       return;
     }
 
@@ -220,6 +291,15 @@ function App() {
 
   useEffect(() => {
     if (typeof window === "undefined") {
+      return;
+    }
+
+    const backendSnapshot = readBackendSnapshot();
+    if (
+      Array.isArray(backendSnapshot?.orderHistory) &&
+      backendSnapshot.orderHistory.length > 0
+    ) {
+      setOrderHistory(backendSnapshot.orderHistory);
       return;
     }
 
@@ -277,6 +357,120 @@ function App() {
     }
   }, [orderHistory]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const backendSnapshot = readBackendSnapshot();
+    if (
+      Array.isArray(backendSnapshot?.menuItems) &&
+      backendSnapshot.menuItems.length > 0
+    ) {
+      setMenuState(backendSnapshot.menuItems);
+      return;
+    }
+
+    try {
+      const storedMenuItems = JSON.parse(
+        window.localStorage.getItem(MENU_STORAGE_KEY) ?? "null"
+      );
+
+      if (Array.isArray(storedMenuItems) && storedMenuItems.length > 0) {
+        setMenuState(storedMenuItems);
+      }
+    } catch (error) {
+      setMenuState(menuItems);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(menuState));
+    } catch (error) {
+      /* ignore persistence errors */
+    }
+  }, [menuState]);
+
+  useEffect(() => {
+    const snapshot = {
+      users,
+      orderHistory,
+      menuItems: menuState,
+    };
+
+    persistBackendSnapshot(snapshot, backendInstanceIdRef.current);
+  }, [menuState, orderHistory, users]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const applySnapshot = (snapshot) => {
+      if (!snapshot || typeof snapshot !== "object") {
+        return;
+      }
+
+      if (Array.isArray(snapshot.users)) {
+        setUsers(mergeUsersByEmail([...DEFAULT_USERS, ...snapshot.users]));
+      }
+
+      if (Array.isArray(snapshot.orderHistory)) {
+        setOrderHistory(snapshot.orderHistory);
+      }
+
+      if (Array.isArray(snapshot.menuItems) && snapshot.menuItems.length > 0) {
+        setMenuState(snapshot.menuItems);
+      }
+    };
+
+    const channel =
+      typeof BroadcastChannel !== "undefined"
+        ? new BroadcastChannel(BACKEND_CHANNEL_NAME)
+        : null;
+
+    const handleMessage = (event) => {
+      const payload = event?.data;
+      if (!payload?.snapshot) {
+        return;
+      }
+
+      if (payload.source && payload.source === backendInstanceIdRef.current) {
+        return;
+      }
+
+      applySnapshot(payload.snapshot);
+    };
+
+    channel?.addEventListener("message", handleMessage);
+
+    const handleStorage = (event) => {
+      if (event.key !== BACKEND_STATE_STORAGE_KEY || !event.newValue) {
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(event.newValue);
+        applySnapshot(parsed);
+      } catch (error) {
+        /* ignore parse errors */
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      channel?.removeEventListener("message", handleMessage);
+      channel?.close();
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, []);
+
   const content = useMemo(
     () => contentByLanguage[language] ?? contentByLanguage.vi,
     [language]
@@ -288,8 +482,8 @@ function App() {
   );
 
   const translatedMenuItems = useMemo(
-    () => translateMenuItems(menuItems, language),
-    [language]
+    () => translateMenuItems(menuState, language),
+    [language, menuState]
   );
 
   const customerOrders = useMemo(() => {
@@ -392,6 +586,85 @@ function App() {
       };
     });
   }, [content.combos]);
+
+  const categoryLookup = useMemo(
+    () =>
+      categoryData.reduce((map, category) => {
+        map.set(category.id, category);
+        return map;
+      }, new Map()),
+    []
+  );
+
+  const restaurantMenuItems = useMemo(
+    () =>
+      menuState.map((item) => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        category: categoryLookup.get(item.categoryId)?.title ?? "",
+        description: item.description ?? "",
+        status: item.status ?? "available",
+        tag: item.tag ?? (item.isBestSeller ? "Best Seller" : ""),
+      })),
+    [categoryLookup, menuState]
+  );
+
+  const adminCustomers = useMemo(
+    () =>
+      users
+        .filter((user) => user.role === "customer")
+        .map((customer) => ({
+          ...customer,
+          joinedAt: customer.joinedAt ?? new Date().toISOString().slice(0, 10),
+          tier: customer.tier ?? "Tiêu chuẩn",
+          active: customer.active ?? true,
+        })),
+    [users]
+  );
+
+  const adminRestaurants = useMemo(
+    () =>
+      users
+        .filter((user) => user.role === "restaurant")
+        .map((restaurant) => ({
+          ...restaurant,
+          address: restaurant.address ?? "Chưa cập nhật",
+          hotline: restaurant.hotline ?? restaurant.phone ?? "",
+        })),
+    [users]
+  );
+
+  const adminOrders = useMemo(() => {
+    const formatTotal = (order) => {
+      const items = Array.isArray(order.items) ? order.items : [];
+      if (items.length > 0) {
+        return items.reduce(
+          (sum, item) =>
+            sum + Number(item.price ?? 0) * Number(item.quantity ?? 0),
+          0
+        );
+      }
+
+      return (
+        Number(order.total) ??
+        Number(order.grandTotal) ??
+        Number(order.subtotal) ??
+        Number(order.amount) ??
+        0
+      );
+    };
+
+    return orderHistory.map((order) => ({
+      id: order.id,
+      customer: order.customer?.name ?? order.customer ?? "Khách hàng",
+      destination: order.customer?.address ?? order.destination ?? "Chưa cập nhật",
+      droneId: order.droneId ?? order.drone ?? "",
+      total: formatTotal(order),
+      status: order.status ?? "Đang chuẩn bị",
+      placedAt: order.confirmedAt ?? order.createdAt ?? new Date().toISOString(),
+    }));
+  }, [orderHistory]);
   const promotions = content.promotions ?? [];
   const stats = content.stats ?? [];
   const loginTexts = content.login ?? content.auth?.login ?? {};
@@ -815,6 +1088,136 @@ function App() {
     }
   };
 
+  const handleRestaurantMenuChange = (updatedDishes = []) => {
+    setMenuState((previousMenu) => {
+      const previousById = new Map(previousMenu.map((item) => [item.id, item]));
+
+      return updatedDishes.map((dish, index) => {
+        const existing = dish.id ? previousById.get(dish.id) ?? {} : {};
+        const categoryId =
+          findCategoryIdByName(dish.category) ??
+          existing.categoryId ??
+          categoryData[0]?.id ??
+          "cat-burger";
+
+        return {
+          ...existing,
+          id: dish.id ?? existing.id ?? `dish-${Date.now()}-${index}`,
+          name: dish.name ?? existing.name ?? "Món mới",
+          price: Number(dish.price ?? existing.price ?? 0),
+          categoryId,
+          description: dish.description ?? existing.description ?? "",
+          status: dish.status ?? existing.status ?? "available",
+          tag: dish.tag ?? existing.tag ?? "",
+          isBestSeller: existing.isBestSeller ?? false,
+          img: existing.img ?? null,
+          calories: existing.calories ?? null,
+          time: existing.time ?? null,
+        };
+      });
+    });
+  };
+
+  const handleAdminOrdersChange = (updatedOrders = []) => {
+    setOrderHistory((previousOrders) => {
+      const previousById = new Map(previousOrders.map((order) => [order.id, order]));
+
+      return updatedOrders.map((order, index) => {
+        const existing = order.id ? previousById.get(order.id) ?? {} : {};
+        const customer = existing.customer ?? { name: order.customer };
+        const mergedCustomer = {
+          ...customer,
+          name: order.customer ?? customer.name ?? "Khách hàng",
+          address:
+            order.destination ?? customer.address ?? existing.destination ?? "",
+        };
+
+        const items = Array.isArray(existing.items) ? existing.items : [];
+        const computedTotal = items.reduce(
+          (sum, item) => sum + Number(item.price ?? 0) * Number(item.quantity ?? 0),
+          0
+        );
+
+        return {
+          ...existing,
+          id: order.id ?? existing.id ?? `ORD-${Date.now()}-${index}`,
+          customer: mergedCustomer,
+          destination: order.destination ?? existing.destination ?? mergedCustomer.address,
+          droneId: order.droneId ?? existing.droneId ?? "",
+          status: order.status ?? existing.status ?? "Đang chuẩn bị",
+          total: Number(order.total ?? existing.total ?? computedTotal ?? 0),
+          ownerEmail: existing.ownerEmail ?? order.ownerEmail ?? null,
+          confirmedAt:
+            existing.confirmedAt ??
+            existing.createdAt ??
+            new Date().toISOString(),
+        };
+      });
+    });
+  };
+
+  const handleAdminCustomersChange = (updatedCustomers = []) => {
+    setUsers((previousUsers) => {
+      const nonCustomerUsers = previousUsers.filter(
+        (user) => user.role !== "customer"
+      );
+
+      const mergedCustomers = updatedCustomers.map((customer, index) => {
+        const email = normalizeEmail(customer.email ?? customer.contact ?? "");
+        const existing = previousUsers.find(
+          (user) => user.role === "customer" && normalizeEmail(user.email) === email
+        );
+
+        return {
+          ...existing,
+          ...customer,
+          id: customer.id ?? existing?.id ?? `customer-${index + 1}`,
+          role: "customer",
+          name: customer.name ?? existing?.name ?? "Khách hàng",
+          email: email || existing?.email || `khach-${index + 1}@example.com`,
+          phone: customer.phone ?? existing?.phone ?? "",
+          tier: customer.tier ?? existing?.tier ?? "Tiêu chuẩn",
+          active: customer.active ?? existing?.active ?? true,
+          joinedAt:
+            customer.joinedAt ??
+            existing?.joinedAt ??
+            new Date().toISOString().slice(0, 10),
+        };
+      });
+
+      return mergeUsersByEmail([...nonCustomerUsers, ...mergedCustomers]);
+    });
+  };
+
+  const handleAdminRestaurantsChange = (updatedRestaurants = []) => {
+    setUsers((previousUsers) => {
+      const nonRestaurants = previousUsers.filter(
+        (user) => user.role !== "restaurant"
+      );
+
+      const mergedRestaurants = updatedRestaurants.map((restaurant, index) => {
+        const email = normalizeEmail(restaurant.email ?? "");
+        const existing = previousUsers.find(
+          (user) => user.role === "restaurant" && normalizeEmail(user.email) === email
+        );
+
+        return {
+          ...existing,
+          ...restaurant,
+          id: restaurant.id ?? existing?.id ?? `restaurant-${index + 1}`,
+          role: "restaurant",
+          name: restaurant.name ?? existing?.name ?? "Nhà hàng",
+          email: email || existing?.email || `restaurant-${index + 1}@example.com`,
+          phone: restaurant.phone ?? existing?.phone ?? "",
+          address: restaurant.address ?? existing?.address ?? "Chưa cập nhật",
+          hotline: restaurant.hotline ?? existing?.hotline ?? "",
+        };
+      });
+
+      return mergeUsersByEmail([...nonRestaurants, ...mergedRestaurants]);
+    });
+  };
+
   const handlePlaceOrder = (orderDetails) => {
     if (!orderDetails?.items || orderDetails.items.length === 0) {
       return;
@@ -870,6 +1273,7 @@ function App() {
       id: `ORD-${Date.now()}`,
       confirmedAt: new Date().toISOString(),
       ownerEmail,
+      status: pendingOrder.status ?? "Đang chuẩn bị",
     };
 
     setRecentReceipt(receipt);
@@ -1121,7 +1525,16 @@ function App() {
   }
 
   if (view.type === "admin") {
-    return <AdminDashboard />;
+    return (
+      <AdminDashboard
+        orders={adminOrders}
+        onOrdersChange={handleAdminOrdersChange}
+        customers={adminCustomers}
+        onCustomersChange={handleAdminCustomersChange}
+        restaurants={adminRestaurants}
+        onRestaurantsChange={handleAdminRestaurantsChange}
+      />
+    );
   }
   if (view.type === "restaurant") {
     return (
@@ -1129,6 +1542,10 @@ function App() {
         user={currentUser}
         texts={restaurantTexts}
         onBackHome={handleNavigateHome}
+        menuItems={restaurantMenuItems}
+        onMenuItemsChange={handleRestaurantMenuChange}
+        orders={adminOrders}
+        onOrdersChange={handleAdminOrdersChange}
       />
     );
   }
