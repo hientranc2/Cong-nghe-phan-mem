@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./RestaurantDashboard.css";
 import RestaurantHeader from "./components/RestaurantHeader";
 import RestaurantMenuSection from "./components/RestaurantMenuSection";
@@ -202,15 +202,29 @@ const isSameDay = (value, reference) => {
   );
 };
 
-function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} }) {
+function RestaurantDashboard({
+  user = null,
+  texts = {},
+  onBackHome = () => {},
+  menuItems: sharedMenuItems = null,
+  onMenuItemsChange,
+  orders: sharedOrders = null,
+  onOrdersChange,
+}) {
   const [activeTab, setActiveTab] = useState("overview");
   const [menuItems, setMenuItems] = useState(() => {
+    if (Array.isArray(sharedMenuItems) && sharedMenuItems.length > 0) {
+      return sharedMenuItems.map(normalizeDish);
+    }
     if (Array.isArray(texts.menuItems) && texts.menuItems.length > 0) {
       return texts.menuItems.map(normalizeDish);
     }
     return DEFAULT_MENU_ITEMS;
   });
   const [orders, setOrders] = useState(() => {
+    if (Array.isArray(sharedOrders) && sharedOrders.length > 0) {
+      return sharedOrders.map(normalizeOrder);
+    }
     if (Array.isArray(texts.orders) && texts.orders.length > 0) {
       return texts.orders.map(normalizeOrder);
     }
@@ -222,6 +236,31 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
   const [isOrderFormVisible, setIsOrderFormVisible] = useState(false);
   const [orderForm, setOrderForm] = useState(EMPTY_ORDER_FORM);
   const [editingOrderId, setEditingOrderId] = useState(null);
+
+  useEffect(() => {
+    if (Array.isArray(sharedMenuItems)) {
+      setMenuItems(sharedMenuItems.map(normalizeDish));
+    }
+  }, [sharedMenuItems]);
+
+  useEffect(() => {
+    if (Array.isArray(sharedOrders)) {
+      setOrders(sharedOrders.map(normalizeOrder));
+    }
+  }, [sharedOrders]);
+
+  const updateMenuItems = (nextValue) => {
+    const nextItems =
+      typeof nextValue === "function" ? nextValue(menuItems) : nextValue;
+    onMenuItemsChange?.(nextItems);
+    setMenuItems(nextItems);
+  };
+
+  const updateOrders = (nextValue) => {
+    const nextOrders = typeof nextValue === "function" ? nextValue(orders) : nextValue;
+    onOrdersChange?.(nextOrders);
+    setOrders(nextOrders);
+  };
 
   const navigationTexts = {
     overview: texts.navigation?.overview ?? "Tổng quan",
@@ -440,7 +479,7 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
       tag: dishForm.tag.trim(),
     };
 
-    setMenuItems((prevItems) => {
+    updateMenuItems((prevItems) => {
       if (editingDishId) {
         return prevItems.map((item) =>
           item.id === editingDishId ? { ...item, ...payload } : item
@@ -471,7 +510,7 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
       return;
     }
 
-    setMenuItems((prevItems) => prevItems.filter((item) => item.id !== dish.id));
+    updateMenuItems((prevItems) => prevItems.filter((item) => item.id !== dish.id));
 
     if (editingDishId === dish.id) {
       handleCancelForm();
@@ -542,7 +581,7 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
       address: orderForm.address.trim(),
     };
 
-    setOrders((prevOrders) => {
+    updateOrders((prevOrders) => {
       if (editingOrderId) {
         return prevOrders.map((order) =>
           order.id === editingOrderId ? { ...order, ...payload } : order
@@ -573,7 +612,7 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
       return;
     }
 
-    setOrders((prevOrders) => prevOrders.filter((item) => item.id !== order.id));
+    updateOrders((prevOrders) => prevOrders.filter((item) => item.id !== order.id));
 
     if (editingOrderId === order.id) {
       handleCancelOrderForm();
