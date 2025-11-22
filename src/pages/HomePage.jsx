@@ -111,19 +111,6 @@ function HomePage({
         </div>
       </section>
 
-      <section className="best-seller" id="best-seller">
-        <div className="section-heading">
-          <h2>{bestSellerHeading}</h2>
-          <p>{bestSellerDescription}</p>
-        </div>
-        <Menu
-          items={bestSellers}
-          addToCart={addToCart}
-          labels={menuLabels}
-          onViewItem={onViewProduct}
-        />
-      </section>
-
       <section className="restaurants" id="restaurants">
         <div className="section-heading">
           <h2>{restaurantHeading}</h2>
@@ -157,6 +144,19 @@ function HomePage({
         </div>
       </section>
 
+          <section className="best-seller" id="best-seller">
+        <div className="section-heading">
+          <h2>{bestSellerHeading}</h2>
+          <p>{bestSellerDescription}</p>
+        </div>
+        <Menu
+          items={bestSellers}
+          addToCart={addToCart}
+          labels={menuLabels}
+          onViewItem={onViewProduct}
+        />
+      </section>
+      
       <section className="combo" id="combo">
         <div className="section-heading">
           <h2>{comboHeading}</h2>
