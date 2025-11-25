@@ -13,8 +13,9 @@ import CartSuccessModal from "../components/feedback/CartSuccessModal.jsx";
 import { useCart } from "../context/CartContext.jsx";
 import OrdersScreen from "../features/orders/screens/OrdersScreen.jsx";
 
-import { bestSellers } from "../data/homepage";
-import { menuItems } from "../data/menu";
+import { bestSellers as staticBestSellers } from "../data/homepage";
+import { menuCategories, menuItems } from "../data/menu";
+import { fetchCollection } from "../utils/api";
 
 const HOME_TAB = "home";
 const MENU_TAB = "menu";
@@ -40,6 +41,11 @@ const HomeScreen = ({
     productName: "",
     quantity: 0,
   });
+  const [menuData, setMenuData] = useState(menuItems);
+  const [categories, setCategories] = useState(menuCategories);
+  const [bestSellerProducts, setBestSellerProducts] = useState(
+    staticBestSellers
+  );
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -111,6 +117,55 @@ const HomeScreen = ({
     }
   }, [onViewCart]);
 
+  useEffect(() => {
+    let active = true;
+
+    const syncMenu = async () => {
+      try {
+        const [categoryResponse, menuResponse] = await Promise.all([
+          fetchCollection("categories").catch(() => null),
+          fetchCollection("menuItems"),
+        ]);
+
+        if (!active) return;
+
+        if (Array.isArray(categoryResponse) && categoryResponse.length > 0) {
+          setCategories(categoryResponse);
+        }
+
+        if (Array.isArray(menuResponse) && menuResponse.length > 0) {
+          const normalized = menuResponse.map((item) => ({
+            ...item,
+            image: item.image ?? item.img ?? item.photo,
+          }));
+          setMenuData(normalized);
+
+          const highlighted = normalized
+            .filter(
+              (item) =>
+                item.isBestSeller ||
+                String(item.tag ?? "")
+                  .toLowerCase()
+                  .includes("best")
+            )
+            .slice(0, 6);
+
+          if (highlighted.length > 0) {
+            setBestSellerProducts(highlighted);
+          }
+        }
+      } catch (error) {
+        console.warn("Không thể đồng bộ menu trên mobile", error);
+      }
+    };
+
+    syncMenu();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const handleAddToCart = useCallback(
     (product, quantity = 1) => {
       if (!product) {
@@ -133,11 +188,11 @@ const HomeScreen = ({
 
   const productLookup = useMemo(() => {
     const lookup = new Map();
-    [...bestSellers, ...menuItems].forEach((item) => {
+    [...bestSellerProducts, ...menuData].forEach((item) => {
       lookup.set(item.id, item);
     });
     return lookup;
-  }, []);
+  }, [bestSellerProducts, menuData]);
 
   const selectedProduct = selectedProductId
     ? productLookup.get(selectedProductId) ?? null
@@ -149,6 +204,8 @@ const HomeScreen = ({
         <MenuScreen
           onProductPress={handleProductPress}
           onAddToCart={handleAddToCart}
+          categories={categories}
+          items={menuData}
         />
       ) : activeTab === PROMO_TAB ? (
         <PromoScreen />
@@ -174,6 +231,7 @@ const HomeScreen = ({
           <BestSellerSection
             onProductPress={handleProductPress}
             onAddToCart={handleAddToCart}
+            products={bestSellerProducts}
           />
         </ScrollView>
       )}

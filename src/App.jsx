@@ -14,9 +14,10 @@ import OrderTrackingPage from "./pages/OrderTrackingPage.jsx";
 import OrderHistoryPage from "./pages/OrderHistoryPage.jsx";
 import AdminDashboard from "./admin/AdminDashboard";
 import RestaurantDashboard from "./pages/RestaurantDashboard";
-import { categories as categoryData, menuItems } from "./data/menuData";
-import { restaurants as restaurantData } from "./data/restaurants";
+import { categories as defaultCategories, menuItems as defaultMenuItems } from "./data/menuData";
+import { restaurants as defaultRestaurants } from "./data/restaurants";
 import { contentByLanguage } from "./i18n/translations";
+import { fetchAllData } from "./api/client";
 
 
 const heroBackground =
@@ -182,6 +183,9 @@ function App() {
   const pendingSectionRef = useRef(null);
   const [view, setView] = useState(() => parseViewFromHash());
   const parseHash = useCallback(() => parseViewFromHash(), []);
+  const [categories, setCategories] = useState(defaultCategories);
+  const [menuItemList, setMenuItemList] = useState(defaultMenuItems);
+  const [restaurantList, setRestaurantList] = useState(defaultRestaurants);
   const [users, setUsers] = useState(DEFAULT_USERS);
   const [currentUser, setCurrentUser] = useState(null);
   const [authRedirect, setAuthRedirect] = useState(null);
@@ -252,6 +256,48 @@ function App() {
   }, []);
 
   useEffect(() => {
+    let active = true;
+
+    const loadRemoteContent = async () => {
+      try {
+        const data = await fetchAllData();
+        if (!active || !data) return;
+
+        if (Array.isArray(data.categories) && data.categories.length > 0) {
+          setCategories(data.categories);
+        }
+
+        if (Array.isArray(data.menuItems) && data.menuItems.length > 0) {
+          setMenuItemList(
+            data.menuItems.map((item) => ({
+              ...item,
+              img: item.img ?? item.image ?? item.imageUrl ?? item.photo,
+              image: item.image ?? item.img ?? item.imageUrl ?? item.photo,
+            }))
+          );
+        }
+
+        if (Array.isArray(data.restaurants) && data.restaurants.length > 0) {
+          setRestaurantList(
+            data.restaurants.map((restaurant) => ({
+              ...restaurant,
+              img: restaurant.img ?? restaurant.image ?? restaurant.photo,
+            }))
+          );
+        }
+      } catch (error) {
+        console.error("Không thể đồng bộ dữ liệu từ json-server", error);
+      }
+    };
+
+    loadRemoteContent();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }
@@ -299,18 +345,18 @@ function App() {
   );
 
   const translatedCategories = useMemo(
-    () => translateCategories(categoryData, language),
-    [language]
+    () => translateCategories(categories, language),
+    [categories, language]
   );
 
   const translatedMenuItems = useMemo(
-    () => translateMenuItems(menuItems, language),
-    [language]
+    () => translateMenuItems(menuItemList, language),
+    [menuItemList, language]
   );
 
   const translatedRestaurants = useMemo(
-    () => translateRestaurants(restaurantData, language),
-    [language]
+    () => translateRestaurants(restaurantList, language),
+    [restaurantList, language]
   );
 
   const customerOrders = useMemo(() => {
