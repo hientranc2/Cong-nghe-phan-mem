@@ -213,6 +213,8 @@ function RestaurantDashboard({
   menuItems: remoteMenuItems = [],
   categories = [],
   onCreateMenuItem,
+  onUpdateMenuItem,
+  onDeleteMenuItem,
 }) {
   const categoryLabelById = useMemo(() => {
     const map = new Map();
@@ -555,9 +557,11 @@ function RestaurantDashboard({
 
     setMenuItems((prevItems) => {
       if (editingDishId) {
-        return prevItems.map((item) =>
+        const updatedItems = prevItems.map((item) =>
           item.id === editingDishId ? { ...item, ...payload } : item
         );
+        onUpdateMenuItem?.({ ...payload, id: editingDishId });
+        return updatedItems;
       }
 
       const nextNumber = prevItems
@@ -587,6 +591,7 @@ function RestaurantDashboard({
     }
 
     setMenuItems((prevItems) => prevItems.filter((item) => item.id !== dish.id));
+    onDeleteMenuItem?.(dish.id);
 
     if (editingDishId === dish.id) {
       handleCancelForm();

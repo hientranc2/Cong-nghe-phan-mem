@@ -47,6 +47,32 @@ const postJSON = async (collection, payload) => {
 
 export const createMenuItem = async (item) => postJSON("menuItems", item);
 
+export const updateMenuItem = async (id, payload) => {
+  const url = `${API_BASE}/menuItems/${id}`;
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.status}`);
+  }
+
+  return parseJSON(response);
+};
+
+export const deleteMenuItem = async (id) => {
+  const url = `${API_BASE}/menuItems/${id}`;
+  const response = await fetch(url, { method: "DELETE" });
+
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.status}`);
+  }
+
+  return true;
+};
+
 export const createOrder = async (order) => postJSON("orders", order);
 
 export const fetchOrders = async () => fetchCollection("orders");
