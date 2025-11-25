@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   ScrollView,
@@ -9,17 +9,34 @@ import {
 } from "react-native";
 
 import ProductCard from "../components/product/ProductCard";
-import { menuCategories, menuItems } from "../data/menu";
+import { menuCategories as defaultCategories, menuItems as defaultItems } from "../data/menu";
 
-const MenuScreen = ({ onProductPress, onAddToCart }) => {
+const MenuScreen = ({
+  onProductPress,
+  onAddToCart,
+  categories = defaultCategories,
+  items = defaultItems,
+}) => {
   const [activeCategory, setActiveCategory] = useState(
-    menuCategories[0]?.id ?? null
+    categories[0]?.id ?? null
   );
+
+  useEffect(() => {
+    if (!categories.length) {
+      setActiveCategory(null);
+      return;
+    }
+
+    setActiveCategory((current) => {
+      const exists = categories.some((category) => category.id === current);
+      return exists ? current : categories[0].id;
+    });
+  }, [categories]);
 
   const activeCategoryData = useMemo(
     () =>
-      menuCategories.find((category) => category.id === activeCategory) ?? null,
-    [activeCategory]
+      categories.find((category) => category.id === activeCategory) ?? null,
+    [activeCategory, categories]
   );
 
   const filteredItems = useMemo(() => {
@@ -27,8 +44,8 @@ const MenuScreen = ({ onProductPress, onAddToCart }) => {
       return [];
     }
 
-    return menuItems.filter((item) => item.categoryId === activeCategory);
-  }, [activeCategory]);
+    return items.filter((item) => item.categoryId === activeCategory);
+  }, [activeCategory, items]);
 
   const [headerHeight, setHeaderHeight] = useState(220);
 
@@ -44,7 +61,7 @@ const MenuScreen = ({ onProductPress, onAddToCart }) => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.categoryRow}
         >
-          {menuCategories.map((category) => {
+          {categories.map((category) => {
             const isActive = category.id === activeCategory;
             return (
               <TouchableOpacity
