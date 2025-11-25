@@ -589,6 +589,8 @@ function RestaurantDashboard({
               : item
           )
         );
+        onUpdateMenuItem?.({ ...payload, id: editingDishId });
+        return updatedItems;
       }
     }
 

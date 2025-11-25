@@ -523,6 +523,20 @@ function App() {
     return item;
   };
 
+  const upsertMenuItemLocally = (item) => {
+    if (!item?.id) return;
+
+    setMenuItemList((prev) => {
+      const normalized = normalizeMenuItemForClient(item);
+      const exists = prev.some((entry) => entry.id === normalized.id);
+      return exists
+        ? prev.map((entry) =>
+            entry.id === normalized.id ? { ...entry, ...normalized } : entry
+          )
+        : [...prev, normalized];
+    });
+  };
+
   const syncMenuItemToServer = async (item) => {
     const tempId = item.id || `temp-${Date.now()}`;
     appendMenuItem({ ...item, id: tempId });
@@ -579,6 +593,33 @@ function App() {
     }
 
     return false;
+  };
+
+  const syncUpdatedMenuItem = async (item) => {
+    upsertMenuItemLocally(item);
+
+    if (!item?.id) return;
+
+    try {
+      const saved = await updateMenuItem(item.id, item);
+      if (saved) {
+        upsertMenuItemLocally(saved);
+      }
+    } catch (error) {
+      console.error("Không thể cập nhật món ăn trên json-server", error);
+    }
+  };
+
+  const syncDeletedMenuItem = async (itemId) => {
+    setMenuItemList((prev) => prev.filter((entry) => entry.id !== itemId));
+
+    if (!itemId) return;
+
+    try {
+      await deleteMenuItem(itemId);
+    } catch (error) {
+      console.error("Không thể xóa món ăn trên json-server", error);
+    }
   };
 
   const syncOrderToServer = async (order) => {
