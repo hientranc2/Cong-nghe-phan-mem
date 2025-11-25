@@ -22,7 +22,6 @@ export const restaurants = [
       "fco-burger-blaze",
       "fco-burger-truffle",
       "fco-burger-veggie",
-      "fco-burger-korean",
       "fco-burger-blue",
       "fco-burger-double",
     ],
@@ -53,7 +52,8 @@ export const restaurants = [
       "fco-pizza-lava",
       "fco-pizza-carbonara",
       "fco-pizza-seafood",
-      "fco-pizza-truffle",
+      "fco-pizza-bbq",
+      "fco-pizza-veggie",
     ],
     translations: {
       en: {
@@ -81,8 +81,9 @@ export const restaurants = [
     menuItemIds: [
       "fco-chicken-crispy",
       "fco-wings-honey",
-      "fco-snack-tempura",
+      "fco-snack-parmesan",
       "fco-snack-popcorn",
+      "fco-snack-tempura",
     ],
     translations: {
       en: {
@@ -111,7 +112,8 @@ export const restaurants = [
       "fco-coldbrew-orange",
       "fco-drink-matcha",
       "fco-drink-peachtea",
-      "fco-mixology-sunrise",
+      "fco-berry-soda",
+      "fco-drink-tonic",
     ],
     translations: {
       en: {
@@ -137,10 +139,10 @@ export const restaurants = [
     deliveryTime: "12-25 phút",
     tags: ["Tacos", "Fusion", "Breakfast"],
     menuItemIds: [
+      "fco-burger-korean",
+      "fco-pizza-truffle",
       "fco-taco-fiesta",
-      "fco-taco-korean",
-      "fco-taco-wagyu",
-      "fco-taco-breakfast",
+      "fco-mixology-sunrise",
     ],
     translations: {
       en: {
