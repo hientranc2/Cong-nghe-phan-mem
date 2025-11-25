@@ -437,8 +437,14 @@ function App() {
   }, [currentUser, pendingOrder, recentReceipt, customerOrders]);
 
   useEffect(() => {
-    setCart((prevCart) =>
-      prevCart.map((cartItem) => {
+    setCart((prevCart) => {
+      const availableIds = new Set(translatedMenuItems.map((item) => item.id));
+
+      const filteredCart = prevCart.filter((cartItem) =>
+        availableIds.has(cartItem.id)
+      );
+
+      return filteredCart.map((cartItem) => {
         const latest = translatedMenuItems.find((item) => item.id === cartItem.id);
         if (!latest) {
           return cartItem;
@@ -450,8 +456,8 @@ function App() {
           description: latest.description,
           tag: latest.tag,
         };
-      })
-    );
+      });
+    });
   }, [translatedMenuItems]);
 
   const bestSellers = useMemo(

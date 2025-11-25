@@ -194,6 +194,14 @@ const parseDate = (value) => {
   return date;
 };
 
+const getNextDishId = (items = []) => {
+  const lastNumber = items
+    .map((item) => Number(String(item.id).replace(/\D+/g, "")) || 0)
+    .reduce((max, value) => Math.max(max, value), 0);
+
+  return `dish-${String(lastNumber + 1).padStart(2, "0")}`;
+};
+
 const isSameDay = (value, reference) => {
   const date = parseDate(value);
   const referenceDate = parseDate(reference);
@@ -558,29 +566,23 @@ function RestaurantDashboard({
       image: dishForm.image,
     };
 
+    const nextDishId = editingDishId || payload.id || getNextDishId(menuItems);
+    const finalDish = { ...payload, id: nextDishId };
+
     setMenuItems((prevItems) => {
       if (editingDishId) {
-        const updatedItems = prevItems.map((item) =>
-          item.id === editingDishId ? { ...item, ...payload } : item
+        return prevItems.map((item) =>
+          item.id === editingDishId ? { ...item, ...finalDish } : item
         );
-        onUpdateMenuItem?.({ ...payload, id: editingDishId });
-        return updatedItems;
       }
 
-      const nextNumber = prevItems
-        .map((item) => Number(String(item.id).replace(/\D+/g, "")) || 0)
-        .reduce((max, value) => Math.max(max, value), 0);
-
-      const nextItem = {
-        ...payload,
-        id: payload.id || `dish-${String(nextNumber + 1).padStart(2, "0")}`,
-      };
-
-      return [...prevItems, nextItem];
+      return [...prevItems, finalDish];
     });
 
-    if (!editingDishId && typeof onCreateMenuItem === "function") {
-      onCreateMenuItem(payload);
+    if (editingDishId) {
+      onUpdateMenuItem?.(finalDish);
+    } else {
+      onCreateMenuItem?.(finalDish);
     }
 
     handleCancelForm();
