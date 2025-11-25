@@ -4,6 +4,7 @@ function AdminFormDrawer({
   onSubmit,
   onChangeField,
   drones,
+  categories,
   customerTiers,
   statusOptions,
 }) {
@@ -20,7 +21,9 @@ function AdminFormDrawer({
         ? "khách hàng"
         : type === "restaurant"
           ? "nhà hàng"
-          : "đơn hàng";
+          : type === "menuItem"
+            ? "món ăn"
+            : "đơn hàng";
   const typeDescription =
     type === "drone"
       ? "thiết bị bay"
@@ -28,7 +31,9 @@ function AdminFormDrawer({
         ? "khách hàng"
         : type === "restaurant"
           ? "đối tác nhà hàng"
-          : "đơn giao hàng";
+          : type === "menuItem"
+            ? "món trong thực đơn"
+            : "đơn giao hàng";
 
   const renderDroneFields = () => (
     <>
@@ -259,10 +264,94 @@ function AdminFormDrawer({
     </>
   );
 
+  const renderMenuItemFields = () => (
+    <>
+      <div className="field-grid">
+        <label>
+          Mã món
+          <input
+            value={values.id}
+            onChange={(event) => onChangeField("id", event.target.value)}
+            placeholder="Tự tạo nếu để trống"
+          />
+        </label>
+        <label>
+          Tên món
+          <input
+            value={values.name}
+            onChange={(event) => onChangeField("name", event.target.value)}
+            required
+          />
+        </label>
+      </div>
+      <div className="field-grid">
+        <label>
+          Danh mục
+          <select
+            value={values.categoryId}
+            onChange={(event) => onChangeField("categoryId", event.target.value)}
+            required
+          >
+            <option value="">-- Chọn danh mục --</option>
+            {(categories ?? []).map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.title ?? category.name ?? category.id}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Giá (VND)
+          <input
+            type="number"
+            min="0"
+            value={values.price}
+            onChange={(event) =>
+              onChangeField("price", Number(event.target.value))
+            }
+            required
+          />
+        </label>
+      </div>
+      <label>
+        Ảnh món (URL)
+        <input
+          value={values.img ?? ""}
+          onChange={(event) => onChangeField("img", event.target.value)}
+          placeholder="https://..."
+        />
+      </label>
+      <label>
+        Mô tả
+        <textarea
+          value={values.description ?? ""}
+          onChange={(event) => onChangeField("description", event.target.value)}
+        />
+      </label>
+      <label>
+        Nhãn nổi bật
+        <input
+          value={values.tag ?? ""}
+          onChange={(event) => onChangeField("tag", event.target.value)}
+          placeholder="Best seller, spicy..."
+        />
+      </label>
+      <label className="toggle">
+        <input
+          type="checkbox"
+          checked={Boolean(values.isBestSeller)}
+          onChange={(event) => onChangeField("isBestSeller", event.target.checked)}
+        />
+        Đánh dấu best seller
+      </label>
+    </>
+  );
+
   const renderFields = () => {
     if (type === "drone") return renderDroneFields();
     if (type === "customer") return renderCustomerFields();
     if (type === "restaurant") return renderRestaurantFields();
+    if (type === "menuItem") return renderMenuItemFields();
     return renderOrderFields();
   };
 

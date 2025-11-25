@@ -17,7 +17,7 @@ import RestaurantDashboard from "./pages/RestaurantDashboard";
 import { categories as defaultCategories, menuItems as defaultMenuItems } from "./data/menuData";
 import { restaurants as defaultRestaurants } from "./data/restaurants";
 import { contentByLanguage } from "./i18n/translations";
-import { fetchAllData } from "./api/client";
+import { createOrder, fetchAllData } from "./api/client";
 
 
 const heroBackground =
@@ -899,7 +899,7 @@ function App() {
     }
   };
 
-  const handleConfirmOrderDetails = (customerInfo) => {
+  const handleConfirmOrderDetails = async (customerInfo) => {
     if (!pendingOrder) {
       return {
         success: false,
@@ -942,6 +942,12 @@ function App() {
     setRecentReceipt(receipt);
     setPendingOrder(null);
     setCart([]);
+
+    try {
+      await createOrder(receipt);
+    } catch (error) {
+      console.error("Không thể lưu đơn hàng lên máy chủ", error);
+    }
 
     setOrderHistory((prevHistory) => {
       const filtered = prevHistory.filter((order) => order.id !== receipt.id);

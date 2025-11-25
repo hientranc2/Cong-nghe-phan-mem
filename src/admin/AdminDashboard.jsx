@@ -5,9 +5,16 @@ import AdminFleetSection from "./components/AdminFleetSection";
 import AdminFormDrawer from "./components/AdminFormDrawer";
 import AdminHeader from "./components/AdminHeader";
 import AdminOrdersSection from "./components/AdminOrdersSection";
+import AdminMenuSection from "./components/AdminMenuSection";
 import AdminRestaurantsSection from "./components/AdminRestaurantsSection";
 import AdminOverview from "./components/AdminOverview";
 import AdminSidebar from "./components/AdminSidebar";
+import {
+  createDocument,
+  deleteDocument,
+  fetchCollection,
+  updateDocument,
+} from "../api/client";
 
 const DEFAULT_DRONES = [
   {
@@ -121,6 +128,16 @@ const EMPTY_FORMS = {
     address: "",
     hotline: "",
   },
+  menuItem: {
+    id: "",
+    name: "",
+    categoryId: "",
+    price: 0,
+    tag: "",
+    img: "",
+    description: "",
+    isBestSeller: false,
+  },
 };
 
 const STATUS_OPTIONS = {
@@ -155,10 +172,66 @@ function AdminDashboard() {
   const [drones, setDrones] = useState(DEFAULT_DRONES);
   const [customers, setCustomers] = useState(DEFAULT_CUSTOMERS);
   const [orders, setOrders] = useState(DEFAULT_ORDERS);
+  const [categories, setCategories] = useState([]);
+  const [menuItems, setMenuItems] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
   const [activeForm, setActiveForm] = useState(null);
   const [activeSection, setActiveSection] = useState("overview");
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    const syncRemoteData = async () => {
+      try {
+        const [categoryResponse, menuResponse, restaurantResponse, orderResponse] =
+          await Promise.all([
+            fetchCollection("categories").catch(() => []),
+            fetchCollection("menuItems").catch(() => []),
+            fetchCollection("restaurants").catch(() => []),
+            fetchCollection("orders").catch(() => []),
+          ]);
+
+        if (!active) return;
+
+        if (Array.isArray(categoryResponse) && categoryResponse.length > 0) {
+          setCategories(categoryResponse);
+        }
+
+        if (Array.isArray(menuResponse) && menuResponse.length > 0) {
+          setMenuItems(menuResponse);
+        }
+
+        if (Array.isArray(restaurantResponse) && restaurantResponse.length > 0) {
+          setRestaurants(restaurantResponse);
+        }
+
+        if (Array.isArray(orderResponse) && orderResponse.length > 0) {
+          const normalizedOrders = orderResponse.map((order) => ({
+            id: order.id,
+            customer:
+              order.customer?.name ?? order.customer ?? order.customerName ?? "N/A",
+            destination: order.customer?.address ?? order.destination ?? "",
+            droneId: order.droneId ?? order.drone ?? "",
+            total: order.total ?? order.subtotal ?? 0,
+            status: order.status ?? "Đang chuẩn bị",
+          }));
+          setOrders(normalizedOrders);
+        }
+      } catch (error) {
+        console.warn("Không thể đồng bộ dữ liệu admin", error);
+      }
+    };
+
+    syncRemoteData();
+
+    const interval = setInterval(syncRemoteData, 10000);
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     setSearch("");
@@ -208,6 +281,17 @@ function AdminDashboard() {
         order.status.toLowerCase().includes(term)
     );
   }, [search, orders]);
+
+  const filteredMenuItems = useMemo(() => {
+    if (!search.trim()) return menuItems;
+    const term = search.toLowerCase();
+    return menuItems.filter(
+      (item) =>
+        item.name?.toLowerCase().includes(term) ||
+        item.id?.toLowerCase().includes(term) ||
+        item.categoryId?.toLowerCase().includes(term)
+    );
+  }, [search, menuItems]);
 
   const filteredRestaurants = useMemo(() => {
     if (!search.trim()) return restaurants;
@@ -283,13 +367,15 @@ function AdminDashboard() {
     if (type === "order") {
       if (mode === "create") {
         const id = values.id?.trim() || nextId("od", orders);
-        setOrders([...orders, { ...values, id }]);
+        const payload = { ...values, id };
+        setOrders([...orders, payload]);
+        createDocument("orders", payload).catch(() => null);
       } else {
-        setOrders(
-          orders.map((order) =>
-            order.id === values.id ? { ...order, ...values } : order
-          )
+        const updatedOrder = orders.map((order) =>
+          order.id === values.id ? { ...order, ...values } : order
         );
+        setOrders(updatedOrder);
+        updateDocument("orders", values.id, values).catch(() => null);
       }
     }
 
@@ -297,6 +383,7 @@ function AdminDashboard() {
       if (mode === "create") {
         const id = values.id?.trim() || nextId("nh", restaurants);
         setRestaurants([...restaurants, { ...values, id }]);
+        createDocument("restaurants", { ...values, id }).catch(() => null);
       } else {
         setRestaurants(
           restaurants.map((restaurant) =>
@@ -305,6 +392,33 @@ function AdminDashboard() {
               : restaurant
           )
         );
+        updateDocument("restaurants", values.id, values).catch(() => null);
+      }
+    }
+
+    if (type === "menuItem") {
+      if (mode === "create") {
+        const id = values.id?.trim() || nextId("mi", menuItems);
+        const payload = {
+          ...values,
+          id,
+          img: values.img ?? values.image ?? values.photo,
+          image: values.img ?? values.image ?? values.photo,
+        };
+        setMenuItems([...menuItems, payload]);
+        createDocument("menuItems", payload).catch(() => null);
+      } else {
+        const payload = {
+          ...values,
+          img: values.img ?? values.image ?? values.photo,
+          image: values.img ?? values.image ?? values.photo,
+        };
+        setMenuItems(
+          menuItems.map((item) =>
+            item.id === values.id ? { ...item, ...payload } : item
+          )
+        );
+        updateDocument("menuItems", values.id, payload).catch(() => null);
       }
     }
 
@@ -320,9 +434,15 @@ function AdminDashboard() {
     }
     if (type === "order") {
       setOrders(orders.filter((order) => order.id !== id));
+      deleteDocument("orders", id).catch(() => null);
     }
     if (type === "restaurant") {
       setRestaurants(restaurants.filter((restaurant) => restaurant.id !== id));
+      deleteDocument("restaurants", id).catch(() => null);
+    }
+    if (type === "menuItem") {
+      setMenuItems(menuItems.filter((item) => item.id !== id));
+      deleteDocument("menuItems", id).catch(() => null);
     }
   };
 
@@ -387,6 +507,9 @@ function AdminDashboard() {
     if (activeSection === "customers") {
       return "Tìm khách hàng theo tên, email hoặc hạng...";
     }
+    if (activeSection === "menu") {
+      return "Tìm món theo tên, mã hoặc danh mục...";
+    }
     if (activeSection === "orders") {
       return "Tìm đơn hàng theo mã, khách hoặc trạng thái...";
     }
@@ -430,15 +553,25 @@ function AdminDashboard() {
           />
         )}
 
-      {activeSection === "customers" && (
-        <AdminCustomersSection
-          customers={filteredCustomers}
-          onCreate={() => handleOpenForm("customer", "create")}
-          onEdit={(customer) => handleOpenForm("customer", "edit", customer)}
-          onDelete={(id) => handleDelete("customer", id)}
-          emptyMessage={emptyMessage}
-        />
-      )}
+        {activeSection === "customers" && (
+          <AdminCustomersSection
+            customers={filteredCustomers}
+            onCreate={() => handleOpenForm("customer", "create")}
+            onEdit={(customer) => handleOpenForm("customer", "edit", customer)}
+            onDelete={(id) => handleDelete("customer", id)}
+            emptyMessage={emptyMessage}
+          />
+        )}
+
+        {activeSection === "menu" && (
+          <AdminMenuSection
+            menuItems={filteredMenuItems}
+            onCreate={() => handleOpenForm("menuItem", "create")}
+            onEdit={(item) => handleOpenForm("menuItem", "edit", item)}
+            onDelete={(id) => handleDelete("menuItem", id)}
+            emptyMessage={emptyMessage}
+          />
+        )}
 
       {activeSection === "restaurants" && (
         <AdminRestaurantsSection
@@ -468,6 +601,7 @@ function AdminDashboard() {
         onSubmit={handleSubmitForm}
         onChangeField={handleChangeForm}
         drones={drones}
+        categories={categories}
         customerTiers={CUSTOMER_TIERS}
         statusOptions={STATUS_OPTIONS}
       />
