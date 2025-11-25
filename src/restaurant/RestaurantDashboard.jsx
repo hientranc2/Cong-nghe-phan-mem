@@ -215,6 +215,9 @@ function RestaurantDashboard({
   onCreateMenuItem,
   onUpdateMenuItem,
   onDeleteMenuItem,
+  onCreateOrder,
+  onUpdateOrder,
+  onDeleteOrder,
 }) {
   const categoryLabelById = useMemo(() => {
     const map = new Map();
@@ -664,22 +667,25 @@ function RestaurantDashboard({
 
     setOrders((prevOrders) => {
       if (editingOrderId) {
-        return prevOrders.map((order) =>
+        const updatedOrders = prevOrders.map((order) =>
           order.id === editingOrderId ? { ...order, ...payload } : order
         );
+        onUpdateOrder?.({ ...payload, id: editingOrderId });
+        return updatedOrders;
       }
 
       const nextNumber = prevOrders
         .map((order) => Number(String(order.id).replace(/\D+/g, "")) || 0)
         .reduce((max, value) => Math.max(max, value), 0);
 
-      return [
-        ...prevOrders,
-        {
-          ...payload,
-          id: payload.id || `DH-${String(nextNumber + 1).padStart(4, "0")}`,
-        },
-      ];
+      const nextOrder = {
+        ...payload,
+        id: payload.id || `DH-${String(nextNumber + 1).padStart(4, "0")}`,
+      };
+
+      onCreateOrder?.(nextOrder);
+
+      return [...prevOrders, nextOrder];
     });
 
     handleCancelOrderForm();
@@ -693,6 +699,7 @@ function RestaurantDashboard({
     }
 
     setOrders((prevOrders) => prevOrders.filter((item) => item.id !== order.id));
+    onDeleteOrder?.(order.id);
 
     if (editingOrderId === order.id) {
       handleCancelOrderForm();
