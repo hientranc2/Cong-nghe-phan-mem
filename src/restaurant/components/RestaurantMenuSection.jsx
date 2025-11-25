@@ -6,6 +6,7 @@ function RestaurantMenuSection({
   categoryOptions = [],
   menuItems,
   onFieldChange,
+  onImageSelect,
   onSubmit,
   onCancel,
   onEditDish,
@@ -46,6 +47,24 @@ function RestaurantMenuSection({
                 value={dishForm.price}
                 onChange={(event) => onFieldChange("price", event.target.value)}
               />
+            </label>
+            <label>
+              <span>{texts.form.image}</span>
+              <div className="restaurant-upload">
+                <input
+                  accept="image/*"
+                  type="file"
+                  onChange={(event) =>
+                    onImageSelect?.(event.target.files?.[0] ?? null)
+                  }
+                />
+                <small>{texts.form.imageHint}</small>
+              </div>
+              {dishForm.image && (
+                <div className="restaurant-image-preview" aria-live="polite">
+                  <img src={dishForm.image} alt={dishForm.name || "Ảnh món"} />
+                </div>
+              )}
             </label>
             <label>
               <span>{texts.form.category}</span>
@@ -116,6 +135,7 @@ function RestaurantMenuSection({
           <div className="restaurant-table" role="table">
             <div className="restaurant-table__header" role="row">
               <span role="columnheader">{texts.form.name}</span>
+              <span role="columnheader">{texts.form.image}</span>
               <span role="columnheader">{texts.form.category}</span>
               <span role="columnheader">{texts.form.price}</span>
               <span role="columnheader">{texts.form.status}</span>
@@ -129,6 +149,17 @@ function RestaurantMenuSection({
                 <span role="cell">
                   <strong>{dish.name}</strong>
                   {dish.description && <small>{dish.description}</small>}
+                </span>
+                <span role="cell">
+                  {dish.image ? (
+                    <img
+                      className="restaurant-dish-thumb"
+                      src={dish.image}
+                      alt={dish.name}
+                    />
+                  ) : (
+                    "-"
+                  )}
                 </span>
                 <span role="cell">{dish.category || "-"}</span>
                 <span role="cell">{formatCurrency(dish.price)}</span>

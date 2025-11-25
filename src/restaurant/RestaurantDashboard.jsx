@@ -95,6 +95,7 @@ const EMPTY_DISH_FORM = {
   description: "",
   status: "available",
   tag: "",
+  image: "",
 };
 
 const EMPTY_ORDER_FORM = {
@@ -173,6 +174,7 @@ const normalizeDish = (dish, index, categoryLabelById = new Map()) => ({
   description: dish?.description?.trim() || "",
   status: dish?.status === "soldout" ? "soldout" : "available",
   tag: dish?.tag?.trim() || "",
+  image: dish?.image || dish?.imageUrl || dish?.thumbnail || "",
 });
 
 const normalizeOrder = (order, index) => ({
@@ -314,6 +316,9 @@ function RestaurantDashboard({
       titleUpdate: texts.menu?.form?.titleUpdate ?? "Cập nhật món",
       name: texts.menu?.form?.name ?? "Tên món",
       price: texts.menu?.form?.price ?? "Giá bán (VNĐ)",
+      image: texts.menu?.form?.image ?? "Ảnh món",
+      imageHint:
+        texts.menu?.form?.imageHint ?? "Hỗ trợ JPG, PNG. Giới hạn kích thước 2MB",
       category: texts.menu?.form?.category ?? "Danh mục",
       description: texts.menu?.form?.description ?? "Mô tả ngắn",
       status: texts.menu?.form?.status ?? "Trạng thái",
@@ -473,6 +478,7 @@ function RestaurantDashboard({
       description: dish.description,
       status: dish.status,
       tag: dish.tag || "",
+      image: dish.image || "",
     });
   };
 
@@ -484,6 +490,27 @@ function RestaurantDashboard({
 
   const handleDishFieldChange = (field, value) => {
     setDishForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleDishImageSelect = (file) => {
+    if (!file) {
+      setDishForm((prev) => ({ ...prev, image: "" }));
+      return;
+    }
+
+    const MAX_SIZE = 2 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      if (typeof window !== "undefined" && typeof window.alert === "function") {
+        window.alert("Vui lòng chọn ảnh nhỏ hơn 2MB");
+      }
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setDishForm((prev) => ({ ...prev, image: reader.result || "" }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmitDish = async (event) => {
@@ -523,6 +550,7 @@ function RestaurantDashboard({
       description: dishForm.description.trim(),
       status: dishForm.status === "soldout" ? "soldout" : "available",
       tag: dishForm.tag.trim(),
+      image: dishForm.image,
     };
 
     setMenuItems((prevItems) => {
@@ -553,7 +581,6 @@ function RestaurantDashboard({
 
   const handleDeleteDish = (dish) => {
     const message = menuTexts.confirmDelete ?? "Bạn có chắc muốn xóa món này?";
-    // eslint-disable-next-line no-alert
     const shouldDelete = typeof window === "undefined" ? true : window.confirm(message);
     if (!shouldDelete) {
       return;
@@ -655,7 +682,6 @@ function RestaurantDashboard({
 
   const handleDeleteOrder = (order) => {
     const message = ordersTexts.confirmDelete ?? "Bạn có chắc muốn xóa đơn hàng này?";
-    // eslint-disable-next-line no-alert
     const shouldDelete = typeof window === "undefined" ? true : window.confirm(message);
     if (!shouldDelete) {
       return;
@@ -713,19 +739,20 @@ function RestaurantDashboard({
         )}
 
         {activeTab === "menu" && (
-          <RestaurantMenuSection
-            texts={menuTexts}
-            isFormVisible={isFormVisible}
-            editingDishId={editingDishId}
-            dishForm={dishForm}
-            categoryOptions={categoryOptions}
-            menuItems={menuItems}
-            onFieldChange={handleDishFieldChange}
-            onSubmit={handleSubmitDish}
-            onCancel={handleCancelForm}
-            onEditDish={handleStartEditDish}
-            onDeleteDish={handleDeleteDish}
-            formatCurrency={formatCurrency}
+        <RestaurantMenuSection
+          texts={menuTexts}
+          isFormVisible={isFormVisible}
+          editingDishId={editingDishId}
+          dishForm={dishForm}
+          categoryOptions={categoryOptions}
+          menuItems={menuItems}
+          onFieldChange={handleDishFieldChange}
+          onImageSelect={handleDishImageSelect}
+          onSubmit={handleSubmitDish}
+          onCancel={handleCancelForm}
+          onEditDish={handleStartEditDish}
+          onDeleteDish={handleDeleteDish}
+          formatCurrency={formatCurrency}
             statusBadgeClass={statusBadgeClass}
           />
         )}
