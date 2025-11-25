@@ -163,11 +163,13 @@ const isSameMonth = (value, reference = new Date()) => {
   );
 };
 
-const normalizeDish = (dish, index) => ({
+const normalizeDish = (dish, index, categoryLabelById = new Map()) => ({
   id: dish?.id || `dish-${String(index + 1).padStart(2, "0")}`,
   name: dish?.name?.trim() || "",
   price: Number(dish?.price) || 0,
-  category: dish?.category?.trim() || "",
+  category:
+    dish?.category?.trim() || categoryLabelById.get(dish?.categoryId) || "",
+  categoryId: dish?.categoryId || null,
   description: dish?.description?.trim() || "",
   status: dish?.status === "soldout" ? "soldout" : "available",
   tag: dish?.tag?.trim() || "",
@@ -210,14 +212,35 @@ function RestaurantDashboard({
   categories = [],
   onCreateMenuItem,
 }) {
+  const categoryLabelById = useMemo(() => {
+    const map = new Map();
+
+    categories.forEach((category) => {
+      const label =
+        category?.title || category?.name || category?.slug || category?.id;
+      if (label) {
+        map.set(category.id, label);
+        if (category.slug) {
+          map.set(category.slug, label);
+        }
+      }
+    });
+
+    return map;
+  }, [categories]);
+
   const [activeTab, setActiveTab] = useState("overview");
   const [menuItems, setMenuItems] = useState(() => {
     if (Array.isArray(remoteMenuItems) && remoteMenuItems.length > 0) {
-      return remoteMenuItems.map(normalizeDish);
+      return remoteMenuItems.map((item, index) =>
+        normalizeDish(item, index, categoryLabelById)
+      );
     }
 
     if (Array.isArray(texts.menuItems) && texts.menuItems.length > 0) {
-      return texts.menuItems.map(normalizeDish);
+      return texts.menuItems.map((item, index) =>
+        normalizeDish(item, index, categoryLabelById)
+      );
     }
     return DEFAULT_MENU_ITEMS;
   });
@@ -239,8 +262,12 @@ function RestaurantDashboard({
       return;
     }
 
-    setMenuItems(remoteMenuItems.map(normalizeDish));
-  }, [remoteMenuItems]);
+    setMenuItems(
+      remoteMenuItems.map((item, index) =>
+        normalizeDish(item, index, categoryLabelById)
+      )
+    );
+  }, [remoteMenuItems, categoryLabelById]);
 
   const navigationTexts = {
     overview: texts.navigation?.overview ?? "Tổng quan",
@@ -468,11 +495,31 @@ function RestaurantDashboard({
 
     const sanitizedPrice = Math.max(Number(dishForm.price) || 0, 0);
     const normalizedCategory = dishForm.category.trim();
+    const selectedCategoryId = (() => {
+      const normalized = normalizedCategory.toLowerCase();
+      if (!normalized) return null;
+
+      const matched = categories.find((category) => {
+        const possibleLabels = [
+          category.id,
+          category.slug,
+          category.title,
+          category.name,
+        ].filter(Boolean);
+
+        return possibleLabels.some(
+          (label) => String(label).trim().toLowerCase() === normalized
+        );
+      });
+
+      return matched?.id ?? null;
+    })();
     const payload = {
       id: editingDishId,
       name: trimmedName,
       price: sanitizedPrice,
       category: normalizedCategory,
+      categoryId: selectedCategoryId,
       description: dishForm.description.trim(),
       status: dishForm.status === "soldout" ? "soldout" : "available",
       tag: dishForm.tag.trim(),
