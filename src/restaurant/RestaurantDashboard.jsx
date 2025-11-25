@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./RestaurantDashboard.css";
 import RestaurantHeader from "./components/RestaurantHeader";
 import RestaurantMenuSection from "./components/RestaurantMenuSection";
@@ -202,9 +202,20 @@ const isSameDay = (value, reference) => {
   );
 };
 
-function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} }) {
+function RestaurantDashboard({
+  user = null,
+  texts = {},
+  onBackHome = () => {},
+  menuItems: remoteMenuItems = [],
+  categories = [],
+  onCreateMenuItem,
+}) {
   const [activeTab, setActiveTab] = useState("overview");
   const [menuItems, setMenuItems] = useState(() => {
+    if (Array.isArray(remoteMenuItems) && remoteMenuItems.length > 0) {
+      return remoteMenuItems.map(normalizeDish);
+    }
+
     if (Array.isArray(texts.menuItems) && texts.menuItems.length > 0) {
       return texts.menuItems.map(normalizeDish);
     }
@@ -222,6 +233,14 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
   const [isOrderFormVisible, setIsOrderFormVisible] = useState(false);
   const [orderForm, setOrderForm] = useState(EMPTY_ORDER_FORM);
   const [editingOrderId, setEditingOrderId] = useState(null);
+
+  useEffect(() => {
+    if (!Array.isArray(remoteMenuItems) || remoteMenuItems.length === 0) {
+      return;
+    }
+
+    setMenuItems(remoteMenuItems.map(normalizeDish));
+  }, [remoteMenuItems]);
 
   const navigationTexts = {
     overview: texts.navigation?.overview ?? "Tổng quan",
@@ -388,13 +407,32 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
     return Array.from(categories);
   }, [menuItems]);
 
+  const categoryOptions = useMemo(() => {
+    const options = new Set();
+    categories.forEach((category) => {
+      const label = category?.title || category?.name || category?.slug || "";
+      if (label) {
+        options.add(label);
+      }
+    });
+    uniqueCategories.forEach((category) => {
+      if (category) {
+        options.add(category);
+      }
+    });
+    return Array.from(options);
+  }, [categories, uniqueCategories]);
+
   const ratingValue = `${ratingScore.toFixed(1)} / 5`;
 
   const handleStartAddDish = () => {
     setActiveTab("menu");
     setIsFormVisible(true);
     setEditingDishId(null);
-    setDishForm(EMPTY_DISH_FORM);
+    setDishForm((prev) => ({
+      ...EMPTY_DISH_FORM,
+      category: prev.category || categoryOptions[0] || "",
+    }));
   };
 
   const handleStartEditDish = (dish) => {
@@ -421,7 +459,7 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
     setDishForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmitDish = (event) => {
+  const handleSubmitDish = async (event) => {
     event.preventDefault();
     const trimmedName = dishForm.name.trim();
     if (!trimmedName) {
@@ -451,14 +489,17 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
         .map((item) => Number(String(item.id).replace(/\D+/g, "")) || 0)
         .reduce((max, value) => Math.max(max, value), 0);
 
-      return [
-        ...prevItems,
-        {
-          ...payload,
-          id: payload.id || `dish-${String(nextNumber + 1).padStart(2, "0")}`,
-        },
-      ];
+      const nextItem = {
+        ...payload,
+        id: payload.id || `dish-${String(nextNumber + 1).padStart(2, "0")}`,
+      };
+
+      return [...prevItems, nextItem];
     });
+
+    if (!editingDishId && typeof onCreateMenuItem === "function") {
+      onCreateMenuItem(payload);
+    }
 
     handleCancelForm();
   };
@@ -630,7 +671,7 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
             isFormVisible={isFormVisible}
             editingDishId={editingDishId}
             dishForm={dishForm}
-            uniqueCategories={uniqueCategories}
+            categoryOptions={categoryOptions}
             menuItems={menuItems}
             onFieldChange={handleDishFieldChange}
             onSubmit={handleSubmitDish}

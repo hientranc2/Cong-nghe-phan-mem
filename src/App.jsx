@@ -17,7 +17,7 @@ import RestaurantDashboard from "./pages/RestaurantDashboard";
 import { categories as defaultCategories, menuItems as defaultMenuItems } from "./data/menuData";
 import { restaurants as defaultRestaurants } from "./data/restaurants";
 import { contentByLanguage } from "./i18n/translations";
-import { fetchAllData } from "./api/client";
+import { createMenuItem, createOrder, fetchAllData } from "./api/client";
 
 
 const heroBackground =
@@ -193,6 +193,7 @@ function App() {
   const [pendingOrder, setPendingOrder] = useState(null);
   const [recentReceipt, setRecentReceipt] = useState(null);
   const [orderHistory, setOrderHistory] = useState([]);
+  const [adminOrders, setAdminOrders] = useState([]);
 
 
 
@@ -284,6 +285,11 @@ function App() {
               img: restaurant.img ?? restaurant.image ?? restaurant.photo,
             }))
           );
+        }
+
+        if (Array.isArray(data.orders) && data.orders.length > 0) {
+          setAdminOrders(data.orders);
+          setOrderHistory(data.orders);
         }
       } catch (error) {
         console.error("Không thể đồng bộ dữ liệu từ json-server", error);
@@ -467,6 +473,57 @@ function App() {
     content.orderConfirmation ?? content.auth?.orderConfirmation ?? {};
   const orderHistoryTexts = content.orderHistory ?? {};
   const restaurantTexts = content.restaurant ?? {};
+
+  const appendMenuItem = (item) => {
+    if (!item?.id) return;
+
+    setMenuItemList((prev) => {
+      const normalized = {
+        ...item,
+        img: item.img ?? item.image ?? item.imageUrl ?? item.photo,
+        image: item.image ?? item.img ?? item.imageUrl ?? item.photo,
+      };
+
+      const exists = prev.some((entry) => entry.id === normalized.id);
+      return exists ? prev : [...prev, normalized];
+    });
+  };
+
+  const syncMenuItemToServer = async (item) => {
+    const tempId = item.id || `temp-${Date.now()}`;
+    appendMenuItem({ ...item, id: tempId });
+
+    try {
+      const saved = await createMenuItem(item);
+      if (saved) {
+        setMenuItemList((prev) => {
+          const normalized = {
+            ...saved,
+            img: saved.img ?? saved.image ?? saved.imageUrl ?? saved.photo,
+            image: saved.image ?? saved.img ?? saved.imageUrl ?? saved.photo,
+          };
+
+          const withoutTemp = prev.filter((entry) => entry.id !== tempId);
+          const exists = withoutTemp.some((entry) => entry.id === normalized.id);
+          return exists ? withoutTemp : [...withoutTemp, normalized];
+        });
+      }
+    } catch (error) {
+      console.error("Không thể lưu món ăn lên json-server", error);
+    }
+  };
+
+  const syncOrderToServer = async (order) => {
+    try {
+      const saved = await createOrder(order);
+      if (saved) {
+        setAdminOrders((prev) => [saved, ...prev.filter((o) => o.id !== saved.id)]);
+        setOrderHistory((prev) => [saved, ...prev.filter((o) => o.id !== saved.id)]);
+      }
+    } catch (error) {
+      console.error("Không thể lưu đơn hàng lên json-server", error);
+    }
+  };
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
@@ -943,6 +1000,8 @@ function App() {
     setPendingOrder(null);
     setCart([]);
 
+    syncOrderToServer(receipt);
+
     setOrderHistory((prevHistory) => {
       const filtered = prevHistory.filter((order) => order.id !== receipt.id);
       const updated = [receipt, ...filtered];
@@ -1190,13 +1249,16 @@ function App() {
   }
 
   if (view.type === "admin") {
-    return <AdminDashboard />;
+    return <AdminDashboard orders={adminOrders} restaurants={restaurantList} />;
   }
   if (view.type === "restaurant") {
     return (
       <RestaurantDashboard
         user={currentUser}
         texts={restaurantTexts}
+        menuItems={menuItemList}
+        categories={categories}
+        onCreateMenuItem={syncMenuItemToServer}
         onBackHome={handleNavigateHome}
       />
     );

@@ -3,7 +3,7 @@ function RestaurantMenuSection({
   isFormVisible,
   editingDishId,
   dishForm,
-  uniqueCategories,
+  categoryOptions = [],
   menuItems,
   onFieldChange,
   onSubmit,
@@ -49,14 +49,20 @@ function RestaurantMenuSection({
             </label>
             <label>
               <span>{texts.form.category}</span>
-              <input
-                type="text"
-                placeholder={
-                  uniqueCategories.length > 0 ? `VD: ${uniqueCategories[0]}` : "Burger"
-                }
+              <select
+                required
                 value={dishForm.category}
                 onChange={(event) => onFieldChange("category", event.target.value)}
-              />
+              >
+                <option value="">
+                  {texts.form.categoryPlaceholder ?? "Chọn danh mục"}
+                </option>
+                {categoryOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
             </label>
             <label>
               <span>{texts.form.status}</span>
