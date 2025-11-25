@@ -93,7 +93,7 @@ function OrderConfirmationPage({
     setFormState((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     if (!hasPendingOrder) {
       return;
@@ -102,7 +102,7 @@ function OrderConfirmationPage({
     setError("");
 
     try {
-      const result = onConfirm({ ...formState });
+      const result = await onConfirm({ ...formState });
       if (!result?.success) {
         setError(result?.message ?? formErrorMessage);
       }
