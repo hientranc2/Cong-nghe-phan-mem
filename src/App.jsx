@@ -490,10 +490,23 @@ function App() {
   };
 
   const syncMenuItemToServer = async (item) => {
+    const tempId = item.id || `temp-${Date.now()}`;
+    appendMenuItem({ ...item, id: tempId });
+
     try {
       const saved = await createMenuItem(item);
       if (saved) {
-        appendMenuItem(saved);
+        setMenuItemList((prev) => {
+          const normalized = {
+            ...saved,
+            img: saved.img ?? saved.image ?? saved.imageUrl ?? saved.photo,
+            image: saved.image ?? saved.img ?? saved.imageUrl ?? saved.photo,
+          };
+
+          const withoutTemp = prev.filter((entry) => entry.id !== tempId);
+          const exists = withoutTemp.some((entry) => entry.id === normalized.id);
+          return exists ? withoutTemp : [...withoutTemp, normalized];
+        });
       }
     } catch (error) {
       console.error("Không thể lưu món ăn lên json-server", error);
@@ -1244,6 +1257,7 @@ function App() {
         user={currentUser}
         texts={restaurantTexts}
         menuItems={menuItemList}
+        categories={categories}
         onCreateMenuItem={syncMenuItemToServer}
         onBackHome={handleNavigateHome}
       />

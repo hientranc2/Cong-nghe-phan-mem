@@ -207,6 +207,7 @@ function RestaurantDashboard({
   texts = {},
   onBackHome = () => {},
   menuItems: remoteMenuItems = [],
+  categories = [],
   onCreateMenuItem,
 }) {
   const [activeTab, setActiveTab] = useState("overview");
@@ -406,13 +407,32 @@ function RestaurantDashboard({
     return Array.from(categories);
   }, [menuItems]);
 
+  const categoryOptions = useMemo(() => {
+    const options = new Set();
+    categories.forEach((category) => {
+      const label = category?.title || category?.name || category?.slug || "";
+      if (label) {
+        options.add(label);
+      }
+    });
+    uniqueCategories.forEach((category) => {
+      if (category) {
+        options.add(category);
+      }
+    });
+    return Array.from(options);
+  }, [categories, uniqueCategories]);
+
   const ratingValue = `${ratingScore.toFixed(1)} / 5`;
 
   const handleStartAddDish = () => {
     setActiveTab("menu");
     setIsFormVisible(true);
     setEditingDishId(null);
-    setDishForm(EMPTY_DISH_FORM);
+    setDishForm((prev) => ({
+      ...EMPTY_DISH_FORM,
+      category: prev.category || categoryOptions[0] || "",
+    }));
   };
 
   const handleStartEditDish = (dish) => {
@@ -651,7 +671,7 @@ function RestaurantDashboard({
             isFormVisible={isFormVisible}
             editingDishId={editingDishId}
             dishForm={dishForm}
-            uniqueCategories={uniqueCategories}
+            categoryOptions={categoryOptions}
             menuItems={menuItems}
             onFieldChange={handleDishFieldChange}
             onSubmit={handleSubmitDish}
