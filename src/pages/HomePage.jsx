@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import Menu from "../components/Menu";
 
 function HomePage({
@@ -127,6 +128,15 @@ function HomePage({
               style={{
                 backgroundImage: `linear-gradient(160deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url(${restaurant.img})`,
               }}
+              role="button"
+              tabIndex={0}
+              onClick={() => handleSelectRestaurant(restaurant.id)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  handleSelectRestaurant(restaurant.id);
+                }
+              }}
             >
               <h3>{restaurant.name}</h3>
               <p className="restaurant-meta">{restaurant.city}</p>
@@ -144,6 +154,23 @@ function HomePage({
             </a>
           ))}
         </div>
+
+        {activeRestaurant && (
+          <div className="restaurant-menu-preview">
+            <div className="section-heading">
+              <h3>
+                {restaurantMenuHeading} · {activeRestaurant.name}
+              </h3>
+              <p>{restaurantMenuDescription}</p>
+            </div>
+            <Menu
+              items={activeRestaurantMenuItems}
+              addToCart={addToCart}
+              labels={menuLabels}
+              onViewItem={onViewProduct}
+            />
+          </div>
+        )}
       </section>
 
           <section className="best-seller" id="best-seller">
