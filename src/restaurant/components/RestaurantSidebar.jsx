@@ -30,14 +30,14 @@ function RestaurantSidebar({ activeTab, navigationTexts, onChangeTab, onBackHome
         <button
           type="button"
           className={
-            activeTab === "menu"
+            activeTab === "restaurants"
               ? "restaurant-nav__item is-active"
               : "restaurant-nav__item"
           }
-          onClick={() => handleChange("menu")}
+          onClick={() => handleChange("restaurants")}
         >
-          <span aria-hidden="true">🍽️</span>
-          {navigationTexts.menu}
+          <span aria-hidden="true">🏪</span>
+          {navigationTexts.restaurants}
         </button>
         <button
           type="button"

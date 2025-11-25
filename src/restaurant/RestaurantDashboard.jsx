@@ -1,40 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./RestaurantDashboard.css";
 import RestaurantHeader from "./components/RestaurantHeader";
-import RestaurantMenuSection from "./components/RestaurantMenuSection";
+import RestaurantListSection from "./components/RestaurantListSection";
 import RestaurantOrdersSection from "./components/RestaurantOrdersSection";
 import RestaurantOverview from "./components/RestaurantOverview";
 import RestaurantSidebar from "./components/RestaurantSidebar";
-
-const DEFAULT_MENU_ITEMS = [
-  {
-    id: "dish-01",
-    name: "Burger Blaze Bò Mỹ",
-    price: 69000,
-    category: "Burger",
-    status: "available",
-    description: "Burger bò mỹ nướng than, phô mai cheddar và bacon giòn.",
-    tag: "Best Seller",
-  },
-  {
-    id: "dish-02",
-    name: "Pizza Lava Phô Mai",
-    price: 189000,
-    category: "Pizza",
-    status: "available",
-    description: "Đế mỏng thủ công, sốt cà chua Ý, phô mai mozzarella kéo sợi.",
-    tag: null,
-  },
-  {
-    id: "dish-03",
-    name: "Salad Caesar Gà Nướng",
-    price: 59000,
-    category: "Salad",
-    status: "soldout",
-    description: "Xà lách romaine, sốt caesar, phô mai parmesan và gà nướng.",
-    tag: "Seasonal",
-  },
-];
 
 const DEFAULT_ORDERS = [
   {
@@ -88,13 +58,14 @@ const DEFAULT_RATING = {
   ],
 };
 
-const EMPTY_DISH_FORM = {
+const EMPTY_RESTAURANT_FORM = {
   name: "",
-  price: "",
-  category: "",
+  badge: "",
+  city: "",
+  deliveryTime: "",
   description: "",
-  status: "available",
-  tag: "",
+  tags: "",
+  img: "",
 };
 
 const EMPTY_ORDER_FORM = {
@@ -152,6 +123,13 @@ const formatDateTime = (value) => {
   return `${day} • ${time}`;
 };
 
+const parseDate = (value) => {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date;
+};
+
 const isSameMonth = (value, reference = new Date()) => {
   if (!value) return false;
   const date = new Date(value);
@@ -161,33 +139,6 @@ const isSameMonth = (value, reference = new Date()) => {
     date.getFullYear() === reference.getFullYear() &&
     date.getMonth() === reference.getMonth()
   );
-};
-
-const normalizeDish = (dish, index) => ({
-  id: dish?.id || `dish-${String(index + 1).padStart(2, "0")}`,
-  name: dish?.name?.trim() || "",
-  price: Number(dish?.price) || 0,
-  category: dish?.category?.trim() || "",
-  description: dish?.description?.trim() || "",
-  status: dish?.status === "soldout" ? "soldout" : "available",
-  tag: dish?.tag?.trim() || "",
-});
-
-const normalizeOrder = (order, index) => ({
-  id: order?.id || `DH-${String(index + 1000).padStart(4, "0")}`,
-  customer: order?.customer || "Khách lẻ",
-  items: Number(order?.items) || 0,
-  total: Number(order?.total) || 0,
-  status: order?.status || "Chờ xác nhận",
-  placedAt: order?.placedAt || new Date().toISOString(),
-  address: order?.address || "",
-});
-
-const parseDate = (value) => {
-  if (!value) return null;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-  return date;
 };
 
 const isSameDay = (value, reference) => {
@@ -202,30 +153,55 @@ const isSameDay = (value, reference) => {
   );
 };
 
-function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} }) {
+const normalizeOrder = (order, index) => ({
+  id: order?.id || `DH-${String(index + 1000).padStart(4, "0")}`,
+  customer: order?.customer || "Khách lẻ",
+  items: Number(order?.items) || 0,
+  total: Number(order?.total) || 0,
+  status: order?.status || "Chờ xác nhận",
+  placedAt: order?.placedAt || new Date().toISOString(),
+  address: order?.address || "",
+});
+
+const slugify = (value = "") =>
+  value
+    .normalize("NFD")
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+function RestaurantDashboard({
+  user = null,
+  texts = {},
+  restaurants = [],
+  onUpdateRestaurants = () => {},
+  onBackHome = () => {},
+}) {
   const [activeTab, setActiveTab] = useState("overview");
-  const [menuItems, setMenuItems] = useState(() => {
-    if (Array.isArray(texts.menuItems) && texts.menuItems.length > 0) {
-      return texts.menuItems.map(normalizeDish);
-    }
-    return DEFAULT_MENU_ITEMS;
-  });
+  const [restaurantList, setRestaurantList] = useState(restaurants);
+  const [isRestaurantFormVisible, setIsRestaurantFormVisible] = useState(false);
+  const [restaurantForm, setRestaurantForm] = useState(EMPTY_RESTAURANT_FORM);
+  const [editingRestaurantId, setEditingRestaurantId] = useState(null);
   const [orders, setOrders] = useState(() => {
     if (Array.isArray(texts.orders) && texts.orders.length > 0) {
       return texts.orders.map(normalizeOrder);
     }
     return DEFAULT_ORDERS;
   });
-  const [isFormVisible, setIsFormVisible] = useState(false);
-  const [dishForm, setDishForm] = useState(EMPTY_DISH_FORM);
-  const [editingDishId, setEditingDishId] = useState(null);
   const [isOrderFormVisible, setIsOrderFormVisible] = useState(false);
   const [orderForm, setOrderForm] = useState(EMPTY_ORDER_FORM);
   const [editingOrderId, setEditingOrderId] = useState(null);
 
+  useEffect(() => {
+    setRestaurantList(restaurants);
+  }, [restaurants]);
+
   const navigationTexts = {
     overview: texts.navigation?.overview ?? "Tổng quan",
-    menu: texts.navigation?.menu ?? "Món ăn",
+    restaurants: texts.navigation?.restaurants ?? "Nhà hàng",
     orders: texts.navigation?.orders ?? "Đơn hàng",
     backHome: texts.navigation?.backHome ?? "Về trang khách",
   };
@@ -235,7 +211,7 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
     title: texts.header?.title ?? user?.name ?? "FastGrill Station",
     subtitle:
       texts.header?.subtitle ??
-      "Quản lý thực đơn, theo dõi doanh thu và cập nhật trạng thái đơn hàng theo thời gian thực.",
+      "Thêm nhà hàng mới để hiển thị ngay trên giao diện khách và theo dõi đơn hàng.",
   };
 
   const overviewTexts = {
@@ -251,35 +227,34 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
     reviewHeading: texts.overview?.reviewHeading ?? "Đánh giá về nhà hàng",
   };
 
-  const menuTexts = {
-    heading: texts.menu?.heading ?? "Quản lý món ăn",
+  const restaurantTexts = {
+    heading: texts.restaurants?.heading ?? "Quản lý nhà hàng",
     description:
-      texts.menu?.description ??
-      "Chủ động cập nhật món mới, chỉnh sửa thông tin và tạm ngưng món.",
-    addButton: texts.menu?.addButton ?? "Thêm món",
-    empty: texts.menu?.empty ?? "Danh sách món hiện đang trống.",
+      texts.restaurants?.description ??
+      "Thêm hoặc cập nhật thông tin nhà hàng để khách hàng thấy ngay trên trang chính.",
+    addButton: texts.restaurants?.addButton ?? "Thêm nhà hàng",
+    empty: texts.restaurants?.empty ?? "Chưa có nhà hàng nào được cấu hình.",
+    confirmDelete:
+      texts.restaurants?.confirmDelete ??
+      "Bạn có chắc muốn xóa nhà hàng này khỏi danh sách?",
     actions: {
-      edit: texts.menu?.actions?.edit ?? "Sửa",
-      delete: texts.menu?.actions?.delete ?? "Xóa",
+      edit: texts.restaurants?.actions?.edit ?? "Sửa",
+      delete: texts.restaurants?.actions?.delete ?? "Xóa",
     },
-    actionsLabel: texts.menu?.actionsLabel ?? "Hành động",
+    actionsLabel: texts.restaurants?.actionsLabel ?? "Hành động",
     form: {
-      titleCreate: texts.menu?.form?.titleCreate ?? "Thêm món mới",
-      titleUpdate: texts.menu?.form?.titleUpdate ?? "Cập nhật món",
-      name: texts.menu?.form?.name ?? "Tên món",
-      price: texts.menu?.form?.price ?? "Giá bán (VNĐ)",
-      category: texts.menu?.form?.category ?? "Danh mục",
-      description: texts.menu?.form?.description ?? "Mô tả ngắn",
-      status: texts.menu?.form?.status ?? "Trạng thái",
-      tag: texts.menu?.form?.tag ?? "Nhãn nổi bật",
-      statusOptions:
-        texts.menu?.form?.statusOptions ?? [
-          { value: "available", label: "Đang bán" },
-          { value: "soldout", label: "Hết hàng" },
-        ],
-      cancel: texts.menu?.form?.cancel ?? "Hủy",
-      submitCreate: texts.menu?.form?.submitCreate ?? "Thêm món",
-      submitUpdate: texts.menu?.form?.submitUpdate ?? "Lưu thay đổi",
+      titleCreate: texts.restaurants?.form?.titleCreate ?? "Thêm nhà hàng",
+      titleUpdate: texts.restaurants?.form?.titleUpdate ?? "Cập nhật nhà hàng",
+      name: texts.restaurants?.form?.name ?? "Tên nhà hàng",
+      badge: texts.restaurants?.form?.badge ?? "Nhãn nhanh",
+      city: texts.restaurants?.form?.city ?? "Khu vực",
+      deliveryTime: texts.restaurants?.form?.deliveryTime ?? "Thời gian giao",
+      description: texts.restaurants?.form?.description ?? "Giới thiệu ngắn",
+      tags: texts.restaurants?.form?.tags ?? "Từ khóa",
+      image: texts.restaurants?.form?.image ?? "Ảnh đại diện (URL)",
+      cancel: texts.restaurants?.form?.cancel ?? "Hủy",
+      submitCreate: texts.restaurants?.form?.submitCreate ?? "Lưu nhà hàng",
+      submitUpdate: texts.restaurants?.form?.submitUpdate ?? "Lưu thay đổi",
     },
   };
 
@@ -330,9 +305,7 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
 
   const ratingInfo = {
     score: Number(texts.rating?.score ?? DEFAULT_RATING.score),
-    totalReviews: Number(
-      texts.rating?.totalReviews ?? DEFAULT_RATING.totalReviews
-    ),
+    totalReviews: Number(texts.rating?.totalReviews ?? DEFAULT_RATING.totalReviews),
     summary: texts.rating?.summary ?? DEFAULT_RATING.summary,
     breakdown: Array.isArray(texts.rating?.breakdown)
       ? texts.rating.breakdown
@@ -363,118 +336,109 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
 
   const processingOrders = useMemo(
     () =>
-      orders.filter((order) =>
-        ACTIVE_ORDER_STATUSES.has(String(order.status).toLowerCase())
-      ).length,
+      orders.filter((order) => ACTIVE_ORDER_STATUSES.has(String(order.status).toLowerCase())).length,
     [orders]
   );
 
   const recentOrders = useMemo(() => {
     return orders
       .slice()
-      .sort((a, b) =>
-        new Date(b.placedAt).getTime() - new Date(a.placedAt).getTime()
-      )
+      .sort((a, b) => new Date(b.placedAt).getTime() - new Date(a.placedAt).getTime())
       .slice(0, 5);
   }, [orders]);
 
-  const uniqueCategories = useMemo(() => {
-    const categories = new Set();
-    menuItems.forEach((item) => {
-      if (item.category) {
-        categories.add(item.category);
-      }
+  const uniqueTags = useMemo(() => {
+    const tags = new Set();
+    restaurantList.forEach((restaurant) => {
+      (restaurant.tags || []).forEach((tag) => tags.add(tag));
     });
-    return Array.from(categories);
-  }, [menuItems]);
+    return Array.from(tags);
+  }, [restaurantList]);
 
   const ratingValue = `${ratingScore.toFixed(1)} / 5`;
 
-  const handleStartAddDish = () => {
-    setActiveTab("menu");
-    setIsFormVisible(true);
-    setEditingDishId(null);
-    setDishForm(EMPTY_DISH_FORM);
+  const handleStartAddRestaurant = () => {
+    setActiveTab("restaurants");
+    setIsRestaurantFormVisible(true);
+    setEditingRestaurantId(null);
+    setRestaurantForm(EMPTY_RESTAURANT_FORM);
   };
 
-  const handleStartEditDish = (dish) => {
-    setActiveTab("menu");
-    setIsFormVisible(true);
-    setEditingDishId(dish.id);
-    setDishForm({
-      name: dish.name,
-      price: String(dish.price),
-      category: dish.category,
-      description: dish.description,
-      status: dish.status,
-      tag: dish.tag || "",
+  const handleEditRestaurant = (restaurant) => {
+    setActiveTab("restaurants");
+    setIsRestaurantFormVisible(true);
+    setEditingRestaurantId(restaurant.id);
+    setRestaurantForm({
+      name: restaurant.name || "",
+      badge: restaurant.badge || "",
+      city: restaurant.city || "",
+      deliveryTime: restaurant.deliveryTime || "",
+      description: restaurant.description || "",
+      tags: restaurant.tags?.join(", ") || "",
+      img: restaurant.img || restaurant.image || "",
     });
   };
 
-  const handleCancelForm = () => {
-    setIsFormVisible(false);
-    setEditingDishId(null);
-    setDishForm(EMPTY_DISH_FORM);
+  const handleCancelRestaurantForm = () => {
+    setIsRestaurantFormVisible(false);
+    setEditingRestaurantId(null);
+    setRestaurantForm(EMPTY_RESTAURANT_FORM);
   };
 
-  const handleDishFieldChange = (field, value) => {
-    setDishForm((prev) => ({ ...prev, [field]: value }));
+  const handleRestaurantFieldChange = (field, value) => {
+    setRestaurantForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmitDish = (event) => {
+  const handleSubmitRestaurant = (event) => {
     event.preventDefault();
-    const trimmedName = dishForm.name.trim();
-    if (!trimmedName) {
-      return;
-    }
+    const trimmedName = restaurantForm.name.trim();
+    if (!trimmedName) return;
 
-    const sanitizedPrice = Math.max(Number(dishForm.price) || 0, 0);
-    const normalizedCategory = dishForm.category.trim();
+    const slug = slugify(trimmedName);
+    const tags = restaurantForm.tags
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+
     const payload = {
-      id: editingDishId,
+      id: editingRestaurantId || slug || `restaurant-${Date.now()}`,
+      slug: slug || editingRestaurantId || `restaurant-${Date.now()}`,
       name: trimmedName,
-      price: sanitizedPrice,
-      category: normalizedCategory,
-      description: dishForm.description.trim(),
-      status: dishForm.status === "soldout" ? "soldout" : "available",
-      tag: dishForm.tag.trim(),
+      badge: restaurantForm.badge.trim() || undefined,
+      city: restaurantForm.city.trim(),
+      deliveryTime: restaurantForm.deliveryTime.trim(),
+      description: restaurantForm.description.trim(),
+      tags,
+      img: restaurantForm.img.trim() || undefined,
+      menuItemIds: [],
     };
 
-    setMenuItems((prevItems) => {
-      if (editingDishId) {
-        return prevItems.map((item) =>
-          item.id === editingDishId ? { ...item, ...payload } : item
-        );
-      }
-
-      const nextNumber = prevItems
-        .map((item) => Number(String(item.id).replace(/\D+/g, "")) || 0)
-        .reduce((max, value) => Math.max(max, value), 0);
-
-      return [
-        ...prevItems,
-        {
-          ...payload,
-          id: payload.id || `dish-${String(nextNumber + 1).padStart(2, "0")}`,
-        },
-      ];
+    setRestaurantList((prev) => {
+      const nextList = editingRestaurantId
+        ? prev.map((item) => (item.id === editingRestaurantId ? { ...item, ...payload } : item))
+        : [...prev, payload];
+      onUpdateRestaurants(nextList);
+      return nextList;
     });
 
-    handleCancelForm();
+    handleCancelRestaurantForm();
   };
 
-  const handleDeleteDish = (dish) => {
-    const message = menuTexts.confirmDelete ?? "Bạn có chắc muốn xóa món này?";
+  const handleDeleteRestaurant = (restaurant) => {
+    const message =
+      restaurantTexts.confirmDelete ?? "Bạn có chắc muốn xóa nhà hàng này khỏi danh sách?";
     // eslint-disable-next-line no-alert
     const shouldDelete = typeof window === "undefined" ? true : window.confirm(message);
-    if (!shouldDelete) {
-      return;
-    }
+    if (!shouldDelete) return;
 
-    setMenuItems((prevItems) => prevItems.filter((item) => item.id !== dish.id));
+    setRestaurantList((prev) => {
+      const next = prev.filter((item) => item.id !== restaurant.id);
+      onUpdateRestaurants(next);
+      return next;
+    });
 
-    if (editingDishId === dish.id) {
-      handleCancelForm();
+    if (editingRestaurantId === restaurant.id) {
+      handleCancelRestaurantForm();
     }
   };
 
@@ -529,24 +493,24 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
 
   const handleSubmitOrder = (event) => {
     event.preventDefault();
-    const sanitizedTotal = Math.max(Number(orderForm.total) || 0, 0);
-    const sanitizedItems = Math.max(Number(orderForm.items) || 0, 0);
+    const trimmedCustomer = orderForm.customer.trim();
+    if (!trimmedCustomer) {
+      return;
+    }
 
     const payload = {
       id: editingOrderId,
-      customer: orderForm.customer.trim() || "Khách lẻ",
-      items: sanitizedItems,
-      total: sanitizedTotal,
-      status: orderForm.status,
+      customer: trimmedCustomer,
+      items: Math.max(Number(orderForm.items) || 0, 0),
+      total: Math.max(Number(orderForm.total) || 0, 0),
+      status: orderForm.status || "Chờ xác nhận",
       placedAt: orderForm.placedAt || new Date().toISOString(),
       address: orderForm.address.trim(),
     };
 
     setOrders((prevOrders) => {
       if (editingOrderId) {
-        return prevOrders.map((order) =>
-          order.id === editingOrderId ? { ...order, ...payload } : order
-        );
+        return prevOrders.map((order) => (order.id === editingOrderId ? { ...order, ...payload } : order));
       }
 
       const nextNumber = prevOrders
@@ -599,9 +563,9 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
           activeTab={activeTab}
           headerTexts={headerTexts}
           navigationTexts={navigationTexts}
-          menuTexts={menuTexts}
+          restaurantTexts={restaurantTexts}
           ordersTexts={ordersTexts}
-          onAddDish={handleStartAddDish}
+          onAddRestaurant={handleStartAddRestaurant}
           onAddOrder={handleStartAddOrder}
           onBackHome={onBackHome}
         />
@@ -609,8 +573,8 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
         {activeTab === "overview" && (
           <RestaurantOverview
             overviewTexts={overviewTexts}
-            uniqueCategories={uniqueCategories}
-            menuCount={menuItems.length}
+            uniqueCategories={uniqueTags}
+            menuCount={restaurantList.length}
             orderCount={orders.length}
             monthlyRevenue={monthlyRevenue}
             processingOrders={processingOrders}
@@ -624,21 +588,18 @@ function RestaurantDashboard({ user = null, texts = {}, onBackHome = () => {} })
           />
         )}
 
-        {activeTab === "menu" && (
-          <RestaurantMenuSection
-            texts={menuTexts}
-            isFormVisible={isFormVisible}
-            editingDishId={editingDishId}
-            dishForm={dishForm}
-            uniqueCategories={uniqueCategories}
-            menuItems={menuItems}
-            onFieldChange={handleDishFieldChange}
-            onSubmit={handleSubmitDish}
-            onCancel={handleCancelForm}
-            onEditDish={handleStartEditDish}
-            onDeleteDish={handleDeleteDish}
-            formatCurrency={formatCurrency}
-            statusBadgeClass={statusBadgeClass}
+        {activeTab === "restaurants" && (
+          <RestaurantListSection
+            texts={restaurantTexts}
+            isFormVisible={isRestaurantFormVisible}
+            editingRestaurantId={editingRestaurantId}
+            restaurantForm={restaurantForm}
+            restaurants={restaurantList}
+            onFieldChange={handleRestaurantFieldChange}
+            onSubmit={handleSubmitRestaurant}
+            onCancel={handleCancelRestaurantForm}
+            onEditRestaurant={handleEditRestaurant}
+            onDeleteRestaurant={handleDeleteRestaurant}
           />
         )}
 

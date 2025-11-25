@@ -2,9 +2,9 @@ function RestaurantHeader({
   activeTab,
   headerTexts,
   navigationTexts,
-  menuTexts,
+  restaurantTexts,
   ordersTexts,
-  onAddDish,
+  onAddRestaurant,
   onAddOrder,
   onBackHome,
 }) {
@@ -16,9 +16,13 @@ function RestaurantHeader({
         <p>{headerTexts.subtitle}</p>
       </div>
       <div className="restaurant-header__actions">
-        {activeTab === "menu" && (
-          <button type="button" className="restaurant-btn" onClick={onAddDish}>
-            + {menuTexts.addButton}
+        {activeTab === "restaurants" && (
+          <button
+            type="button"
+            className="restaurant-btn"
+            onClick={onAddRestaurant}
+          >
+            + {restaurantTexts.addButton}
           </button>
         )}
         {activeTab === "orders" && (

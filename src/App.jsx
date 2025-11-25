@@ -1203,6 +1203,8 @@ function App() {
       <RestaurantDashboard
         user={currentUser}
         texts={restaurantTexts}
+        restaurants={restaurantList}
+        onUpdateRestaurants={setRestaurantList}
         onBackHome={handleNavigateHome}
       />
     );
