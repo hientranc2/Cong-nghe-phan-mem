@@ -492,7 +492,7 @@ background: rgba(15, 23, 42, 0.6);
 .restaurant-table__header,
 .restaurant-table__row {
   display: grid;
-  grid-template-columns: 2.4fr 1fr 1fr 1fr 1fr 1.2fr;
+  grid-template-columns: 2.4fr 1fr 1fr 1fr 1fr 1fr 1.2fr;
   gap: 16px;
   align-items: center;
 }
@@ -518,6 +518,41 @@ background: rgba(15, 23, 42, 0.6);
 .restaurant-table__row.is-clickable {
   cursor: pointer;
   transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.restaurant-upload input[type="file"] {
+  width: 100%;
+  background: transparent;
+  padding: 10px 0;
+}
+
+.restaurant-upload small {
+  color: var(--muted);
+}
+
+.restaurant-image-preview {
+  margin-top: 6px;
+  padding: 8px;
+  border-radius: 12px;
+  background: rgba(148, 163, 184, 0.08);
+  border: 1px solid var(--restaurant-border);
+  display: inline-flex;
+}
+
+.restaurant-image-preview img {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid var(--restaurant-border);
+}
+
+.restaurant-dish-thumb {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid var(--restaurant-border);
 }
 
 .restaurant-table__row.is-clickable:hover {
