@@ -17,7 +17,13 @@ import RestaurantDashboard from "./pages/RestaurantDashboard";
 import { categories as defaultCategories, menuItems as defaultMenuItems } from "./data/menuData";
 import { restaurants as defaultRestaurants } from "./data/restaurants";
 import { contentByLanguage } from "./i18n/translations";
-import { createMenuItem, createOrder, fetchAllData } from "./api/client";
+import {
+  createMenuItem,
+  createOrder,
+  deleteMenuItem,
+  fetchAllData,
+  updateMenuItem,
+} from "./api/client";
 
 
 const heroBackground =
@@ -176,6 +182,26 @@ const translateRestaurants = (restaurants, language) =>
     };
   });
 
+const normalizeMenuItemForClient = (item) => {
+  const rawPrice =
+    typeof item.price === "number" ? item.price : Number.parseFloat(item.price);
+  const normalizedPrice = Number.isFinite(rawPrice) ? rawPrice : 0;
+  const calories = Number(item.calories);
+  const time = Number(item.time);
+
+  const resolvedImage =
+    item.img ?? item.image ?? item.imageUrl ?? item.photo ?? item.imageBase64;
+
+  return {
+    ...item,
+    price: normalizedPrice,
+    calories: Number.isFinite(calories) && calories > 0 ? calories : 450,
+    time: Number.isFinite(time) && time > 0 ? time : 15,
+    img: resolvedImage,
+    image: resolvedImage,
+  };
+};
+
 function App() {
   const [language, setLanguage] = useState("vi");
   const [cart, setCart] = useState([]);
@@ -269,13 +295,7 @@ function App() {
         }
 
         if (Array.isArray(data.menuItems) && data.menuItems.length > 0) {
-          setMenuItemList(
-            data.menuItems.map((item) => ({
-              ...item,
-              img: item.img ?? item.image ?? item.imageUrl ?? item.photo,
-              image: item.image ?? item.img ?? item.imageUrl ?? item.photo,
-            }))
-          );
+          setMenuItemList(data.menuItems.map(normalizeMenuItemForClient));
         }
 
         if (Array.isArray(data.restaurants) && data.restaurants.length > 0) {
@@ -475,18 +495,32 @@ function App() {
   const restaurantTexts = content.restaurant ?? {};
 
   const appendMenuItem = (item) => {
-    if (!item?.id) return;
+    if (!item?.id) return item;
 
     setMenuItemList((prev) => {
-      const normalized = {
-        ...item,
-        img: item.img ?? item.image ?? item.imageUrl ?? item.photo,
-        image: item.image ?? item.img ?? item.imageUrl ?? item.photo,
-      };
+      const normalized = normalizeMenuItemForClient(item);
 
       const exists = prev.some((entry) => entry.id === normalized.id);
       return exists ? prev : [...prev, normalized];
     });
+
+    return item;
+  };
+
+  const upsertMenuItemLocally = (item) => {
+    if (!item?.id) return item;
+
+    setMenuItemList((prev) => {
+      const normalized = normalizeMenuItemForClient(item);
+      const exists = prev.some((entry) => entry.id === normalized.id);
+      return exists
+        ? prev.map((entry) =>
+            entry.id === normalized.id ? { ...entry, ...normalized } : entry
+          )
+        : [...prev, normalized];
+    });
+
+    return item;
   };
 
   const syncMenuItemToServer = async (item) => {
@@ -496,21 +530,55 @@ function App() {
     try {
       const saved = await createMenuItem(item);
       if (saved) {
+        const normalized = normalizeMenuItemForClient(saved);
         setMenuItemList((prev) => {
-          const normalized = {
-            ...saved,
-            img: saved.img ?? saved.image ?? saved.imageUrl ?? saved.photo,
-            image: saved.image ?? saved.img ?? saved.imageUrl ?? saved.photo,
-          };
-
           const withoutTemp = prev.filter((entry) => entry.id !== tempId);
           const exists = withoutTemp.some((entry) => entry.id === normalized.id);
-          return exists ? withoutTemp : [...withoutTemp, normalized];
+          return exists
+            ? withoutTemp.map((entry) =>
+                entry.id === normalized.id ? { ...entry, ...normalized } : entry
+              )
+            : [...withoutTemp, normalized];
         });
+        return normalized;
       }
     } catch (error) {
       console.error("Không thể lưu món ăn lên json-server", error);
     }
+
+    return null;
+  };
+
+  const syncUpdatedMenuItem = async (item) => {
+    const optimistic = upsertMenuItemLocally(item);
+
+    if (!item?.id) return optimistic;
+
+    try {
+      const saved = await updateMenuItem(item.id, item);
+      if (saved) {
+        return upsertMenuItemLocally(saved);
+      }
+    } catch (error) {
+      console.error("Không thể cập nhật món ăn trên json-server", error);
+    }
+
+    return optimistic;
+  };
+
+  const syncDeletedMenuItem = async (itemId) => {
+    setMenuItemList((prev) => prev.filter((entry) => entry.id !== itemId));
+
+    if (!itemId) return false;
+
+    try {
+      await deleteMenuItem(itemId);
+      return true;
+    } catch (error) {
+      console.error("Không thể xóa món ăn trên json-server", error);
+    }
+
+    return false;
   };
 
   const syncOrderToServer = async (order) => {
@@ -1259,6 +1327,8 @@ function App() {
         menuItems={menuItemList}
         categories={categories}
         onCreateMenuItem={syncMenuItemToServer}
+        onUpdateMenuItem={syncUpdatedMenuItem}
+        onDeleteMenuItem={syncDeletedMenuItem}
         onBackHome={handleNavigateHome}
       />
     );

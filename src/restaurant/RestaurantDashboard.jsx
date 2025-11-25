@@ -213,6 +213,8 @@ function RestaurantDashboard({
   menuItems: remoteMenuItems = [],
   categories = [],
   onCreateMenuItem,
+  onUpdateMenuItem,
+  onDeleteMenuItem,
 }) {
   const categoryLabelById = useMemo(() => {
     const map = new Map();
@@ -553,33 +555,47 @@ function RestaurantDashboard({
       image: dishForm.image,
     };
 
-    setMenuItems((prevItems) => {
-      if (editingDishId) {
-        return prevItems.map((item) =>
-          item.id === editingDishId ? { ...item, ...payload } : item
+    if (editingDishId && typeof onUpdateMenuItem === "function") {
+      const saved = await onUpdateMenuItem({ ...payload, id: editingDishId });
+
+      setMenuItems((prevItems) =>
+        prevItems.map((item) =>
+          item.id === editingDishId
+            ? normalizeDish(saved || { ...item, ...payload }, 0, categoryLabelById)
+            : item
+        )
+      );
+    } else {
+      const nextId = (() => {
+        const nextNumber = menuItems
+          .map((item) => Number(String(item.id).replace(/\D+/g, "")) || 0)
+          .reduce((max, value) => Math.max(max, value), 0);
+        return payload.id || `dish-${String(nextNumber + 1).padStart(2, "0")}`;
+      })();
+
+      const draftDish = { ...payload, id: nextId };
+      setMenuItems((prevItems) => [...prevItems, draftDish]);
+
+      const saved =
+        typeof onCreateMenuItem === "function"
+          ? await onCreateMenuItem(draftDish)
+          : null;
+
+      if (saved) {
+        setMenuItems((prevItems) =>
+          prevItems.map((item) =>
+            item.id === nextId
+              ? normalizeDish(saved, 0, categoryLabelById)
+              : item
+          )
         );
       }
-
-      const nextNumber = prevItems
-        .map((item) => Number(String(item.id).replace(/\D+/g, "")) || 0)
-        .reduce((max, value) => Math.max(max, value), 0);
-
-      const nextItem = {
-        ...payload,
-        id: payload.id || `dish-${String(nextNumber + 1).padStart(2, "0")}`,
-      };
-
-      return [...prevItems, nextItem];
-    });
-
-    if (!editingDishId && typeof onCreateMenuItem === "function") {
-      onCreateMenuItem(payload);
     }
 
     handleCancelForm();
   };
 
-  const handleDeleteDish = (dish) => {
+  const handleDeleteDish = async (dish) => {
     const message = menuTexts.confirmDelete ?? "Bạn có chắc muốn xóa món này?";
     const shouldDelete = typeof window === "undefined" ? true : window.confirm(message);
     if (!shouldDelete) {
@@ -587,6 +603,7 @@ function RestaurantDashboard({
     }
 
     setMenuItems((prevItems) => prevItems.filter((item) => item.id !== dish.id));
+    await onDeleteMenuItem?.(dish.id);
 
     if (editingDishId === dish.id) {
       handleCancelForm();
