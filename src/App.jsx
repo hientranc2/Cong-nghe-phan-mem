@@ -1131,6 +1131,7 @@ function App() {
         categories={translatedCategories}
         bestSellers={bestSellers}
         restaurants={translatedRestaurants}
+        menuItems={translatedMenuItems}
         combos={combos}
         promotions={promotions}
         addToCart={addToCart}
