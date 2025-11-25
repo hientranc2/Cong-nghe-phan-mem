@@ -21,8 +21,10 @@ import {
   createMenuItem,
   createOrder,
   deleteMenuItem,
+  deleteOrder,
   fetchAllData,
   updateMenuItem,
+  updateOrder,
 } from "./api/client";
 
 
@@ -569,6 +571,32 @@ function App() {
     }
   };
 
+  const upsertOrderState = (order) => {
+    if (!order) return;
+
+    setAdminOrders((prev) => {
+      if (!order?.id) return prev;
+      const exists = prev.some((entry) => entry.id === order.id);
+      return exists
+        ? prev.map((entry) => (entry.id === order.id ? { ...entry, ...order } : entry))
+        : [order, ...prev];
+    });
+
+    setOrderHistory((prev) => {
+      if (!order?.id) return prev;
+      const exists = prev.some((entry) => entry.id === order.id);
+      return exists
+        ? prev.map((entry) => (entry.id === order.id ? { ...entry, ...order } : entry))
+        : [order, ...prev];
+    });
+  };
+
+  const removeOrderState = (orderId) => {
+    if (!orderId) return;
+    setAdminOrders((prev) => prev.filter((entry) => entry.id !== orderId));
+    setOrderHistory((prev) => prev.filter((entry) => entry.id !== orderId));
+  };
+
   const syncOrderToServer = async (order) => {
     try {
       const saved = await createOrder(order);
@@ -578,6 +606,33 @@ function App() {
       }
     } catch (error) {
       console.error("Không thể lưu đơn hàng lên json-server", error);
+    }
+  };
+
+  const syncUpdatedOrder = async (order) => {
+    upsertOrderState(order);
+
+    if (!order?.id) return;
+
+    try {
+      const saved = await updateOrder(order.id, order);
+      if (saved) {
+        upsertOrderState(saved);
+      }
+    } catch (error) {
+      console.error("Không thể cập nhật đơn hàng trên json-server", error);
+    }
+  };
+
+  const syncDeletedOrder = async (orderId) => {
+    removeOrderState(orderId);
+
+    if (!orderId) return;
+
+    try {
+      await deleteOrder(orderId);
+    } catch (error) {
+      console.error("Không thể xóa đơn hàng trên json-server", error);
     }
   };
 
@@ -1317,6 +1372,9 @@ function App() {
         onCreateMenuItem={syncMenuItemToServer}
         onUpdateMenuItem={syncUpdatedMenuItem}
         onDeleteMenuItem={syncDeletedMenuItem}
+        onCreateOrder={syncOrderToServer}
+        onUpdateOrder={syncUpdatedOrder}
+        onDeleteOrder={syncDeletedOrder}
         onBackHome={handleNavigateHome}
       />
     );
