@@ -151,14 +151,53 @@ const nextId = (prefix, existing) => {
   return `${prefix}-${String(numeric + 1).padStart(2, "0")}`;
 };
 
-function AdminDashboard() {
+const normalizeAdminOrder = (order, index) => {
+  const totalValue =
+    Number(order?.total) ||
+    Number(order?.subtotal) ||
+    Number(order?.amount) ||
+    0;
+
+  return {
+    id: order?.id || order?.code || `od-${String(index + 1).padStart(2, "0")}`,
+    customer:
+      order?.customer?.name ||
+      order?.customerName ||
+      order?.customer ||
+      "Khách lẻ",
+    destination:
+      order?.customer?.address ||
+      order?.address ||
+      order?.destination ||
+      "Đang cập nhật",
+    droneId: order?.droneId || order?.driver || "-",
+    total: totalValue,
+    status: order?.status || "Đang chuẩn bị",
+  };
+};
+
+function AdminDashboard({ orders: remoteOrders = [], restaurants: remoteRestaurants = [] }) {
   const [drones, setDrones] = useState(DEFAULT_DRONES);
   const [customers, setCustomers] = useState(DEFAULT_CUSTOMERS);
-  const [orders, setOrders] = useState(DEFAULT_ORDERS);
-  const [restaurants, setRestaurants] = useState([]);
+  const [orders, setOrders] = useState(
+    remoteOrders.length > 0 ? remoteOrders : DEFAULT_ORDERS
+  );
+  const [restaurants, setRestaurants] = useState(remoteRestaurants);
   const [activeForm, setActiveForm] = useState(null);
   const [activeSection, setActiveSection] = useState("overview");
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    if (remoteOrders.length > 0) {
+      setOrders(remoteOrders);
+    }
+  }, [remoteOrders]);
+
+  useEffect(() => {
+    if (remoteRestaurants.length > 0) {
+      setRestaurants(remoteRestaurants);
+    }
+  }, [remoteRestaurants]);
 
   useEffect(() => {
     setSearch("");
@@ -197,17 +236,22 @@ function AdminDashboard() {
     });
   }, [search, customers]);
 
+  const normalizedOrders = useMemo(
+    () => orders.map((order, index) => normalizeAdminOrder(order, index)),
+    [orders]
+  );
+
   const filteredOrders = useMemo(() => {
-    if (!search.trim()) return orders;
+    if (!search.trim()) return normalizedOrders;
     const term = search.toLowerCase();
-    return orders.filter(
+    return normalizedOrders.filter(
       (order) =>
         order.id.toLowerCase().includes(term) ||
         order.customer.toLowerCase().includes(term) ||
         order.destination.toLowerCase().includes(term) ||
         order.status.toLowerCase().includes(term)
     );
-  }, [search, orders]);
+  }, [search, normalizedOrders]);
 
   const filteredRestaurants = useMemo(() => {
     if (!search.trim()) return restaurants;
