@@ -8,6 +8,7 @@ function HomePage({
   restaurants = [],
   combos = [],
   promotions = [],
+  menuItems = [],
   addToCart,
   onSelectCategory = () => {},
   onViewProduct = () => {},
@@ -54,6 +55,7 @@ function HomePage({
   const aboutBadgeValue = texts.aboutBadgeValue ?? "98%";
   const aboutBadgeLabel =
     texts.aboutBadgeLabel ?? "Khách hàng quay lại lần 2";
+
   return (
     <main>
       <section className="hero" style={{ backgroundImage: `url(${heroBackground})` }}>
@@ -118,17 +120,14 @@ function HomePage({
         </div>
         <div className="restaurant-grid">
           {restaurants.map((restaurant) => (
-            <article
+            <a
               key={restaurant.id}
               className="restaurant-card"
+              href={`#/restaurant/${restaurant.slug}`}
               style={{
                 backgroundImage: `linear-gradient(160deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url(${restaurant.img})`,
               }}
             >
-              <div className="restaurant-card__top">
-                <span className="restaurant-badge">{restaurant.badge}</span>
-                <span className="restaurant-time">{restaurant.deliveryTime}</span>
-              </div>
               <h3>{restaurant.name}</h3>
               <p className="restaurant-meta">{restaurant.city}</p>
               <p className="restaurant-description">{restaurant.description}</p>
@@ -139,7 +138,10 @@ function HomePage({
                   ))}
                 </div>
               )}
-            </article>
+              <div className="restaurant-card__cta">
+                {texts.restaurantCta ?? "Xem các món"}
+              </div>
+            </a>
           ))}
         </div>
       </section>

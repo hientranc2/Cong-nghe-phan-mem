@@ -14,6 +14,7 @@ import OrderTrackingPage from "./pages/OrderTrackingPage.jsx";
 import OrderHistoryPage from "./pages/OrderHistoryPage.jsx";
 import AdminDashboard from "./admin/AdminDashboard";
 import RestaurantDashboard from "./pages/RestaurantDashboard";
+import RestaurantPage from "./pages/RestaurantPage";
 import { categories as categoryData, menuItems } from "./data/menuData";
 import { restaurants as restaurantData } from "./data/restaurants";
 import { contentByLanguage } from "./i18n/translations";
@@ -95,6 +96,12 @@ const parseViewFromHash = () => {
 
   if (/^\/orders$/.test(hash)) {
     return { type: "orders" };
+  }
+
+  const restaurantDetailMatch = hash.match(/^\/restaurant\/([\w-]+)/);
+
+  if (restaurantDetailMatch && restaurantDetailMatch[1]) {
+    return { type: "restaurantDetail", slug: restaurantDetailMatch[1] };
   }
 
   if (/^\/admin$/.test(hash)) {
@@ -384,6 +391,20 @@ function App() {
     () => translatedMenuItems.filter((item) => item.isBestSeller),
     [translatedMenuItems]
   );
+
+  const activeRestaurantDetail = useMemo(() => {
+    if (view.type !== "restaurantDetail") {
+      return null;
+    }
+
+    return translatedRestaurants.find((restaurant) => restaurant.slug === view.slug);
+  }, [view, translatedRestaurants]);
+
+  const restaurantMenuItems = useMemo(() => {
+    if (!activeRestaurantDetail) return [];
+    const ids = new Set(activeRestaurantDetail.menuItemIds ?? []);
+    return translatedMenuItems.filter((item) => ids.has(item.id));
+  }, [activeRestaurantDetail, translatedMenuItems]);
 
   const combos = useMemo(() => {
     const rawCombos = content.combos ?? [];
@@ -1066,6 +1087,18 @@ function App() {
         onViewProduct={handleViewProduct}
       />
     );
+  } else if (view.type === "restaurantDetail") {
+    pageContent = (
+      <RestaurantPage
+        restaurant={activeRestaurantDetail}
+        items={restaurantMenuItems}
+        addToCart={addToCart}
+        onNavigateHome={handleNavigateHome}
+        onViewProduct={handleViewProduct}
+        texts={content.restaurantPage ?? content.home?.restaurantPage ?? {}}
+        menuLabels={content.menuLabels}
+      />
+    );
   } else if (view.type === "login") {
     pageContent = (
       <LoginPage
@@ -1131,6 +1164,7 @@ function App() {
         categories={translatedCategories}
         bestSellers={bestSellers}
         restaurants={translatedRestaurants}
+        menuItems={translatedMenuItems}
         combos={combos}
         promotions={promotions}
         addToCart={addToCart}
