@@ -6,35 +6,7 @@ import RestaurantOrdersSection from "./components/RestaurantOrdersSection";
 import RestaurantOverview from "./components/RestaurantOverview";
 import RestaurantSidebar from "./components/RestaurantSidebar";
 
-const DEFAULT_MENU_ITEMS = [
-  {
-    id: "dish-01",
-    name: "Burger Blaze Bò Mỹ",
-    price: 69000,
-    category: "Burger",
-    status: "available",
-    description: "Burger bò mỹ nướng than, phô mai cheddar và bacon giòn.",
-    tag: "Best Seller",
-  },
-  {
-    id: "dish-02",
-    name: "Pizza Lava Phô Mai",
-    price: 189000,
-    category: "Pizza",
-    status: "available",
-    description: "Đế mỏng thủ công, sốt cà chua Ý, phô mai mozzarella kéo sợi.",
-    tag: null,
-  },
-  {
-    id: "dish-03",
-    name: "Salad Caesar Gà Nướng",
-    price: 59000,
-    category: "Salad",
-    status: "soldout",
-    description: "Xà lách romaine, sốt caesar, phô mai parmesan và gà nướng.",
-    tag: "Seasonal",
-  },
-];
+const DEFAULT_MENU_ITEMS = [];
 
 const DEFAULT_ORDERS = [
   {
@@ -331,6 +303,7 @@ function RestaurantDashboard({
 
   useEffect(() => {
     if (!Array.isArray(remoteMenuItems) || remoteMenuItems.length === 0) {
+      setMenuItems([]);
       return;
     }
 

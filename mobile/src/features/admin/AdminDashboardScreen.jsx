@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -58,7 +58,7 @@ const AdminDashboardScreen = ({ user, onBack }) => {
   const [users, setUsers] = useState([]);
   const [activeTab, setActiveTab] = useState("overview");
 
-  useEffect(() => {
+  const refreshData = useCallback(() => {
     let active = true;
 
     const loadData = async () => {
@@ -88,6 +88,18 @@ const AdminDashboardScreen = ({ user, onBack }) => {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    const cleanup = refreshData();
+    const interval = setInterval(() => {
+      refreshData();
+    }, 15000);
+
+    return () => {
+      if (cleanup) cleanup();
+      clearInterval(interval);
+    };
+  }, [refreshData]);
 
   const activeOrders = useMemo(
     () =>

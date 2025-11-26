@@ -112,6 +112,8 @@ const DEFAULT_USERS = [
   ...DEFAULT_RESTAURANT_USERS,
 ];
 
+const RESTAURANT_DEFAULT_PASSWORD = "fco123";
+
 const normalizeEmail = (email = "") => email.trim().toLowerCase();
 const normalizePhone = (phone = "") => phone.replace(/\D/g, "");
 
@@ -140,6 +142,40 @@ const mergeUsersByEmail = (users = []) => {
   });
 
   return Array.from(byEmail.values());
+};
+
+const nextRestaurantEmail = (existingUsers = []) => {
+  const maxNumericSuffix = existingUsers.reduce((max, user) => {
+    const match = normalizeEmail(user.email).match(/^restaurant(\d+)@gmail\.com$/);
+    if (!match) return max;
+    const numeric = Number(match[1]) || 0;
+    return numeric > max ? numeric : max;
+  }, 0);
+
+  return `restaurant${maxNumericSuffix + 1}@gmail.com`;
+};
+
+const buildRestaurantAccount = (restaurant, existingUsers = []) => {
+  if (!restaurant?.id || !restaurant?.slug) return null;
+
+  const preferredEmail = normalizeEmail(restaurant.email);
+  const hasEmailConflict = preferredEmail
+    ? existingUsers.some((user) => normalizeEmail(user.email) === preferredEmail)
+    : false;
+
+  const email = preferredEmail && !hasEmailConflict
+    ? preferredEmail
+    : nextRestaurantEmail(existingUsers);
+
+  return {
+    id: restaurant.id,
+    name: restaurant.name ?? restaurant.badge ?? "Nhà hàng FCO",
+    email,
+    password: restaurant.password || RESTAURANT_DEFAULT_PASSWORD,
+    role: "restaurant",
+    restaurantId: restaurant.id,
+    restaurantSlug: restaurant.slug,
+  };
 };
 
 const slugify = (value = "") =>
@@ -376,6 +412,35 @@ function App() {
 
     return [];
   }, []);
+
+  const ensureRestaurantAccount = useCallback(
+    async (restaurantProfile) => {
+      if (!restaurantProfile?.id) return;
+
+      const existingAccount = users.find(
+        (user) =>
+          user.restaurantId === restaurantProfile.id ||
+          user.restaurantSlug === restaurantProfile.slug
+      );
+
+      if (existingAccount) return;
+
+      const account = buildRestaurantAccount(restaurantProfile, users);
+      if (!account) return;
+
+      try {
+        const created = await createUser(account);
+        if (created?.id) {
+          account.id = created.id;
+        }
+      } catch (error) {
+        console.error("Không thể tạo tài khoản nhà hàng trên server", error);
+      }
+
+      setUsers((prev) => mergeUsersByEmail([...prev, account]));
+    },
+    [users]
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -891,8 +956,12 @@ function App() {
             )
           : [...withoutTemp, normalized];
       });
+
+      await ensureRestaurantAccount(normalized);
     } catch (error) {
       console.error("Không thể tạo nhà hàng trên json-server", error);
+      const fallback = withRestaurantDefaults({ ...restaurant, id: tempId });
+      await ensureRestaurantAccount(fallback);
     }
   };
 
