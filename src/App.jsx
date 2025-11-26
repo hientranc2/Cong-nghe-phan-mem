@@ -961,6 +961,16 @@ function App() {
       null
     );
   }, [view, translatedCategories]);
+   const activeRestaurantDetail = useMemo(() => {
+    if (view.type !== "restaurantDetail") {
+      return null;
+    }
+
+    return (
+      translatedRestaurants.find((restaurant) => restaurant.slug === view.slug) ??
+      null
+    );
+  }, [view, translatedRestaurants]);
 
   useEffect(() => {
     if (view.type === "category" && !activeCategory) {
@@ -984,16 +994,7 @@ function App() {
     );
   }, [activeCategory, translatedMenuItems]);
 
-  const activeRestaurantDetail = useMemo(() => {
-    if (view.type !== "restaurantDetail") {
-      return null;
-    }
-
-    return (
-      translatedRestaurants.find((restaurant) => restaurant.slug === view.slug) ??
-      null
-    );
-  }, [view, translatedRestaurants]);
+  
 
   const restaurantMenuItems = useMemo(() => {
     if (!activeRestaurantDetail) return [];
