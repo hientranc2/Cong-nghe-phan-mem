@@ -1,8 +1,34 @@
-const API_BASE =
-  (typeof globalThis !== "undefined" &&
+import { Platform } from "react-native";
+import Constants from "expo-constants";
+
+import localDataset from "../data/db.json";
+
+const resolveApiBase = () => {
+  const envBaseUrl =
+    typeof globalThis !== "undefined" &&
     globalThis.process &&
-    globalThis.process.env?.EXPO_PUBLIC_API_URL) ??
-  "http://localhost:3001";
+    globalThis.process.env?.EXPO_PUBLIC_API_URL;
+
+  if (envBaseUrl) {
+    return envBaseUrl;
+  }
+
+  const hostUri =
+    Constants?.expoConfig?.hostUri || Constants?.manifest?.debuggerHost || "";
+  const host = hostUri.split(":")?.[0];
+
+  if (host) {
+    return `http://${host}:3001`;
+  }
+
+  if (Platform.OS === "android") {
+    return "http://10.0.2.2:3001";
+  }
+
+  return "http://localhost:3001";
+};
+
+const API_BASE = resolveApiBase();
 
 const parseJSON = async (response) => {
   const contentType = response.headers.get("content-type") ?? "";
@@ -26,6 +52,10 @@ const fetchFallbackDataset = async () => {
     if (data) {
       return data;
     }
+  }
+
+  if (localDataset && typeof localDataset === "object") {
+    return localDataset;
   }
 
   return null;

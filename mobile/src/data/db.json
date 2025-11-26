@@ -1,0 +1,827 @@
+{
+  "categories": [
+    {
+      "id": "cat-burger",
+      "slug": "burger",
+      "icon": "🍔",
+      "title": "Burger Artisan",
+      "description": "Bánh burger nướng than cùng nguyên liệu nhập khẩu tươi mới.",
+      "heroTitle": "Burger Artisan chuẩn vị lửa than",
+      "heroDescription": "Tận hưởng burger bò Mỹ nướng than, phô mai nhập khẩu và sốt signature FCO được chế biến mới mỗi ngày.",
+      "translations": {
+        "vi": {
+          "title": "Burger Artisan",
+          "description": "Bánh burger nướng than cùng nguyên liệu nhập khẩu tươi mới.",
+          "heroTitle": "Burger Artisan chuẩn vị lửa than",
+          "heroDescription": "Tận hưởng burger bò Mỹ nướng than, phô mai nhập khẩu và sốt signature FCO được chế biến mới mỗi ngày."
+        },
+        "en": {
+          "title": "Artisan burgers",
+          "description": "Char-grilled burgers with freshly imported premium ingredients.",
+          "heroTitle": "Char-grilled artisan burgers",
+          "heroDescription": "Savor American Angus beef seared over charcoal, imported cheese and FCO signature sauces prepared fresh daily."
+        }
+      }
+    },
+    {
+      "id": "cat-pizza",
+      "slug": "pizza",
+      "icon": "🍕",
+      "title": "Pizza 18 inch",
+      "description": "Đế mỏng kiểu Ý, phô mai nhập khẩu và sốt signature FCO.",
+      "heroTitle": "Pizza thủ công 18 inch chuẩn Ý",
+      "heroDescription": "Từ đế bột ủ lạnh 48h tới phô mai mozzarella tan chảy, mỗi chiếc pizza được nướng trên đá nóng 400°C.",
+      "translations": {
+        "vi": {
+          "title": "Pizza 18 inch",
+          "description": "Đế mỏng kiểu Ý, phô mai nhập khẩu và sốt signature FCO.",
+          "heroTitle": "Pizza thủ công 18 inch chuẩn Ý",
+          "heroDescription": "Từ đế bột ủ lạnh 48h tới phô mai mozzarella tan chảy, mỗi chiếc pizza được nướng trên đá nóng 400°C."
+        },
+        "en": {
+          "title": "18-inch pizzas",
+          "description": "Thin-crust Italian dough, imported cheese and FCO signature sauce.",
+          "heroTitle": "Handcrafted 18-inch Italian pizzas",
+          "heroDescription": "From 48-hour cold-proofed dough to molten mozzarella, each pizza is baked on a 400°C stone deck."
+        }
+      }
+    },
+    {
+      "id": "cat-fried",
+      "slug": "fried-snack",
+      "icon": "🍗",
+      "title": "Gà rán & Snack",
+      "description": "Các món chiên giòn tan, sốt pha chuẩn vị chuyên gia.",
+      "heroTitle": "Gà rán & snack phủ sốt đặc biệt",
+      "heroDescription": "Khám phá những món gà rán cay, khoai tây phô mai và taco Mexico với công thức độc quyền tại FCO.",
+      "translations": {
+        "vi": {
+          "title": "Gà rán & Snack",
+          "description": "Các món chiên giòn tan, sốt pha chuẩn vị chuyên gia.",
+          "heroTitle": "Gà rán & snack phủ sốt đặc biệt",
+          "heroDescription": "Khám phá những món gà rán cay, khoai tây phô mai và taco Mexico với công thức độc quyền tại FCO."
+        },
+        "en": {
+          "title": "Fried chicken & snacks",
+          "description": "Crispy fried bites glazed with chef-crafted signature sauces.",
+          "heroTitle": "Fried chicken & snacks with signature sauces",
+          "heroDescription": "Discover spicy fried chicken, cheesy fries and Mexican tacos made with FCO's secret recipes."
+        }
+      }
+    },
+    {
+      "id": "cat-drink",
+      "slug": "mixology",
+      "icon": "🥤",
+      "title": "Đồ uống mixology",
+      "description": "Trà trái cây, soda signature và cà phê cold brew làm mới mỗi ngày.",
+      "heroTitle": "Quầy đồ uống mixology tươi mới",
+      "heroDescription": "Từ trà hoa quả mát lạnh đến cold brew rang xay tại chỗ, đội ngũ bartender của FCO luôn sẵn sàng sáng tạo.",
+      "translations": {
+        "vi": {
+          "title": "Đồ uống mixology",
+          "description": "Trà trái cây, soda signature và cà phê cold brew làm mới mỗi ngày.",
+          "heroTitle": "Quầy đồ uống mixology tươi mới",
+          "heroDescription": "Từ trà hoa quả mát lạnh đến cold brew rang xay tại chỗ, đội ngũ bartender của FCO luôn sẵn sàng sáng tạo."
+        },
+        "en": {
+          "title": "Craft mixology drinks",
+          "description": "Fruit teas, signature sodas and cold brew made fresh every day.",
+          "heroTitle": "Fresh craft mixology bar",
+          "heroDescription": "From chilled fruit teas to hand-brewed cold brew, our bartenders are ready to shake up something new."
+        }
+      }
+    }
+  ],
+  "restaurants": [
+    {
+      "id": "fco-burger-artisan",
+      "slug": "burger-artisan",
+      "badge": "Burger Artisan",
+      "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=1000&q=80",
+      "name": "Burger Artisan House",
+      "description": "Burger bò nướng than, phô mai nhập khẩu và sốt FCO làm mới mỗi ngày.",
+      "story": "Bếp than hoa giữ vỏ ngoài giòn, bên trong mềm; kết hợp phô mai nhập khẩu và rau củ tươi. Mỗi công thức burger được phát triển riêng cho thị trường Việt.",
+      "city": "Quận 1, TP. Hồ Chí Minh",
+      "deliveryTime": "15-25 phút",
+      "tags": ["Burger", "Grill"],
+      "menuItemIds": ["fco-burger-blaze", "fco-burger-truffle", "fco-burger-veggie", "fco-burger-blue", "fco-burger-double"],
+      "translations": {
+        "en": {
+          "name": "Burger Artisan House",
+          "description": "Char-grilled burgers with imported cheese and FCO signature sauces.",
+          "story": "Charcoal grill sears the beef while keeping it juicy. Imported cheese, fresh greens and house-made sauces tailored for local tastes.",
+          "city": "District 1, Ho Chi Minh City",
+          "deliveryTime": "15-25 min"
+        }
+      }
+    },
+    {
+      "id": "fco-pizza-lab",
+      "slug": "pizza-lab",
+      "badge": "Pizza Lab",
+      "img": "https://images.unsplash.com/photo-1601924582971-006bb6809f98?auto=format&fit=crop&w=1000&q=80",
+      "name": "Pizza Pazzi",
+      "description": "Nhà hàng chuyên pizza nướng lò đá Ý truyền thống.",
+      "story": "Bếp pizza chuyên nghiệp với lò đá 400°C nướng mỗi chiếc pizza hoàn hảo. Từ đế bột ủ lạnh 48h tới phô mai mozzarella nhập khẩu.",
+      "city": "Quận 1, TP. Hồ Chí Minh",
+      "deliveryTime": "15-25 phút",
+      "tags": ["Pizza"],
+      "menuItemIds": ["fco-pizza-lava", "fco-pizza-carbonara", "fco-pizza-seafood", "fco-pizza-bbq", "fco-pizza-veggie"],
+      "translations": {
+        "en": {
+          "name": "Pizza Pazzi",
+          "description": "Specialized restaurant for traditional Italian stone-fired pizzas.",
+          "story": "Professional pizza kitchen with 400°C stone oven baking every pizza perfectly. From 48-hour cold-proofed dough to imported mozzarella cheese.",
+          "city": "District 1, Ho Chi Minh City",
+          "deliveryTime": "15-25 min"
+        }
+      }
+    },
+    {
+      "id": "fco-fried-bar",
+      "slug": "fried-bar",
+      "badge": "Fried Bar",
+      "img": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=1000&q=80",
+      "name": "Chicken Fried Bar",
+      "description": "Quầy gà rán và snack chiên giòn chuyên gia.",
+      "story": "Gà rán sốt cay, cánh gà mật ong bơ, tôm chiên tempura. Tất cả những món chiên giòn được chế biến theo công thức đặc biệt của FCO.",
+      "city": "Quận 3, TP. Hồ Chí Minh",
+      "deliveryTime": "10-20 phút",
+      "tags": ["Fried Chicken", "Snack"],
+      "menuItemIds": ["fco-chicken-crispy", "fco-wings-honey", "fco-snack-parmesan", "fco-snack-popcorn", "fco-snack-tempura"],
+      "translations": {
+        "en": {
+          "name": "Chicken Fried Bar",
+          "description": "Expert fried chicken and crispy snack bar.",
+          "story": "Spicy fried chicken, honey butter wings, tempura shrimp. All fried items are made with FCO's special recipe.",
+          "city": "District 3, Ho Chi Minh City",
+          "deliveryTime": "10-20 min"
+        }
+      }
+    },
+    {
+      "id": "fco-drinks-lounge",
+      "slug": "drinks-lounge",
+      "badge": "Drinks Lounge",
+      "img": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1000&q=80",
+      "name": "FCO Drinks Lounge",
+      "description": "Quầy đồ uống mixology và cold brew chuyên gia.",
+      "story": "Cold brew 18h, matcha latte, trà đào cam sả, mocktail tropical. Quầy bar phục vụ những thức uống craft được làm tươi mỗi ngày.",
+      "city": "Quận 2, TP. Hồ Chí Minh",
+      "deliveryTime": "5-15 phút",
+      "tags": ["Drinks", "Coffee", "Cocktails"],
+      "menuItemIds": ["fco-coldbrew-orange", "fco-drink-matcha", "fco-drink-peachtea", "fco-berry-soda", "fco-drink-tonic"],
+      "translations": {
+        "en": {
+          "name": "FCO Drinks Lounge",
+          "description": "Expert mixology and cold brew bar.",
+          "story": "18-hour cold brew, matcha latte, peach citrus tea, tropical mocktail. Bar serves craft drinks made fresh daily.",
+          "city": "District 2, Ho Chi Minh City",
+          "deliveryTime": "5-15 min"
+        }
+      }
+    },
+    {
+      "id": "fco-taco-hub",
+      "slug": "taco-hub",
+      "badge": "Taco Hub",
+      "img": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=1000&q=80",
+      "name": "FCO Taco Hub",
+      "description": "Nhà hàng taco Mexico đặc biệt với burger fusion đa dạng.",
+      "story": "Taco Mexico, burger fusion, bánh mì Wagyu, bánh mì breakfast. Nơi ăn nhẹ với những công thức fusion độc đáo của FCO.",
+      "city": "Quận 7, TP. Hồ Chí Minh",
+      "deliveryTime": "12-25 phút",
+      "tags": ["Tacos", "Fusion", "Breakfast"],
+      "menuItemIds": ["fco-burger-korean", "fco-pizza-truffle", "fco-taco-fiesta", "fco-mixology-sunrise"],
+      "translations": {
+        "en": {
+          "name": "FCO Taco Hub",
+          "description": "Mexican taco restaurant with diverse fusion burgers.",
+          "story": "Mexican tacos, fusion burgers, Wagyu banh mi, breakfast banh mi. Light dining with FCO's unique fusion recipes.",
+          "city": "District 7, Ho Chi Minh City",
+          "deliveryTime": "12-25 min"
+        }
+      }
+    }
+  ],
+  "menuItems": [
+    {
+      "id": "fco-burger-blaze",
+      "categoryId": "cat-burger",
+      "name": "Burger Blaze Bò Mỹ",
+      "description": "Bánh burger bò Mỹ nướng than, sốt phô mai cheddar và bacon giòn.",
+      "price": 69000,
+      "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=900&q=80",
+      "image": "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=900&q=80",
+      "calories": 520,
+      "time": 12,
+      "tag": "Best Seller",
+      "isBestSeller": true,
+      "translations": {
+        "vi": {
+          "name": "Burger Blaze Bò Mỹ",
+          "description": "Bánh burger bò Mỹ nướng than, sốt phô mai cheddar và bacon giòn.",
+          "tag": "Best Seller"
+        },
+        "en": {
+          "name": "Blaze Angus Burger",
+          "description": "Char-grilled American beef burger with cheddar cheese sauce and crispy bacon.",
+          "tag": "Best Seller"
+        }
+      }
+    },
+    {
+      "id": "fco-burger-truffle",
+      "categoryId": "cat-burger",
+      "name": "Burger Nấm Truffle",
+      "description": "Thịt bò Úc kết hợp sốt kem nấm truffle và phô mai gruyere nhập khẩu.",
+      "price": 95000,
+      "img": "https://images.unsplash.com/photo-1551782450-a2132b4ba21d?auto=format&fit=crop&w=900&q=80",
+      "image": "https://images.unsplash.com/photo-1551782450-a2132b4ba21d?auto=format&fit=crop&w=900&q=80",
+      "calories": 610,
+      "time": 14,
+      "tag": "Chef's Choice",
+      "isBestSeller": false,
+      "translations": {
+        "vi": {
+          "name": "Burger Nấm Truffle",
+          "description": "Thịt bò Úc kết hợp sốt kem nấm truffle và phô mai gruyere nhập khẩu.",
+          "tag": "Chef's Choice"
+        },
+        "en": {
+          "name": "Truffle Mushroom Burger",
+          "description": "Australian beef patty with truffle mushroom cream sauce and imported gruyere cheese.",
+          "tag": "Chef's Choice"
+        }
+      }
+    },
+    {
+      "id": "fco-burger-veggie",
+      "categoryId": "cat-burger",
+      "name": "Burger Rau Củ Sốt Miso",
+      "description": "Patty đậu gà, rau củ nướng và sốt miso ngọt mặn dành cho thực khách eat clean.",
+      "price": 72000,
+      "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80",
+      "image": "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80",
+      "calories": 430,
+      "time": 11,
+      "tag": "Eat Clean",
+      "isBestSeller": false,
+      "translations": {
+        "vi": {
+          "name": "Burger Rau Củ Sốt Miso",
+          "description": "Patty đậu gà, rau củ nướng và sốt miso ngọt mặn dành cho thực khách eat clean.",
+          "tag": "Eat Clean"
+        },
+        "en": {
+          "name": "Miso Glazed Veggie Burger",
+          "description": "Chickpea patty with roasted vegetables and a sweet-savory miso glaze for clean eaters.",
+          "tag": "Eat Clean"
+        }
+      }
+    },
+    {
+      "id": "fco-pizza-lava",
+      "categoryId": "cat-pizza",
+      "name": "Pizza Phô Mai Lava",
+      "description": "Đế mỏng kiểu Ý, phủ phô mai mozzarella lava và pepperoni cay.",
+      "price": 119000,
+      "img": "https://images.unsplash.com/photo-1601924582971-006bb6809f98?auto=format&fit=crop&w=900&q=80",
+      "image": "https://images.unsplash.com/photo-1601924582971-006bb6809f98?auto=format&fit=crop&w=900&q=80",
+      "calories": 730,
+      "time": 15,
+      "tag": "FCO Signature",
+      "isBestSeller": true,
+      "translations": {
+        "vi": {
+          "name": "Pizza Phô Mai Lava",
+          "description": "Đế mỏng kiểu Ý, phủ phô mai mozzarella lava và pepperoni cay.",
+          "tag": "FCO Signature"
+        },
+        "en": {
+          "name": "Molten Cheese Lava Pizza",
+          "description": "Thin-crust Italian dough topped with molten mozzarella lava and spicy pepperoni.",
+          "tag": "FCO Signature"
+        }
+      }
+    },
+    {
+      "id": "fco-pizza-seafood",
+      "categoryId": "cat-pizza",
+      "name": "Pizza Hải Sản Đặc Biệt",
+      "description": "Tôm, mực và nghêu tươi với sốt kem tỏi và phô mai parmesan.",
+      "price": 135000,
+      "img": "https://images.unsplash.com/photo-1548365328-9da2d637b05c?auto=format&fit=crop&w=900&q=80",
+      "image": "https://images.unsplash.com/photo-1548365328-9da2d637b05c?auto=format&fit=crop&w=900&q=80",
+      "calories": 680,
+      "time": 16,
+      "tag": "Hải sản",
+      "isBestSeller": false,
+      "translations": {
+        "vi": {
+          "name": "Pizza Hải Sản Đặc Biệt",
+          "description": "Tôm, mực và nghêu tươi với sốt kem tỏi và phô mai parmesan.",
+          "tag": "Hải sản"
+        },
+        "en": {
+          "name": "Premium Seafood Pizza",
+          "description": "Shrimp, squid and clams over garlic cream sauce finished with parmesan cheese.",
+          "tag": "Seafood"
+        }
+      }
+    },
+    {
+      "id": "fco-pizza-veggie",
+      "categoryId": "cat-pizza",
+      "name": "Pizza Rau Củ 4 Mùa",
+      "description": "Ớt chuông, nấm, bông cải xanh cùng phô mai ricotta nhẹ nhàng.",
+      "price": 102000,
+      "img": "https://images.unsplash.com/photo-1506354666786-959d6d497f1a?auto=format&fit=crop&w=900&q=80",
+      "image": "https://images.unsplash.com/photo-1506354666786-959d6d497f1a?auto=format&fit=crop&w=900&q=80",
+      "calories": 540,
+      "time": 14,
+      "tag": "Eat Clean",
+      "isBestSeller": false,
+      "translations": {
+        "vi": {
+          "name": "Pizza Rau Củ 4 Mùa",
+          "description": "Ớt chuông, nấm, bông cải xanh cùng phô mai ricotta nhẹ nhàng.",
+          "tag": "Eat Clean"
+        },
+        "en": {
+          "name": "Four Seasons Veggie Pizza",
+          "description": "Bell peppers, mushrooms and broccoli finished with light ricotta cheese.",
+          "tag": "Eat Clean"
+        }
+      }
+    },
+    {
+      "id": "fco-chicken-crispy",
+      "categoryId": "cat-fried",
+      "name": "Gà Rán Cay Blaze",
+      "description": "Đùi gà tẩm bột cay, chiên áp suất giữ thịt mọng nước.",
+      "price": 78000,
+      "img": "https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=900&q=80",
+      "image": "https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=900&q=80",
+      "calories": 640,
+      "time": 12,
+      "tag": "Spicy",
+      "isBestSeller": true,
+      "translations": {
+        "vi": {
+          "name": "Gà Rán Cay Blaze",
+          "description": "Đùi gà tẩm bột cay, chiên áp suất giữ thịt mọng nước.",
+          "tag": "Cay"
+        },
+        "en": {
+          "name": "Blaze Spicy Fried Chicken",
+          "description": "Crispy pressure-fried chicken legs coated in a spicy batter.",
+          "tag": "Spicy"
+        }
+      }
+    },
+    {
+      "id": "fco-wings-honey",
+      "categoryId": "cat-fried",
+      "name": "Cánh Gà Mật Ong Bơ",
+      "description": "Cánh gà chiên sốt mật ong bơ, rắc mè rang thơm.",
+      "price": 72000,
+      "img": "https://images.unsplash.com/photo-1608038506297-1c351b117d38?auto=format&fit=crop&w=900&q=80",
+      "image": "https://images.unsplash.com/photo-1608038506297-1c351b117d38?auto=format&fit=crop&w=900&q=80",
+      "calories": 510,
+      "time": 10,
+      "tag": "Sweet & Spicy",
+      "isBestSeller": false,
+      "translations": {
+        "vi": {
+          "name": "Cánh Gà Mật Ong Bơ",
+          "description": "Cánh gà chiên sốt mật ong bơ, rắc mè rang thơm.",
+          "tag": "Ngọt cay"
+        },
+        "en": {
+          "name": "Honey Butter Chicken Wings",
+          "description": "Fried chicken wings tossed in honey butter sauce and toasted sesame seeds.",
+          "tag": "Sweet & Spicy"
+        }
+      }
+    },
+    {
+      "id": "fco-taco-fiesta",
+      "categoryId": "cat-fried",
+      "name": "Taco Fiesta Mexico",
+      "description": "Vỏ taco ngô nướng, nhân bò cay, salsa cà chua và bắp nướng.",
+      "price": 92000,
+      "img": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=900&q=80",
+      "image": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=900&q=80",
+      "calories": 480,
+      "time": 13,
+      "tag": "Fusion",
+      "isBestSeller": false,
+      "translations": {
+        "vi": {
+          "name": "Taco Fiesta Mexico",
+          "description": "Vỏ taco ngô nướng, nhân bò cay, salsa cà chua và bắp nướng.",
+          "tag": "Fusion"
+        },
+        "en": {
+          "name": "Fiesta Beef Taco",
+          "description": "Grilled corn taco shells with spicy beef, tomato salsa and roasted corn.",
+          "tag": "Fusion"
+        }
+      }
+    },
+    {
+      "id": "fco-mixology-sunrise",
+      "categoryId": "cat-drink",
+      "name": "Mocktail Sunrise Tropical",
+      "description": "Nước ép cam, dứa và lựu, thêm soda thanh mát.",
+      "price": 56000,
+      "img": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=900&q=80",
+      "image": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=900&q=80",
+      "calories": 180,
+      "time": 5,
+      "tag": "Refreshing",
+      "isBestSeller": true,
+      "translations": {
+        "vi": {
+          "name": "Mocktail Sunrise Tropical",
+          "description": "Nước ép cam, dứa và lựu, thêm soda thanh mát.",
+          "tag": "Giải khát"
+        },
+        "en": {
+          "name": "Tropical Sunrise Mocktail",
+          "description": "Orange, pineapple and pomegranate juice topped with sparkling soda.",
+          "tag": "Refreshing"
+        }
+      }
+    },
+    {
+      "id": "fco-coldbrew-orange",
+      "categoryId": "cat-drink",
+      "name": "Cold Brew Cam Sả",
+      "description": "Cold brew 18h kết hợp syrup cam sả và đá cam tươi.",
+      "price": 52000,
+      "img": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=900&q=80",
+      "image": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=900&q=80",
+      "calories": 90,
+      "time": 4,
+      "tag": "Cold Brew",
+      "isBestSeller": false,
+      "translations": {
+        "vi": {
+          "name": "Cold Brew Cam Sả",
+          "description": "Cold brew 18h kết hợp syrup cam sả và đá cam tươi.",
+          "tag": "Cold Brew"
+        },
+        "en": {
+          "name": "Orange Lemongrass Cold Brew",
+          "description": "18-hour cold brew with orange lemongrass syrup and fresh citrus slices.",
+          "tag": "Cold Brew"
+        }
+      }
+    },
+    {
+      "id": "fco-berry-soda",
+      "categoryId": "cat-drink",
+      "name": "Berry Soda Signature",
+      "description": "Soda việt quất, dâu tây và lá húng tươi.",
+      "price": 46000,
+      "img": "https://images.unsplash.com/photo-1544145945-f90425340c7b?auto=format&fit=crop&w=900&q=80",
+      "image": "https://images.unsplash.com/photo-1544145945-f90425340c7b?auto=format&fit=crop&w=900&q=80",
+      "calories": 120,
+      "time": 4,
+      "tag": "Signature",
+      "isBestSeller": true,
+      "translations": {
+        "vi": {
+          "name": "Berry Soda Signature",
+          "description": "Soda việt quất, dâu tây và lá húng tươi.",
+          "tag": "Signature"
+        },
+        "en": {
+          "name": "Signature Berry Soda",
+          "description": "Blueberry and strawberry soda muddled with fresh mint leaves.",
+          "tag": "Signature"
+        }
+      }
+    },
+    {
+      "id": "fco-burger-korean",
+      "categoryId": "cat-burger",
+      "name": "Burger Bulgogi Hàn Quốc",
+      "description": "Patty bò sốt bulgogi, kimchi giòn và hành lá nướng.",
+      "price": 105000,
+      "img": "https://images.unsplash.com/photo-1604908177097-3d39c4f2a3fa?auto=format&fit=crop&w=900&q=80",
+      "image": "https://images.unsplash.com/photo-1604908177097-3d39c4f2a3fa?auto=format&fit=crop&w=900&q=80",
+      "calories": 660,
+      "time": 13,
+      "tag": "Fusion",
+      "isBestSeller": false,
+      "translations": {
+        "vi": {
+          "name": "Burger Bulgogi Hàn Quốc",
+          "description": "Patty bò sốt bulgogi, kimchi giòn và hành lá nướng.",
+          "tag": "Fusion"
+        },
+        "en": {
+          "name": "Korean Bulgogi Burger",
+          "description": "Beef patty glazed in bulgogi sauce with crispy kimchi and grilled scallions.",
+          "tag": "Fusion"
+        }
+      }
+    },
+    {
+      "id": "fco-burger-blue",
+      "categoryId": "cat-burger",
+      "name": "Burger Phô Mai Xanh",
+      "description": "Phô mai xanh, hành caramel và sốt tiêu đen.",
+      "price": 99000,
+      "img": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=900&q=80",
+      "image": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=900&q=80",
+      "calories": 650,
+      "time": 14,
+      "tag": "Rich Cheese",
+      "isBestSeller": false,
+      "translations": {
+        "vi": {
+          "name": "Burger Phô Mai Xanh",
+          "description": "Phô mai xanh, hành caramel và sốt tiêu đen.",
+          "tag": "Phô mai"
+        },
+        "en": {
+          "name": "Blue Cheese Burger",
+          "description": "Blue cheese crumble with caramelized onions and black pepper sauce.",
+          "tag": "Rich Cheese"
+        }
+      }
+    },
+    {
+      "id": "fco-burger-double",
+      "categoryId": "cat-burger",
+      "name": "Double Cheese Smash",
+      "description": "Hai lớp bò smash, phô mai cheddar đôi và sốt tỏi nướng.",
+      "price": 89000,
+      "img": "https://images.unsplash.com/photo-1612874472278-5c1b7fafa5bb?auto=format&fit=crop&w=900&q=80",
+      "image": "https://images.unsplash.com/photo-1612874472278-5c1b7fafa5bb?auto=format&fit=crop&w=900&q=80",
+      "calories": 720,
+      "time": 12,
+      "tag": "Double Meat",
+      "isBestSeller": true,
+      "translations": {
+        "vi": {
+          "name": "Double Cheese Smash",
+          "description": "Hai lớp bò smash, phô mai cheddar đôi và sốt tỏi nướng.",
+          "tag": "Gấp đôi"
+        },
+        "en": {
+          "name": "Double Smash Cheese",
+          "description": "Two smash beef patties, double cheddar cheese and roasted garlic sauce.",
+          "tag": "Double Meat"
+        }
+      }
+    },
+    {
+      "id": "fco-pizza-bbq",
+      "categoryId": "cat-pizza",
+      "name": "Pizza Gà Nướng BBQ",
+      "description": "Gà nướng BBQ, hành tím và sốt phô mai cheddar.",
+      "price": 125000,
+      "img": "https://images.unsplash.com/photo-1542281286-9e0a16bb7366?auto=format&fit=crop&w=900&q=80",
+      "image": "https://images.unsplash.com/photo-1542281286-9e0a16bb7366?auto=format&fit=crop&w=900&q=80",
+      "calories": 690,
+      "time": 15,
+      "tag": "BBQ",
+      "isBestSeller": false,
+      "translations": {
+        "vi": {
+          "name": "Pizza Gà Nướng BBQ",
+          "description": "Gà nướng BBQ, hành tím và sốt phô mai cheddar.",
+          "tag": "BBQ"
+        },
+        "en": {
+          "name": "BBQ Chicken Pizza",
+          "description": "BBQ grilled chicken, red onions and cheddar cheese sauce.",
+          "tag": "BBQ"
+        }
+      }
+    },
+    {
+      "id": "fco-pizza-carbonara",
+      "categoryId": "cat-pizza",
+      "name": "Pizza Carbonara",
+      "description": "Thịt xông khói, phô mai parmesan và sốt kem trứng.",
+      "price": 132000,
+      "img": "https://images.unsplash.com/photo-1542281286-9e0a16bb7366?auto=format&fit=crop&w=900&q=80",
+      "image": "https://images.unsplash.com/photo-1542281286-9e0a16bb7366?auto=format&fit=crop&w=900&q=80",
+      "calories": 710,
+      "time": 15,
+      "tag": "Classic",
+      "isBestSeller": false,
+      "translations": {
+        "vi": {
+          "name": "Pizza Carbonara",
+          "description": "Thịt xông khói, phô mai parmesan và sốt kem trứng.",
+          "tag": "Kinh điển"
+        },
+        "en": {
+          "name": "Carbonara Pizza",
+          "description": "Smoked bacon, parmesan cheese and creamy egg sauce.",
+          "tag": "Classic"
+        }
+      }
+    },
+    {
+      "id": "fco-pizza-truffle",
+      "categoryId": "cat-pizza",
+      "name": "Pizza Truffle Rừng",
+      "description": "Nấm rừng, dầu truffle đen và ricotta tươi.",
+      "price": 145000,
+      "img": "https://images.unsplash.com/photo-1548365328-9da2d637b05c?auto=format&fit=crop&w=900&q=80",
+      "image": "https://images.unsplash.com/photo-1548365328-9da2d637b05c?auto=format&fit=crop&w=900&q=80",
+      "calories": 705,
+      "time": 16,
+      "tag": "Premium",
+      "isBestSeller": true,
+      "translations": {
+        "vi": {
+          "name": "Pizza Truffle Rừng",
+          "description": "Nấm rừng, dầu truffle đen và ricotta tươi.",
+          "tag": "Cao cấp"
+        },
+        "en": {
+          "name": "Forest Truffle Pizza",
+          "description": "Wild mushrooms, black truffle oil and fresh ricotta cheese.",
+          "tag": "Premium"
+        }
+      }
+    },
+    {
+      "id": "fco-snack-parmesan",
+      "categoryId": "cat-fried",
+      "name": "Khoai Tây Lắc Parmesan",
+      "description": "Khoai tây chiên xóc phô mai parmesan và lá oregano.",
+      "price": 45000,
+      "img": "https://images.unsplash.com/photo-1504274066651-8d31a536b11a?auto=format&fit=crop&w=900&q=80",
+      "image": "https://images.unsplash.com/photo-1504274066651-8d31a536b11a?auto=format&fit=crop&w=900&q=80",
+      "calories": 420,
+      "time": 8,
+      "tag": "Snack",
+      "isBestSeller": false,
+      "translations": {
+        "vi": {
+          "name": "Khoai Tây Lắc Parmesan",
+          "description": "Khoai tây chiên xóc phô mai parmesan và lá oregano.",
+          "tag": "Snack"
+        },
+        "en": {
+          "name": "Parmesan Dust Fries",
+          "description": "Crispy fries tossed with parmesan cheese and oregano.",
+          "tag": "Snack"
+        }
+      }
+    },
+    {
+      "id": "fco-snack-popcorn",
+      "categoryId": "cat-fried",
+      "name": "Gà Popcorn Phô Mai",
+      "description": "Gà popcorn chiên giòn phủ phô mai cheddar.",
+      "price": 49000,
+      "img": "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=900&q=80",
+      "image": "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=900&q=80",
+      "calories": 430,
+      "time": 9,
+      "tag": "Cheesy",
+      "isBestSeller": false,
+      "translations": {
+        "vi": {
+          "name": "Gà Popcorn Phô Mai",
+          "description": "Gà popcorn chiên giòn phủ phô mai cheddar.",
+          "tag": "Phô mai"
+        },
+        "en": {
+          "name": "Cheddar Popcorn Chicken",
+          "description": "Crispy popcorn chicken coated in cheddar cheese dust.",
+          "tag": "Cheesy"
+        }
+      }
+    },
+    {
+      "id": "fco-snack-tempura",
+      "categoryId": "cat-fried",
+      "name": "Tôm Tempura Lá Nori",
+      "description": "Tôm sú tẩm bột tempura, chấm sốt mayo rong biển.",
+      "price": 88000,
+      "img": "https://images.unsplash.com/photo-1575932444877-5106bee2a599?auto=format&fit=crop&w=900&q=80",
+      "image": "https://images.unsplash.com/photo-1575932444877-5106bee2a599?auto=format&fit=crop&w=900&q=80",
+      "calories": 500,
+      "time": 10,
+      "tag": "Tempura",
+      "isBestSeller": false,
+      "translations": {
+        "vi": {
+          "name": "Tôm Tempura Lá Nori",
+          "description": "Tôm sú tẩm bột tempura, chấm sốt mayo rong biển.",
+          "tag": "Tempura"
+        },
+        "en": {
+          "name": "Nori Tempura Shrimp",
+          "description": "Tiger prawns fried in tempura batter with seaweed mayo dip.",
+          "tag": "Tempura"
+        }
+      }
+    },
+    {
+      "id": "fco-drink-peachtea",
+      "categoryId": "cat-drink",
+      "name": "Trà Đào Cam Sả",
+      "description": "Trà đen ủ lạnh, đào miếng và syrup cam sả signature.",
+      "price": 42000,
+      "img": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=900&q=80",
+      "image": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=900&q=80",
+      "calories": 110,
+      "time": 4,
+      "tag": "Trà trái cây",
+      "isBestSeller": false,
+      "translations": {
+        "vi": {
+          "name": "Trà Đào Cam Sả",
+          "description": "Trà đen ủ lạnh, đào miếng và syrup cam sả signature.",
+          "tag": "Trà trái cây"
+        },
+        "en": {
+          "name": "Peach Citrus Lemongrass Tea",
+          "description": "Cold-brewed black tea with peach slices and citrus lemongrass syrup.",
+          "tag": "Fruit tea"
+        }
+      }
+    },
+    {
+      "id": "fco-drink-matcha",
+      "categoryId": "cat-drink",
+      "name": "Matcha Latte Hokkaido",
+      "description": "Matcha tươi đánh nóng cùng sữa Hokkaido béo mịn.",
+      "price": 59000,
+      "img": "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1a?auto=format&fit=crop&w=900&q=80",
+      "image": "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1a?auto=format&fit=crop&w=900&q=80",
+      "calories": 210,
+      "time": 5,
+      "tag": "Matcha",
+      "isBestSeller": false,
+      "translations": {
+        "vi": {
+          "name": "Matcha Latte Hokkaido",
+          "description": "Matcha tươi đánh nóng cùng sữa Hokkaido béo mịn.",
+          "tag": "Matcha"
+        },
+        "en": {
+          "name": "Hokkaido Matcha Latte",
+          "description": "Fresh whisked matcha with creamy Hokkaido milk.",
+          "tag": "Matcha"
+        }
+      }
+    },
+    {
+      "id": "fco-drink-tonic",
+      "categoryId": "cat-drink",
+      "name": "Espresso Tonic Berry",
+      "description": "Espresso shot, tonic water và syrup berry.",
+      "price": 49000,
+      "img": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=900&q=80",
+      "image": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=900&q=80",
+      "calories": 95,
+      "time": 4,
+      "tag": "Coffee",
+      "isBestSeller": false,
+      "translations": {
+        "vi": {
+          "name": "Espresso Tonic Berry",
+          "description": "Espresso shot, tonic water và syrup berry.",
+          "tag": "Coffee"
+        },
+        "en": {
+          "name": "Berry Espresso Tonic",
+          "description": "Espresso shot over tonic water with berry syrup.",
+          "tag": "Coffee"
+        }
+      }
+    }
+  ],
+  "users": [
+    {
+      "id": "admin",
+      "name": "Quản trị viên FCO",
+      "email": "admin@fco.vn",
+      "password": "admin123",
+      "role": "admin"
+    },
+    {
+      "id": "restaurant",
+      "name": "Nhà hàng FCO",
+      "email": "restaurant@fco.vn",
+      "password": "fco123",
+      "role": "restaurant"
+    }
+  ],
+  "orders": []
+}
