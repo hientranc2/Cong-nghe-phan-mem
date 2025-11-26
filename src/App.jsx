@@ -705,6 +705,52 @@ function App() {
     [users]
   );
 
+  const updateRestaurantMenuItems = useCallback(
+    (restaurantRef, newItemId, removedItemId = null) => {
+      if (!restaurantRef?.id && !restaurantRef?.slug) {
+        return;
+      }
+
+      setRestaurantList((prev) =>
+        prev.map((restaurant) => {
+          const matches =
+            (restaurantRef.id && restaurant.id === restaurantRef.id) ||
+            (restaurantRef.slug && restaurant.slug === restaurantRef.slug);
+
+          if (!matches) {
+            return restaurant;
+          }
+
+          const nextIds = new Set(restaurant.menuItemIds ?? []);
+          if (removedItemId) {
+            nextIds.delete(removedItemId);
+          }
+          if (newItemId) {
+            nextIds.add(newItemId);
+          }
+
+          return { ...restaurant, menuItemIds: Array.from(nextIds) };
+        })
+      );
+    },
+    []
+  );
+
+  const unlinkMenuItemFromAllRestaurants = useCallback((itemId) => {
+    if (!itemId) return;
+
+    setRestaurantList((prev) =>
+      prev.map((restaurant) => {
+        if (!restaurant.menuItemIds?.includes(itemId)) {
+          return restaurant;
+        }
+
+        const remaining = restaurant.menuItemIds.filter((id) => id !== itemId);
+        return { ...restaurant, menuItemIds: remaining };
+      })
+    );
+  }, []);
+
   const appendMenuItem = (item) => {
     if (!item?.id) return;
 
@@ -731,8 +777,14 @@ function App() {
   };
 
   const syncMenuItemToServer = async (item) => {
+    const restaurantRef = {
+      id: item?.restaurantId ?? null,
+      slug: item?.restaurantSlug ?? null,
+    };
     const tempId = item.id || `temp-${Date.now()}`;
+
     appendMenuItem({ ...item, id: tempId });
+    updateRestaurantMenuItems(restaurantRef, tempId);
 
     try {
       const saved = await createMenuItem(item);
@@ -747,6 +799,8 @@ function App() {
               )
             : [...withoutTemp, normalized];
         });
+
+        updateRestaurantMenuItems(restaurantRef, normalized.id, tempId);
       }
     } catch (error) {
       console.error("Không thể lưu món ăn lên json-server", error);
@@ -756,12 +810,33 @@ function App() {
   const syncUpdatedMenuItem = async (item) => {
     upsertMenuItemLocally(item);
 
+    const previous = menuItemList.find((entry) => entry.id === item?.id);
+
+    if (item?.id) {
+      updateRestaurantMenuItems(
+        {
+          id: previous?.restaurantId ?? null,
+          slug: previous?.restaurantSlug ?? null,
+        },
+        null,
+        item.id
+      );
+      updateRestaurantMenuItems(
+        { id: item?.restaurantId ?? null, slug: item?.restaurantSlug ?? null },
+        item.id
+      );
+    }
+
     if (!item?.id) return;
 
     try {
       const saved = await updateMenuItem(item.id, item);
       if (saved) {
         upsertMenuItemLocally(saved);
+        updateRestaurantMenuItems(
+          { id: item.restaurantId ?? null, slug: item.restaurantSlug ?? null },
+          item.id
+        );
       }
     } catch (error) {
       console.error("Không thể cập nhật món ăn trên json-server", error);
@@ -770,6 +845,7 @@ function App() {
 
   const syncDeletedMenuItem = async (itemId) => {
     setMenuItemList((prev) => prev.filter((entry) => entry.id !== itemId));
+    unlinkMenuItemFromAllRestaurants(itemId);
 
     if (!itemId) return;
 
@@ -1109,7 +1185,21 @@ function App() {
   const restaurantMenuItems = useMemo(() => {
     if (!activeRestaurantDetail) return [];
     const ids = new Set(activeRestaurantDetail.menuItemIds ?? []);
-    return translatedMenuItems.filter((item) => ids.has(item.id));
+    return translatedMenuItems.filter((item) => {
+      if (item.restaurantId && item.restaurantId === activeRestaurantDetail.id) {
+        return true;
+      }
+
+      if (
+        item.restaurantSlug &&
+        activeRestaurantDetail.slug &&
+        item.restaurantSlug === activeRestaurantDetail.slug
+      ) {
+        return true;
+      }
+
+      return ids.has(item.id);
+    });
   }, [activeRestaurantDetail, translatedMenuItems]);
 
   const restaurantMenuItemsForUser = useMemo(() => {
@@ -1120,8 +1210,16 @@ function App() {
     const knownMenuIds = new Set(activeRestaurantAccount.menuItemIds ?? []);
 
     return menuItemList.filter((item) => {
-      if (item.restaurantId) {
-        return item.restaurantId === activeRestaurantAccount.id;
+      if (item.restaurantId && item.restaurantId === activeRestaurantAccount.id) {
+        return true;
+      }
+
+      if (
+        item.restaurantSlug &&
+        activeRestaurantAccount.slug &&
+        item.restaurantSlug === activeRestaurantAccount.slug
+      ) {
+        return true;
       }
 
       return knownMenuIds.has(item.id);

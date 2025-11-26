@@ -1,14 +1,37 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   Image,
+  ImageBackground,
+  ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 
 import { fetchCollection } from "../utils/api";
+
+const normalizeRestaurant = (restaurant) => ({
+  ...restaurant,
+  image: restaurant.image ?? restaurant.img ?? restaurant.photo,
+  city: restaurant.city ?? restaurant.location ?? "",
+  deliveryTime: restaurant.deliveryTime ?? restaurant.time ?? "",
+  menuItemIds: restaurant.menuItemIds ?? [],
+});
+
+const normalizeMenuItem = (item) => ({
+  ...item,
+  price: Number(item?.price) || 0,
+  image: item?.image ?? item?.img ?? null,
+  description: item?.description ?? item?.desc ?? "",
+  restaurantId: item?.restaurantId ?? null,
+  restaurantSlug: item?.restaurantSlug ?? null,
+});
+
+const formatCurrency = (value) =>
+  `${(Number(value) || 0).toLocaleString("vi-VN")} đ`;
 
 const RestaurantCard = ({
   name,
@@ -18,80 +41,135 @@ const RestaurantCard = ({
   deliveryTime,
   tags,
   image,
+  onPress,
 }) => (
-  <View style={styles.card}>
-    {image ? (
-      <Image source={{ uri: image }} style={styles.cardImage} />
-    ) : (
-      <View style={[styles.cardImage, styles.imagePlaceholder]}>
-        <Text style={styles.placeholderIcon}>🏬</Text>
-      </View>
-    )}
-    <View style={styles.cardBody}>
-      <View style={styles.titleRow}>
-        <Text style={styles.cardTitle}>{name}</Text>
-        {badge ? <Text style={styles.badge}>{badge}</Text> : null}
-      </View>
-      {description ? (
-        <Text style={styles.cardContent} numberOfLines={2}>
-          {description}
-        </Text>
-      ) : null}
-      <View style={styles.metaRow}>
-        {city ? (
-          <Text style={styles.metaText}>
-            <Text style={styles.metaIcon}>📍 </Text>
-            {city}
-          </Text>
-        ) : null}
-        {deliveryTime ? (
-          <Text style={styles.metaText}>
-            <Text style={styles.metaIcon}>⏱️ </Text>
-            {deliveryTime}
-          </Text>
-        ) : null}
-      </View>
-      {Array.isArray(tags) && tags.length > 0 ? (
-        <View style={styles.tagsRow}>
-          {tags.map((tag) => (
-            <Text key={tag} style={styles.tagChip}>
-              {tag}
-            </Text>
-          ))}
+  <TouchableOpacity activeOpacity={0.9} style={styles.card} onPress={onPress}>
+    <ImageBackground
+      source={image ? { uri: image } : undefined}
+      style={styles.cardImage}
+      imageStyle={styles.cardImage}
+      defaultSource={undefined}
+    >
+      {!image ? (
+        <View style={[styles.cardImage, styles.imagePlaceholder]}>
+          <Text style={styles.placeholderIcon}>🏬</Text>
         </View>
       ) : null}
-    </View>
-  </View>
+      <View style={styles.overlay} />
+      <View style={styles.cardContentOverlay}>
+        <View style={styles.titleRow}>
+          <Text style={styles.cardTitle}>{name}</Text>
+          {badge ? <Text style={styles.badge}>{badge}</Text> : null}
+        </View>
+        {description ? (
+          <Text style={styles.cardContent} numberOfLines={2}>
+            {description}
+          </Text>
+        ) : null}
+        <View style={styles.metaRow}>
+          {city ? (
+            <Text style={styles.metaText}>
+              <Text style={styles.metaIcon}>📍 </Text>
+              {city}
+            </Text>
+          ) : null}
+          {deliveryTime ? (
+            <Text style={styles.metaText}>
+              <Text style={styles.metaIcon}>⏱️ </Text>
+              {deliveryTime}
+            </Text>
+          ) : null}
+        </View>
+        {Array.isArray(tags) && tags.length > 0 ? (
+          <View style={styles.tagsRow}>
+            {tags.map((tag) => (
+              <Text key={tag} style={styles.tagChip}>
+                {tag}
+              </Text>
+            ))}
+          </View>
+        ) : null}
+      </View>
+    </ImageBackground>
+  </TouchableOpacity>
 );
+
+const RestaurantMenuList = ({ menuItems = [] }) => {
+  if (!menuItems.length) {
+    return (
+      <Text style={styles.emptyMenuText}>
+        Nhà hàng đang cập nhật món ăn mới.
+      </Text>
+    );
+  }
+
+  return (
+    <View style={styles.menuList}>
+      {menuItems.map((menu) => (
+        <View key={menu.id} style={styles.menuItemRow}>
+          <View style={styles.menuInfo}>
+            <Text style={styles.menuItemName} numberOfLines={1}>
+              {menu.name}
+            </Text>
+            {menu.tag ? <Text style={styles.menuTag}>{menu.tag}</Text> : null}
+            {menu.description ? (
+              <Text style={styles.menuDesc} numberOfLines={2}>
+                {menu.description}
+              </Text>
+            ) : null}
+            <Text style={styles.menuPrice}>{formatCurrency(menu.price)}</Text>
+          </View>
+          {menu.image ? (
+            <Image source={{ uri: menu.image }} style={styles.menuImage} />
+          ) : (
+            <View style={[styles.menuImage, styles.miniPlaceholder]}>
+              <Text style={styles.placeholderIcon}>🍽️</Text>
+            </View>
+          )}
+        </View>
+      ))}
+    </View>
+  );
+};
 
 const RestaurantsScreen = () => {
   const [headerHeight, setHeaderHeight] = useState(200);
   const [restaurants, setRestaurants] = useState([]);
+  const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedRestaurantId, setSelectedRestaurantId] = useState(null);
 
   useEffect(() => {
     let active = true;
 
-    const loadRestaurants = async () => {
+    const loadData = async () => {
+      setLoading(true);
+      setError(null);
+
       try {
-        const response = await fetchCollection("restaurants");
+        const [restaurantResponse, menuResponse] = await Promise.all([
+          fetchCollection("restaurants"),
+          fetchCollection("menuItems"),
+        ]);
+
         if (!active) return;
 
-        if (Array.isArray(response)) {
-          const normalized = response.map((restaurant) => ({
-            ...restaurant,
-            image: restaurant.image ?? restaurant.img ?? restaurant.photo,
-            city: restaurant.city ?? restaurant.location,
-            deliveryTime: restaurant.deliveryTime ?? restaurant.time,
-          }));
-          setRestaurants(normalized);
-        } else {
-          setRestaurants([]);
-        }
+        const normalizedRestaurants = Array.isArray(restaurantResponse)
+          ? restaurantResponse.map(normalizeRestaurant)
+          : [];
+
+        const normalizedMenu = Array.isArray(menuResponse)
+          ? menuResponse.map(normalizeMenuItem)
+          : [];
+
+        setRestaurants(normalizedRestaurants);
+        setMenuItems(normalizedMenu);
       } catch (err) {
         if (active) {
           setError("Không thể tải danh sách nhà hàng");
+          setRestaurants([]);
+          setMenuItems([]);
         }
       } finally {
         if (active) {
@@ -100,12 +178,113 @@ const RestaurantsScreen = () => {
       }
     };
 
-    loadRestaurants();
+    loadData();
 
     return () => {
       active = false;
     };
   }, []);
+
+  const menuByRestaurant = useMemo(() => {
+    const map = new Map();
+
+    restaurants.forEach((restaurant) => {
+      const knownMenuIds = new Set(restaurant.menuItemIds ?? []);
+      const items = menuItems.filter((item) => {
+        if (item.restaurantId && item.restaurantId === restaurant.id) {
+          return true;
+        }
+
+        if (
+          item.restaurantSlug &&
+          restaurant.slug &&
+          item.restaurantSlug === restaurant.slug
+        ) {
+          return true;
+        }
+
+        return knownMenuIds.has(item.id);
+      });
+
+      map.set(restaurant.id, items);
+    });
+
+    return map;
+  }, [restaurants, menuItems]);
+
+  const selectedRestaurant = useMemo(
+    () => restaurants.find((restaurant) => restaurant.id === selectedRestaurantId) || null,
+    [restaurants, selectedRestaurantId]
+  );
+
+  const handleOpenRestaurant = (restaurantId) => {
+    setSelectedRestaurantId(restaurantId);
+  };
+
+  const handleBackToList = () => {
+    setSelectedRestaurantId(null);
+  };
+
+  if (selectedRestaurant) {
+    const items = menuByRestaurant.get(selectedRestaurant.id) ?? [];
+
+    return (
+      <ScrollView
+        style={[styles.container, styles.detailContainer]}
+        contentContainerStyle={styles.detailContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.heroWrapper}>
+          <ImageBackground
+            source={selectedRestaurant.image ? { uri: selectedRestaurant.image } : undefined}
+            style={styles.hero}
+            imageStyle={styles.heroImage}
+          >
+            {!selectedRestaurant.image ? (
+              <View style={[styles.hero, styles.imagePlaceholder]}>
+                <Text style={styles.placeholderIcon}>🏬</Text>
+              </View>
+            ) : null}
+            <View style={styles.heroOverlay} />
+            <View style={styles.heroContent}>
+              <TouchableOpacity style={styles.backButton} onPress={handleBackToList}>
+                <Text style={styles.backText}>◀ Quay lại</Text>
+              </TouchableOpacity>
+              <Text style={styles.heroBadge}>{selectedRestaurant.badge}</Text>
+              <Text style={styles.heroTitle}>{selectedRestaurant.name}</Text>
+              <Text style={styles.heroDescription}>{selectedRestaurant.description}</Text>
+              <View style={styles.heroMeta}>
+                {selectedRestaurant.deliveryTime ? (
+                  <Text style={styles.heroMetaItem}>{selectedRestaurant.deliveryTime}</Text>
+                ) : null}
+                {selectedRestaurant.city ? (
+                  <Text style={styles.heroMetaItem}>{selectedRestaurant.city}</Text>
+                ) : null}
+              </View>
+            </View>
+          </ImageBackground>
+        </View>
+
+        {selectedRestaurant.tags?.length ? (
+          <View style={styles.tagsRowDetail}>
+            {selectedRestaurant.tags.map((tag) => (
+              <Text key={tag} style={styles.tagChipDetail}>
+                {tag}
+              </Text>
+            ))}
+          </View>
+        ) : null}
+
+        <View style={styles.menuSectionDetail}>
+          <View style={styles.menuHeaderRow}>
+            <Text style={styles.menuTitle}>Thực đơn của nhà hàng</Text>
+            <Text style={styles.menuCount}>{items.length} món</Text>
+          </View>
+          <RestaurantMenuList menuItems={items} />
+        </View>
+      </ScrollView>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -116,7 +295,8 @@ const RestaurantsScreen = () => {
         <Text style={styles.heading}>Nhà hàng</Text>
         <Text style={styles.subheading}>Chuỗi nhà hàng FCO</Text>
         <Text style={styles.description}>
-          Đồng bộ dữ liệu từ dtb.json để cập nhật tức thời như trên web.
+          Mỗi nhà hàng hiển thị đúng thực đơn riêng như trên web, giúp bạn
+          thêm món và kiểm tra nhanh chóng.
         </Text>
       </View>
       <FlatList
@@ -131,6 +311,7 @@ const RestaurantsScreen = () => {
             deliveryTime={item.deliveryTime}
             tags={item.tags}
             image={item.image}
+            onPress={() => handleOpenRestaurant(item.id)}
           />
         )}
         ListEmptyComponent={() => (
@@ -199,33 +380,41 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: "#ffffff",
-    padding: 16,
     borderRadius: 24,
     shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 12 },
     elevation: 4,
     marginBottom: 16,
-    flexDirection: "row",
-    gap: 12,
+    overflow: "hidden",
   },
   cardImage: {
-    width: 96,
-    height: 96,
-    borderRadius: 18,
-    backgroundColor: "#f3f4f6",
+    height: 220,
+    borderRadius: 24,
+    width: "100%",
+    overflow: "hidden",
   },
   imagePlaceholder: {
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "#f3f4f6",
+    width: "100%",
+    height: "100%",
   },
   placeholderIcon: {
     fontSize: 28,
   },
-  cardBody: {
-    flex: 1,
-    justifyContent: "space-between",
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.35)",
+  },
+  cardContentOverlay: {
+    position: "absolute",
+    left: 16,
+    right: 16,
+    bottom: 16,
+    gap: 10,
   },
   titleRow: {
     flexDirection: "row",
@@ -235,62 +424,217 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#1f2937",
+    color: "#f8fafc",
     flexShrink: 1,
   },
   badge: {
-    backgroundColor: "#fff1e6",
+    backgroundColor: "#fff0e6",
     color: "#f97316",
-    paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 8,
-    fontSize: 12,
+    paddingHorizontal: 10,
+    borderRadius: 999,
     fontWeight: "700",
+    fontSize: 12,
   },
   cardContent: {
-    marginTop: 6,
     fontSize: 14,
-    lineHeight: 20,
-    color: "#4b5563",
+    color: "#e5e7eb",
   },
   metaRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
+    alignItems: "center",
     gap: 12,
-    marginTop: 8,
-  },
-  metaIcon: {
-    color: "#f97316",
-    fontWeight: "700",
+    flexWrap: "wrap",
   },
   metaText: {
     fontSize: 13,
-    color: "#6b7280",
+    color: "#e5e7eb",
+  },
+  metaIcon: {
+    fontSize: 14,
   },
   tagsRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
-    marginTop: 10,
   },
   tagChip: {
-    backgroundColor: "#f3f4f6",
-    color: "#4b5563",
+    backgroundColor: "rgba(255,255,255,0.14)",
+    color: "#f8fafc",
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 10,
+    borderRadius: 12,
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: "700",
   },
-  emptyState: {
+  menuHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  menuTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#1f2937",
+  },
+  menuCount: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#f97316",
+  },
+  menuList: {
+    gap: 10,
+  },
+  menuItemRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  menuInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  menuItemName: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1f2937",
+  },
+  menuTag: {
+    alignSelf: "flex-start",
+    backgroundColor: "#ecfeff",
+    color: "#0ea5e9",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  menuDesc: {
+    fontSize: 12,
+    color: "#4b5563",
+  },
+  menuPrice: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#f04e23",
+  },
+  menuImage: {
+    width: 68,
+    height: 68,
+    borderRadius: 14,
+    backgroundColor: "#f3f4f6",
+  },
+  miniPlaceholder: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 60,
+  },
+  moreMenuText: {
+    fontSize: 12,
+    color: "#6b7280",
+  },
+  emptyMenuText: {
+    fontSize: 13,
+    color: "#9ca3af",
+    fontStyle: "italic",
+  },
+  detailContainer: {
+    backgroundColor: "#fff",
+  },
+  detailContent: {
+    paddingBottom: 40,
+  },
+  heroWrapper: {
+    marginBottom: 16,
+  },
+  hero: {
+    height: 320,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    overflow: "hidden",
+  },
+  heroImage: {
+    resizeMode: "cover",
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.45)",
+  },
+  heroContent: {
+    position: "absolute",
+    bottom: 24,
+    left: 20,
+    right: 20,
+    gap: 10,
+  },
+  backButton: {
+    alignSelf: "flex-start",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: "rgba(255,255,255,0.14)",
+    borderRadius: 10,
+  },
+  backText: {
+    color: "#fff",
+    fontWeight: "700",
+  },
+  heroBadge: {
+    alignSelf: "flex-start",
+    backgroundColor: "#fff0e6",
+    color: "#f97316",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    fontWeight: "800",
+  },
+  heroTitle: {
+    color: "#fff",
+    fontSize: 28,
+    fontWeight: "900",
+  },
+  heroDescription: {
+    color: "#e5e7eb",
+    fontSize: 15,
+  },
+  heroMeta: {
+    flexDirection: "row",
+    gap: 12,
+    flexWrap: "wrap",
+  },
+  heroMetaItem: {
+    color: "#fef3c7",
+    fontWeight: "700",
+  },
+  tagsRowDetail: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
+  tagChipDetail: {
+    backgroundColor: "#eef2ff",
+    color: "#4338ca",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 14,
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  menuSectionDetail: {
+    backgroundColor: "#fff7ed",
+    marginHorizontal: 20,
+    borderRadius: 18,
+    padding: 16,
+    gap: 12,
+  },
+  emptyState: {
+    paddingVertical: 80,
+    alignItems: "center",
+    justifyContent: "center",
   },
   emptyText: {
     fontSize: 15,
     color: "#6b7280",
-    textAlign: "center",
   },
 });
 
