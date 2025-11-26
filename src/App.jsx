@@ -20,16 +20,46 @@ import { contentByLanguage } from "./i18n/translations";
 import {
   createMenuItem,
   createOrder,
+  createRestaurant,
   deleteMenuItem,
   deleteOrder,
+  deleteRestaurant,
   fetchAllData,
   updateMenuItem,
   updateOrder,
+  updateRestaurant,
 } from "./api/client";
 
 
 const heroBackground =
   "https://images.unsplash.com/photo-1550317138-10000687a72b?auto=format&fit=crop&w=1600&q=80";
+
+const withRestaurantDefaults = (restaurant, fallbackImage = heroBackground) => {
+  const safeName = restaurant?.name?.trim() || "Nhà hàng FCO";
+  const resolvedAddress = restaurant?.address?.trim() || restaurant?.city || "";
+  const resolvedId = restaurant?.id?.trim() || slugify(safeName) || "nh-01";
+  const resolvedSlug = restaurant?.slug?.trim() || slugify(safeName) || resolvedId;
+
+  return {
+    badge: restaurant?.badge || safeName,
+    description:
+      restaurant?.description ||
+      (resolvedAddress ? `Địa chỉ: ${resolvedAddress}` : "Đang cập nhật"),
+    city: restaurant?.city || resolvedAddress || "Đang cập nhật",
+    deliveryTime: restaurant?.deliveryTime || "15-30 phút",
+    img:
+      restaurant?.img ||
+      restaurant?.image ||
+      restaurant?.photo ||
+      restaurant?.imageUrl ||
+      fallbackImage,
+    tags: restaurant?.tags || [],
+    ...restaurant,
+    id: resolvedId,
+    slug: resolvedSlug,
+    address: resolvedAddress,
+  };
+};
 
 const USERS_STORAGE_KEY = "fcoUsers";
 const CURRENT_USER_STORAGE_KEY = "fcoCurrentUser";
@@ -213,7 +243,9 @@ function App() {
   const parseHash = useCallback(() => parseViewFromHash(), []);
   const [categories, setCategories] = useState(defaultCategories);
   const [menuItemList, setMenuItemList] = useState(defaultMenuItems);
-  const [restaurantList, setRestaurantList] = useState(defaultRestaurants);
+  const [restaurantList, setRestaurantList] = useState(() =>
+    defaultRestaurants.map((restaurant) => withRestaurantDefaults(restaurant))
+  );
   const [users, setUsers] = useState(DEFAULT_USERS);
   const [currentUser, setCurrentUser] = useState(null);
   const [authRedirect, setAuthRedirect] = useState(null);
@@ -302,10 +334,9 @@ function App() {
 
         if (Array.isArray(data.restaurants) && data.restaurants.length > 0) {
           setRestaurantList(
-            data.restaurants.map((restaurant) => ({
-              ...restaurant,
-              img: restaurant.img ?? restaurant.image ?? restaurant.photo,
-            }))
+            data.restaurants.map((restaurant) =>
+              withRestaurantDefaults(restaurant)
+            )
           );
         }
 
@@ -574,6 +605,74 @@ function App() {
       await deleteMenuItem(itemId);
     } catch (error) {
       console.error("Không thể xóa món ăn trên json-server", error);
+    }
+  };
+
+  const upsertRestaurantState = (restaurant) => {
+    if (!restaurant) return;
+
+    const normalized = withRestaurantDefaults(restaurant);
+
+    setRestaurantList((prev) => {
+      const exists = prev.some((entry) => entry.id === normalized.id);
+      return exists
+        ? prev.map((entry) =>
+            entry.id === normalized.id ? { ...entry, ...normalized } : entry
+          )
+        : [...prev, normalized];
+    });
+  };
+
+  const syncCreatedRestaurant = async (restaurant) => {
+    if (!restaurant) return;
+
+    const tempId = restaurant.id || `temp-${Date.now()}`;
+    upsertRestaurantState({ ...restaurant, id: tempId });
+
+    try {
+      const payload = withRestaurantDefaults({ ...restaurant, id: tempId });
+      const saved = await createRestaurant(payload);
+      const normalized = withRestaurantDefaults(saved ?? payload);
+
+      setRestaurantList((prev) => {
+        const withoutTemp = prev.filter((entry) => entry.id !== tempId);
+        const exists = withoutTemp.some((entry) => entry.id === normalized.id);
+        return exists
+          ? withoutTemp.map((entry) =>
+              entry.id === normalized.id ? { ...entry, ...normalized } : entry
+            )
+          : [...withoutTemp, normalized];
+      });
+    } catch (error) {
+      console.error("Không thể tạo nhà hàng trên json-server", error);
+    }
+  };
+
+  const syncUpdatedRestaurant = async (restaurant) => {
+    if (!restaurant?.id) return;
+
+    const normalized = withRestaurantDefaults(restaurant);
+    upsertRestaurantState(normalized);
+
+    try {
+      const saved = await updateRestaurant(normalized.id, normalized);
+      if (saved) {
+        upsertRestaurantState(saved);
+      }
+    } catch (error) {
+      console.error("Không thể cập nhật nhà hàng trên json-server", error);
+    }
+  };
+
+  const syncDeletedRestaurant = async (restaurantId) => {
+    setRestaurantList((prev) => prev.filter((entry) => entry.id !== restaurantId));
+
+    if (!restaurantId) return;
+
+    try {
+      await deleteRestaurant(restaurantId);
+    } catch (error) {
+      console.error("Không thể xóa nhà hàng trên json-server", error);
     }
   };
 
@@ -1366,7 +1465,15 @@ function App() {
   }
 
   if (view.type === "admin") {
-    return <AdminDashboard orders={adminOrders} restaurants={restaurantList} />;
+    return (
+      <AdminDashboard
+        orders={adminOrders}
+        restaurants={restaurantList}
+        onCreateRestaurant={syncCreatedRestaurant}
+        onUpdateRestaurant={syncUpdatedRestaurant}
+        onDeleteRestaurant={syncDeletedRestaurant}
+      />
+    );
   }
   if (view.type === "restaurant") {
     return (

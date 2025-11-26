@@ -102,3 +102,31 @@ export const deleteOrder = async (id) => {
 
   return true;
 };
+
+export const createRestaurant = async (payload) => postJSON("restaurants", payload);
+
+export const updateRestaurant = async (id, payload) => {
+  const url = `${API_BASE}/restaurants/${id}`;
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.status}`);
+  }
+
+  return parseJSON(response);
+};
+
+export const deleteRestaurant = async (id) => {
+  const url = `${API_BASE}/restaurants/${id}`;
+  const response = await fetch(url, { method: "DELETE" });
+
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.status}`);
+  }
+
+  return true;
+};
