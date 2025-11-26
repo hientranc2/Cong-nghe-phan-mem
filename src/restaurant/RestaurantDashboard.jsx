@@ -175,6 +175,9 @@ const normalizeDish = (dish, index, categoryLabelById = new Map()) => ({
   status: dish?.status === "soldout" ? "soldout" : "available",
   tag: dish?.tag?.trim() || "",
   image: dish?.image || dish?.imageUrl || dish?.thumbnail || "",
+  restaurantId: dish?.restaurantId ?? null,
+  restaurantName: dish?.restaurantName ?? null,
+  restaurantSlug: dish?.restaurantSlug ?? null,
 });
 
 const resolveOrderItemCount = (order) => {
@@ -229,6 +232,9 @@ const normalizeOrder = (order, index) => {
     status: order?.status || "Chờ xác nhận",
     placedAt: placedAt instanceof Date ? placedAt.toISOString() : placedAt,
     address: order?.address || order?.customer?.address || order?.destination || "",
+    restaurantId: order?.restaurantId ?? null,
+    restaurantSlug: order?.restaurantSlug ?? null,
+    restaurantName: order?.restaurantName ?? null,
   };
 };
 
@@ -261,6 +267,7 @@ const isSameDay = (value, reference) => {
 
 function RestaurantDashboard({
   user = null,
+  restaurant = null,
   texts = {},
   onBackHome = () => {},
   menuItems: remoteMenuItems = [],
@@ -351,7 +358,11 @@ function RestaurantDashboard({
 
   const headerTexts = {
     eyebrow: texts.header?.eyebrow ?? "FoodFast • Nhà hàng",
-    title: texts.header?.title ?? user?.name ?? "FastGrill Station",
+    title:
+      texts.header?.title ??
+      restaurant?.name ??
+      user?.name ??
+      "FastGrill Station",
     subtitle:
       texts.header?.subtitle ??
       "Quản lý thực đơn, theo dõi doanh thu và cập nhật trạng thái đơn hàng theo thời gian thực.",
@@ -622,6 +633,9 @@ function RestaurantDashboard({
       status: dishForm.status === "soldout" ? "soldout" : "available",
       tag: dishForm.tag.trim(),
       image: dishForm.image,
+      restaurantId: restaurant?.id ?? user?.restaurantId ?? null,
+      restaurantName: restaurant?.name ?? user?.name ?? null,
+      restaurantSlug: restaurant?.slug ?? user?.restaurantSlug ?? null,
     };
 
     const nextDishId = editingDishId || payload.id || getNextDishId(menuItems);
@@ -723,6 +737,9 @@ function RestaurantDashboard({
       status: orderForm.status,
       placedAt: orderForm.placedAt || new Date().toISOString(),
       address: orderForm.address.trim(),
+      restaurantId: restaurant?.id ?? user?.restaurantId ?? null,
+      restaurantName: restaurant?.name ?? user?.name ?? null,
+      restaurantSlug: restaurant?.slug ?? user?.restaurantSlug ?? null,
     };
 
     setOrders((prevOrders) => {
