@@ -8,6 +8,8 @@ import CartScreen from "./src/screens/CartScreen.jsx";
 import CheckoutScreen from "./src/screens/CheckoutScreen.jsx";
 import OrderConfirmationScreen from "./src/screens/OrderConfirmationScreen.jsx";
 import OrderTrackingScreen from "./src/screens/OrderTrackingScreen.jsx";
+import AdminDashboardScreen from "./src/features/admin/AdminDashboardScreen.jsx";
+import RestaurantDashboardScreen from "./src/features/restaurant/RestaurantDashboardScreen.jsx";
 import { CartProvider } from "./src/context/CartContext.jsx";
 import { createOrder, fetchCollection } from "./src/utils/api";
 
@@ -18,6 +20,8 @@ const SCREENS = {
   checkout: "checkout",
   orderConfirmation: "orderConfirmation",
   orderTracking: "orderTracking",
+  adminDashboard: "adminDashboard",
+  restaurantDashboard: "restaurantDashboard",
 };
 
 const HOME_TAB = "home";
@@ -262,21 +266,31 @@ export default function App() {
     () => setActiveScreen(SCREENS.orderTracking),
     [setActiveScreen]
   );
+  const resolveLandingScreen = useCallback((role) => {
+    if (role === "admin") return SCREENS.adminDashboard;
+    if (role === "restaurant") return SCREENS.restaurantDashboard;
+    return SCREENS.home;
+  }, []);
+
   const handleLoginSuccess = useCallback(
     (user) => {
       if (user) {
-        setAuthenticatedUser({
+        const normalizedUser = {
           id: user.id,
+          name: user.name ?? user.fullName,
           fullName: user.fullName ?? user.name,
           phone: user.phone,
           email: user.email,
-        });
+          role: user.role ?? "customer",
+        };
+        setAuthenticatedUser(normalizedUser);
+        setActiveScreen(resolveLandingScreen(normalizedUser.role));
       } else {
         setAuthenticatedUser(null);
+        setActiveScreen(SCREENS.home);
       }
-      setActiveScreen(SCREENS.home);
     },
-    [setActiveScreen, setAuthenticatedUser]
+    [resolveLandingScreen]
   );
 
   const screenHandlers = useMemo(
@@ -440,6 +454,16 @@ export default function App() {
               order={lastOrder}
               onBack={goToOrderConfirmation}
               onGoHome={goHome}
+            />
+          ) : activeScreen === SCREENS.adminDashboard ? (
+            <AdminDashboardScreen
+              user={authenticatedUser}
+              onBack={screenHandlers.goHome}
+            />
+          ) : activeScreen === SCREENS.restaurantDashboard ? (
+            <RestaurantDashboardScreen
+              user={authenticatedUser}
+              onBack={screenHandlers.goHome}
             />
           ) : (
             <OrderConfirmationScreen
