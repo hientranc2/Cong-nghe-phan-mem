@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -10,6 +10,26 @@ import {
 
 import { fetchCollection } from "../utils/api";
 
+const normalizeRestaurant = (restaurant) => ({
+  ...restaurant,
+  image: restaurant.image ?? restaurant.img ?? restaurant.photo,
+  city: restaurant.city ?? restaurant.location ?? "",
+  deliveryTime: restaurant.deliveryTime ?? restaurant.time ?? "",
+  menuItemIds: restaurant.menuItemIds ?? [],
+});
+
+const normalizeMenuItem = (item) => ({
+  ...item,
+  price: Number(item?.price) || 0,
+  image: item?.image ?? item?.img ?? null,
+  description: item?.description ?? item?.desc ?? "",
+  restaurantId: item?.restaurantId ?? null,
+  restaurantSlug: item?.restaurantSlug ?? null,
+});
+
+const formatCurrency = (value) =>
+  `${(Number(value) || 0).toLocaleString("vi-VN")} đ`;
+
 const RestaurantCard = ({
   name,
   description,
@@ -18,6 +38,7 @@ const RestaurantCard = ({
   deliveryTime,
   tags,
   image,
+  menuItems = [],
 }) => (
   <View style={styles.card}>
     {image ? (
@@ -60,6 +81,50 @@ const RestaurantCard = ({
           ))}
         </View>
       ) : null}
+
+      <View style={styles.menuSection}>
+        <View style={styles.menuHeaderRow}>
+          <Text style={styles.menuTitle}>Thực đơn nổi bật</Text>
+          <Text style={styles.menuCount}>{menuItems.length} món</Text>
+        </View>
+
+        {menuItems.length > 0 ? (
+          <View style={styles.menuList}>
+            {menuItems.slice(0, 4).map((menu) => (
+              <View key={menu.id} style={styles.menuItemRow}>
+                <View style={styles.menuInfo}>
+                  <Text style={styles.menuItemName} numberOfLines={1}>
+                    {menu.name}
+                  </Text>
+                  {menu.tag ? <Text style={styles.menuTag}>{menu.tag}</Text> : null}
+                  {menu.description ? (
+                    <Text style={styles.menuDesc} numberOfLines={2}>
+                      {menu.description}
+                    </Text>
+                  ) : null}
+                  <Text style={styles.menuPrice}>{formatCurrency(menu.price)}</Text>
+                </View>
+                {menu.image ? (
+                  <Image source={{ uri: menu.image }} style={styles.menuImage} />
+                ) : (
+                  <View style={[styles.menuImage, styles.miniPlaceholder]}>
+                    <Text style={styles.placeholderIcon}>🍽️</Text>
+                  </View>
+                )}
+              </View>
+            ))}
+            {menuItems.length > 4 ? (
+              <Text style={styles.moreMenuText}>
+                + {menuItems.length - 4} món khác trong thực đơn
+              </Text>
+            ) : null}
+          </View>
+        ) : (
+          <Text style={styles.emptyMenuText}>
+            Nhà hàng đang cập nhật món ăn mới.
+          </Text>
+        )}
+      </View>
     </View>
   </View>
 );
@@ -67,31 +132,40 @@ const RestaurantCard = ({
 const RestaurantsScreen = () => {
   const [headerHeight, setHeaderHeight] = useState(200);
   const [restaurants, setRestaurants] = useState([]);
+  const [menuItems, setMenuItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     let active = true;
 
-    const loadRestaurants = async () => {
+    const loadData = async () => {
+      setLoading(true);
+      setError(null);
+
       try {
-        const response = await fetchCollection("restaurants");
+        const [restaurantResponse, menuResponse] = await Promise.all([
+          fetchCollection("restaurants"),
+          fetchCollection("menuItems"),
+        ]);
+
         if (!active) return;
 
-        if (Array.isArray(response)) {
-          const normalized = response.map((restaurant) => ({
-            ...restaurant,
-            image: restaurant.image ?? restaurant.img ?? restaurant.photo,
-            city: restaurant.city ?? restaurant.location,
-            deliveryTime: restaurant.deliveryTime ?? restaurant.time,
-          }));
-          setRestaurants(normalized);
-        } else {
-          setRestaurants([]);
-        }
+        const normalizedRestaurants = Array.isArray(restaurantResponse)
+          ? restaurantResponse.map(normalizeRestaurant)
+          : [];
+
+        const normalizedMenu = Array.isArray(menuResponse)
+          ? menuResponse.map(normalizeMenuItem)
+          : [];
+
+        setRestaurants(normalizedRestaurants);
+        setMenuItems(normalizedMenu);
       } catch (err) {
         if (active) {
           setError("Không thể tải danh sách nhà hàng");
+          setRestaurants([]);
+          setMenuItems([]);
         }
       } finally {
         if (active) {
@@ -100,12 +174,39 @@ const RestaurantsScreen = () => {
       }
     };
 
-    loadRestaurants();
+    loadData();
 
     return () => {
       active = false;
     };
   }, []);
+
+  const menuByRestaurant = useMemo(() => {
+    const map = new Map();
+
+    restaurants.forEach((restaurant) => {
+      const knownMenuIds = new Set(restaurant.menuItemIds ?? []);
+      const items = menuItems.filter((item) => {
+        if (item.restaurantId && item.restaurantId === restaurant.id) {
+          return true;
+        }
+
+        if (
+          item.restaurantSlug &&
+          restaurant.slug &&
+          item.restaurantSlug === restaurant.slug
+        ) {
+          return true;
+        }
+
+        return knownMenuIds.has(item.id);
+      });
+
+      map.set(restaurant.id, items);
+    });
+
+    return map;
+  }, [restaurants, menuItems]);
 
   return (
     <View style={styles.container}>
@@ -116,7 +217,8 @@ const RestaurantsScreen = () => {
         <Text style={styles.heading}>Nhà hàng</Text>
         <Text style={styles.subheading}>Chuỗi nhà hàng FCO</Text>
         <Text style={styles.description}>
-          Đồng bộ dữ liệu từ dtb.json để cập nhật tức thời như trên web.
+          Mỗi nhà hàng hiển thị đúng thực đơn riêng như trên web, giúp bạn
+          thêm món và kiểm tra nhanh chóng.
         </Text>
       </View>
       <FlatList
@@ -131,6 +233,7 @@ const RestaurantsScreen = () => {
             deliveryTime={item.deliveryTime}
             tags={item.tags}
             image={item.image}
+            menuItems={menuByRestaurant.get(item.id) ?? []}
           />
         )}
         ListEmptyComponent={() => (
@@ -225,7 +328,7 @@ const styles = StyleSheet.create({
   },
   cardBody: {
     flex: 1,
-    justifyContent: "space-between",
+    gap: 12,
   },
   titleRow: {
     flexDirection: "row",
@@ -239,58 +342,129 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   badge: {
-    backgroundColor: "#fff1e6",
+    backgroundColor: "#fff0e6",
     color: "#f97316",
-    paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 8,
-    fontSize: 12,
+    paddingHorizontal: 10,
+    borderRadius: 999,
     fontWeight: "700",
+    fontSize: 12,
   },
   cardContent: {
-    marginTop: 6,
     fontSize: 14,
-    lineHeight: 20,
     color: "#4b5563",
   },
   metaRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
+    alignItems: "center",
     gap: 12,
-    marginTop: 8,
-  },
-  metaIcon: {
-    color: "#f97316",
-    fontWeight: "700",
+    flexWrap: "wrap",
   },
   metaText: {
     fontSize: 13,
     color: "#6b7280",
   },
+  metaIcon: {
+    fontSize: 14,
+  },
   tagsRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
-    marginTop: 10,
   },
   tagChip: {
-    backgroundColor: "#f3f4f6",
-    color: "#4b5563",
+    backgroundColor: "#eef2ff",
+    color: "#4338ca",
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 10,
+    borderRadius: 12,
     fontSize: 12,
-    fontWeight: "600",
+    fontWeight: "700",
   },
-  emptyState: {
+  menuSection: {
+    backgroundColor: "#fff7ed",
+    borderRadius: 16,
+    padding: 12,
+    gap: 8,
+  },
+  menuHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  menuTitle: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#1f2937",
+  },
+  menuCount: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#f97316",
+  },
+  menuList: {
+    gap: 10,
+  },
+  menuItemRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  menuInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  menuItemName: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1f2937",
+  },
+  menuTag: {
+    alignSelf: "flex-start",
+    backgroundColor: "#ecfeff",
+    color: "#0ea5e9",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  menuDesc: {
+    fontSize: 12,
+    color: "#4b5563",
+  },
+  menuPrice: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#f04e23",
+  },
+  menuImage: {
+    width: 68,
+    height: 68,
+    borderRadius: 14,
+    backgroundColor: "#f3f4f6",
+  },
+  miniPlaceholder: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 60,
+  },
+  moreMenuText: {
+    fontSize: 12,
+    color: "#6b7280",
+  },
+  emptyMenuText: {
+    fontSize: 13,
+    color: "#9ca3af",
+    fontStyle: "italic",
+  },
+  emptyState: {
+    paddingVertical: 80,
+    alignItems: "center",
+    justifyContent: "center",
   },
   emptyText: {
     fontSize: 15,
     color: "#6b7280",
-    textAlign: "center",
   },
 });
 
