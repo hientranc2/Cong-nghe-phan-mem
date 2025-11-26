@@ -81,3 +81,22 @@ export const fetchCollection = async (collection) => {
     `API request failed${primaryResponse ? `: ${primaryResponse.status}` : ""}`
   );
 };
+
+const postJSON = async (collection, payload) => {
+  const url = `${API_BASE}/${collection}`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }).catch(() => null);
+
+  if (!response || !response.ok) {
+    throw new Error(
+      `API request failed${response ? `: ${response.status}` : ""}`
+    );
+  }
+
+  return parseJSON(response);
+};
+
+export const createOrder = async (order) => postJSON("orders", order);

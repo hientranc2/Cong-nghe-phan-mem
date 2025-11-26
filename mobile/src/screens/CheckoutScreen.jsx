@@ -89,16 +89,23 @@ const CheckoutScreen = ({ onBack, user, onOrderPlaced }) => {
         now.getDate()
       ).padStart(2, "0")}-${now.getTime()}`,
       createdAt: now.toISOString(),
+      status: "Chờ xác nhận",
       estimatedDelivery: estimatedDelivery.toISOString(),
       paymentMethod: paymentMethod?.label,
       paymentDescription: paymentMethod?.description,
       subtotal,
+      total: subtotal,
       customer: {
         name: trimmedCustomerName,
         phone: trimmedCustomerPhone,
         email: customerEmail?.trim?.() ?? customerEmail,
       },
       address: trimmedDeliveryAddress,
+      itemsCount: items.reduce(
+        (sum, item) => sum + (Number(item.quantity) || 1),
+        0
+      ),
+      source: "mobile",
       items: orderItems,
     };
 

@@ -16,19 +16,20 @@ import AdminDashboard from "./admin/AdminDashboard";
 import RestaurantDashboard from "./pages/RestaurantDashboard";
 import { categories as defaultCategories, menuItems as defaultMenuItems } from "./data/menuData";
 import { restaurants as defaultRestaurants } from "./data/restaurants";
-import { contentByLanguage } from "./i18n/translations";
-import {
-  createMenuItem,
-  createOrder,
-  createRestaurant,
+  import { contentByLanguage } from "./i18n/translations";
+  import {
+    createMenuItem,
+    createOrder,
+    createRestaurant,
   deleteMenuItem,
-  deleteOrder,
-  deleteRestaurant,
-  fetchAllData,
-  updateMenuItem,
-  updateOrder,
-  updateRestaurant,
-} from "./api/client";
+    deleteOrder,
+    deleteRestaurant,
+    fetchAllData,
+    fetchOrders,
+    updateMenuItem,
+    updateOrder,
+    updateRestaurant,
+  } from "./api/client";
 
 
 const heroBackground =
@@ -340,7 +341,7 @@ function App() {
           );
         }
 
-        if (Array.isArray(data.orders) && data.orders.length > 0) {
+        if (Array.isArray(data.orders)) {
           setAdminOrders(data.orders);
           setOrderHistory(data.orders);
         }
@@ -1172,6 +1173,32 @@ function App() {
     }
   };
 
+  useEffect(() => {
+    if (view.type !== "admin" && view.type !== "restaurant") {
+      return;
+    }
+
+    let active = true;
+
+    const reloadOrders = async () => {
+      try {
+        const orders = await fetchOrders();
+        if (!active || !Array.isArray(orders)) return;
+
+        setAdminOrders(orders);
+        setOrderHistory(orders);
+      } catch (error) {
+        console.error("Không thể tải danh sách đơn hàng", error);
+      }
+    };
+
+    reloadOrders();
+
+    return () => {
+      active = false;
+    };
+  }, [view]);
+
   const handleConfirmOrderDetails = (customerInfo) => {
     if (!pendingOrder) {
       return {
@@ -1482,6 +1509,7 @@ function App() {
         texts={restaurantTexts}
         menuItems={menuItemList}
         categories={categories}
+        orders={adminOrders}
         onCreateMenuItem={syncMenuItemToServer}
         onUpdateMenuItem={syncUpdatedMenuItem}
         onDeleteMenuItem={syncDeletedMenuItem}

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { SafeAreaView, StatusBar, View, StyleSheet } from "react-native";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 
@@ -9,6 +9,7 @@ import CheckoutScreen from "./src/screens/CheckoutScreen.jsx";
 import OrderConfirmationScreen from "./src/screens/OrderConfirmationScreen.jsx";
 import OrderTrackingScreen from "./src/screens/OrderTrackingScreen.jsx";
 import { CartProvider } from "./src/context/CartContext.jsx";
+import { createOrder, fetchCollection } from "./src/utils/api";
 
 const SCREENS = {
   home: "home",
@@ -89,6 +90,14 @@ const ensureISODate = (value, fallbackDate) => {
 const isCancelledStatus = (status) =>
   typeof status === "string" && status.toLowerCase().includes("hủy");
 
+const countOrderItems = (items) => {
+  if (!Array.isArray(items)) {
+    return 0;
+  }
+
+  return items.reduce((sum, item) => sum + (Number(item?.quantity) || 1), 0);
+};
+
 const buildOrderViewModel = (rawOrder = {}) => {
   const now = new Date();
   const id = rawOrder.id ?? rawOrder.code ?? `ORD-${now.getTime()}`;
@@ -151,6 +160,30 @@ export default function App() {
   const [lastOrder, setLastOrder] = useState(null);
   const [homeTab, setHomeTab] = useState(HOME_TAB);
   const [orders, setOrders] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadOrders = async () => {
+      try {
+        const serverOrders = await fetchCollection("orders");
+        if (!active || !Array.isArray(serverOrders)) {
+          return;
+        }
+
+        const hydrated = serverOrders.map(buildOrderViewModel);
+        setOrders(hydrated);
+      } catch (error) {
+        console.error("Không thể đồng bộ đơn hàng từ API", error);
+      }
+    };
+
+    loadOrders();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleLogout = useCallback(() => {
     setAuthenticatedUser(null);
@@ -215,14 +248,35 @@ export default function App() {
 
   const handleOrderPlaced = useCallback(
     (order) => {
-      if (order) {
-        setLastOrder(order);
-        setOrders((previous) => [buildOrderViewModel(order), ...previous]);
-        goToOrderConfirmation();
-      } else {
+      if (!order) {
         setLastOrder(null);
         goHome();
+        return;
       }
+
+      const enhancedOrder = {
+        status: "Chờ xác nhận",
+        total: order.subtotal ?? order.total ?? 0,
+        itemsCount: countOrderItems(order.items),
+        source: order.source ?? "mobile",
+        ...order,
+      };
+
+      const optimisticView = buildOrderViewModel(enhancedOrder);
+      setLastOrder(enhancedOrder);
+      setOrders((previous) => [optimisticView, ...previous.filter((o) => o.id !== optimisticView.id)]);
+      goToOrderConfirmation();
+
+      createOrder(enhancedOrder)
+        .then((saved) => {
+          if (!saved) return;
+          const synced = buildOrderViewModel(saved);
+          setOrders((previous) => [synced, ...previous.filter((o) => o.id !== synced.id)]);
+          setLastOrder(synced.details);
+        })
+        .catch((error) => {
+          console.error("Không thể lưu đơn hàng lên API", error);
+        });
     },
     [goHome, goToOrderConfirmation]
   );
