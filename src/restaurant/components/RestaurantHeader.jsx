@@ -3,9 +3,7 @@ function RestaurantHeader({
   headerTexts,
   navigationTexts,
   menuTexts,
-  ordersTexts,
   onAddDish,
-  onAddOrder,
   onBackHome,
 }) {
   return (
@@ -19,11 +17,6 @@ function RestaurantHeader({
         {activeTab === "menu" && (
           <button type="button" className="restaurant-btn" onClick={onAddDish}>
             + {menuTexts.addButton}
-          </button>
-        )}
-        {activeTab === "orders" && (
-          <button type="button" className="restaurant-btn" onClick={onAddOrder}>
-            + {ordersTexts.addButton}
           </button>
         )}
         <button

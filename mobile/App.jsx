@@ -370,19 +370,7 @@ export default function App() {
       return;
     }
 
-    setOrders((previous) => {
-      const merged = new Map(
-        (Array.isArray(previous) ? previous : []).map((order) => [order?.id, order])
-      );
-
-      nextOrders.forEach((order) => {
-        if (order?.id) {
-          merged.set(order.id, order);
-        }
-      });
-
-      return Array.from(merged.values());
-    });
+    setOrders(nextOrders);
   }, []);
 
   const handleOrderAction = useCallback(
