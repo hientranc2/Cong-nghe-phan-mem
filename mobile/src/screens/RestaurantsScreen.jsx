@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -12,6 +12,10 @@ import {
 } from "react-native";
 
 import { fetchCollection } from "../utils/api";
+import ProductDetailModal from "../components/product/ProductDetailModal.jsx";
+import CartSuccessModal from "../components/feedback/CartSuccessModal.jsx";
+import { useCart } from "../context/CartContext.jsx";
+import { resolveImageSource } from "../utils/image";
 
 const normalizeRestaurant = (restaurant) => ({
   ...restaurant,
@@ -44,57 +48,60 @@ const RestaurantCard = ({
   onPress,
 }) => (
   <TouchableOpacity activeOpacity={0.9} style={styles.card} onPress={onPress}>
-    <ImageBackground
-      source={image ? { uri: image } : undefined}
-      style={styles.cardImage}
-      imageStyle={styles.cardImage}
-      defaultSource={undefined}
-    >
-      {!image ? (
-        <View style={[styles.cardImage, styles.imagePlaceholder]}>
-          <Text style={styles.placeholderIcon}>🏬</Text>
-        </View>
-      ) : null}
-      <View style={styles.overlay} />
-      <View style={styles.cardContentOverlay}>
-        <View style={styles.titleRow}>
-          <Text style={styles.cardTitle}>{name}</Text>
-          {badge ? <Text style={styles.badge}>{badge}</Text> : null}
-        </View>
-        {description ? (
-          <Text style={styles.cardContent} numberOfLines={2}>
-            {description}
-          </Text>
-        ) : null}
-        <View style={styles.metaRow}>
-          {city ? (
-            <Text style={styles.metaText}>
-              <Text style={styles.metaIcon}>📍 </Text>
-              {city}
-            </Text>
-          ) : null}
-          {deliveryTime ? (
-            <Text style={styles.metaText}>
-              <Text style={styles.metaIcon}>⏱️ </Text>
-              {deliveryTime}
-            </Text>
-          ) : null}
-        </View>
-        {Array.isArray(tags) && tags.length > 0 ? (
-          <View style={styles.tagsRow}>
-            {tags.map((tag) => (
-              <Text key={tag} style={styles.tagChip}>
-                {tag}
-              </Text>
-            ))}
+    <View style={styles.cardImageWrapper}>
+      <ImageBackground
+        source={image ? { uri: image } : undefined}
+        style={styles.cardImage}
+        imageStyle={styles.cardImage}
+        defaultSource={undefined}
+      >
+        {!image ? (
+          <View style={[styles.cardImage, styles.imagePlaceholder]}>
+            <Text style={styles.placeholderIcon}>🏬</Text>
           </View>
         ) : null}
+        <View style={styles.overlaySoft} />
+      </ImageBackground>
+    </View>
+
+    <View style={styles.cardBody}>
+      <View style={styles.titleRow}>
+        <Text style={styles.cardTitle}>{name}</Text>
+        {badge ? <Text style={styles.badge}>{badge}</Text> : null}
       </View>
-    </ImageBackground>
+      {description ? (
+        <Text style={styles.cardContent} numberOfLines={2}>
+          {description}
+        </Text>
+      ) : null}
+      <View style={styles.metaRow}>
+        {city ? (
+          <Text style={styles.metaText}>
+            <Text style={styles.metaIcon}>📍 </Text>
+            {city}
+          </Text>
+        ) : null}
+        {deliveryTime ? (
+          <Text style={styles.metaText}>
+            <Text style={styles.metaIcon}>⏱️ </Text>
+            {deliveryTime}
+          </Text>
+        ) : null}
+      </View>
+      {Array.isArray(tags) && tags.length > 0 ? (
+        <View style={styles.tagsRow}>
+          {tags.map((tag) => (
+            <Text key={tag} style={styles.tagChip}>
+              {tag}
+            </Text>
+          ))}
+        </View>
+      ) : null}
+    </View>
   </TouchableOpacity>
 );
 
-const RestaurantMenuList = ({ menuItems = [] }) => {
+const RestaurantMenuList = ({ menuItems = [], onSelectItem, onAddToCart }) => {
   if (!menuItems.length) {
     return (
       <Text style={styles.emptyMenuText}>
@@ -106,26 +113,50 @@ const RestaurantMenuList = ({ menuItems = [] }) => {
   return (
     <View style={styles.menuList}>
       {menuItems.map((menu) => (
-        <View key={menu.id} style={styles.menuItemRow}>
-          <View style={styles.menuInfo}>
-            <Text style={styles.menuItemName} numberOfLines={1}>
-              {menu.name}
-            </Text>
-            {menu.tag ? <Text style={styles.menuTag}>{menu.tag}</Text> : null}
-            {menu.description ? (
-              <Text style={styles.menuDesc} numberOfLines={2}>
-                {menu.description}
+        <View key={menu.id} style={styles.menuItemCard}>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.menuItemRow}
+            onPress={() => onSelectItem?.(menu)}
+          >
+            <View style={styles.menuInfo}>
+              <Text style={styles.menuItemName} numberOfLines={1}>
+                {menu.name}
               </Text>
-            ) : null}
-            <Text style={styles.menuPrice}>{formatCurrency(menu.price)}</Text>
-          </View>
-          {menu.image ? (
-            <Image source={{ uri: menu.image }} style={styles.menuImage} />
-          ) : (
-            <View style={[styles.menuImage, styles.miniPlaceholder]}>
-              <Text style={styles.placeholderIcon}>🍽️</Text>
+              {menu.tag ? <Text style={styles.menuTag}>{menu.tag}</Text> : null}
+              {menu.description ? (
+                <Text style={styles.menuDesc} numberOfLines={2}>
+                  {menu.description}
+                </Text>
+              ) : null}
+              <Text style={styles.menuPrice}>{formatCurrency(menu.price)}</Text>
             </View>
-          )}
+            {menu.image ? (
+              <Image
+                source={resolveImageSource(menu.image)}
+                style={styles.menuImage}
+              />
+            ) : (
+              <View style={[styles.menuImage, styles.miniPlaceholder]}>
+                <Text style={styles.placeholderIcon}>🍽️</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          <View style={styles.menuActions}>
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={() => onSelectItem?.(menu)}
+            >
+              <Text style={styles.secondaryButtonLabel}>Xem chi tiết</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={() => onAddToCart?.(menu)}
+            >
+              <Text style={styles.primaryButtonLabel}>Thêm vào giỏ</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       ))}
     </View>
@@ -139,6 +170,13 @@ const RestaurantsScreen = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedRestaurantId, setSelectedRestaurantId] = useState(null);
+  const [selectedProductId, setSelectedProductId] = useState(null);
+  const [confirmation, setConfirmation] = useState({
+    visible: false,
+    productName: "",
+    quantity: 0,
+  });
+  const { addToCart } = useCart();
 
   useEffect(() => {
     let active = true;
@@ -217,13 +255,62 @@ const RestaurantsScreen = () => {
     [restaurants, selectedRestaurantId]
   );
 
-  const handleOpenRestaurant = (restaurantId) => {
-    setSelectedRestaurantId(restaurantId);
-  };
+  const productLookup = useMemo(() => {
+    const lookup = new Map();
+    menuItems.forEach((item) => lookup.set(item.id, item));
+    return lookup;
+  }, [menuItems]);
 
-  const handleBackToList = () => {
+  const selectedProduct = useMemo(
+    () => (selectedProductId ? productLookup.get(selectedProductId) ?? null : null),
+    [productLookup, selectedProductId]
+  );
+
+  const handleOpenRestaurant = useCallback((restaurantId) => {
+    setSelectedRestaurantId(restaurantId);
+  }, []);
+
+  const handleBackToList = useCallback(() => {
     setSelectedRestaurantId(null);
-  };
+  }, []);
+
+  const handleSelectProduct = useCallback((product) => {
+    setSelectedProductId(product?.id ?? null);
+  }, []);
+
+  const handleCloseProduct = useCallback(() => {
+    setSelectedProductId(null);
+  }, []);
+
+  const handleShowConfirmation = useCallback((product, quantity) => {
+    if (!product) return;
+    setConfirmation({
+      visible: true,
+      productName: product.name,
+      quantity,
+    });
+  }, []);
+
+  const handleHideConfirmation = useCallback(() => {
+    setConfirmation((prev) => ({ ...prev, visible: false }));
+  }, []);
+
+  const handleAddToCart = useCallback(
+    (product, quantity = 1) => {
+      if (!product) return;
+      const result = addToCart(product, quantity);
+      handleShowConfirmation(result.product ?? product, result.quantity ?? quantity);
+    },
+    [addToCart, handleShowConfirmation]
+  );
+
+  const handleAddFromModal = useCallback(
+    (product, quantity) => {
+      handleAddToCart(product, quantity);
+      handleCloseProduct();
+    },
+    [handleAddToCart, handleCloseProduct]
+  );
 
   if (selectedRestaurant) {
     const items = menuByRestaurant.get(selectedRestaurant.id) ?? [];
@@ -246,23 +333,32 @@ const RestaurantsScreen = () => {
               </View>
             ) : null}
             <View style={styles.heroOverlay} />
-            <View style={styles.heroContent}>
-              <TouchableOpacity style={styles.backButton} onPress={handleBackToList}>
-                <Text style={styles.backText}>◀ Quay lại</Text>
-              </TouchableOpacity>
-              <Text style={styles.heroBadge}>{selectedRestaurant.badge}</Text>
-              <Text style={styles.heroTitle}>{selectedRestaurant.name}</Text>
-              <Text style={styles.heroDescription}>{selectedRestaurant.description}</Text>
-              <View style={styles.heroMeta}>
-                {selectedRestaurant.deliveryTime ? (
-                  <Text style={styles.heroMetaItem}>{selectedRestaurant.deliveryTime}</Text>
-                ) : null}
-                {selectedRestaurant.city ? (
-                  <Text style={styles.heroMetaItem}>{selectedRestaurant.city}</Text>
-                ) : null}
-              </View>
-            </View>
+            <TouchableOpacity style={styles.backButton} onPress={handleBackToList}>
+              <Text style={styles.backText}>◀ Quay lại</Text>
+            </TouchableOpacity>
           </ImageBackground>
+
+          <View style={styles.heroInfoCard}>
+            <Text style={styles.heroBadge}>{selectedRestaurant.badge}</Text>
+            <Text style={styles.heroTitle}>{selectedRestaurant.name}</Text>
+            <Text style={styles.heroDescription} numberOfLines={3}>
+              {selectedRestaurant.description}
+            </Text>
+            <View style={styles.heroMetaRow}>
+              {selectedRestaurant.deliveryTime ? (
+                <View style={styles.heroMetaPill}>
+                  <Text style={styles.heroMetaIcon}>⏱️</Text>
+                  <Text style={styles.heroMetaText}>{selectedRestaurant.deliveryTime}</Text>
+                </View>
+              ) : null}
+              {selectedRestaurant.city ? (
+                <View style={styles.heroMetaPill}>
+                  <Text style={styles.heroMetaIcon}>📍</Text>
+                  <Text style={styles.heroMetaText}>{selectedRestaurant.city}</Text>
+                </View>
+              ) : null}
+            </View>
+          </View>
         </View>
 
         {selectedRestaurant.tags?.length ? (
@@ -277,11 +373,31 @@ const RestaurantsScreen = () => {
 
         <View style={styles.menuSectionDetail}>
           <View style={styles.menuHeaderRow}>
-            <Text style={styles.menuTitle}>Thực đơn của nhà hàng</Text>
+            <View>
+              <Text style={styles.menuTitle}>Thực đơn của nhà hàng</Text>
+              <Text style={styles.menuSubtitle}>Chạm để xem chi tiết và đặt món nhanh</Text>
+            </View>
             <Text style={styles.menuCount}>{items.length} món</Text>
           </View>
-          <RestaurantMenuList menuItems={items} />
+          <RestaurantMenuList
+            menuItems={items}
+            onSelectItem={handleSelectProduct}
+            onAddToCart={(menu) => handleAddToCart(menu)}
+          />
         </View>
+
+        <ProductDetailModal
+          product={selectedProduct}
+          visible={Boolean(selectedProduct)}
+          onClose={handleCloseProduct}
+          onAddToCart={handleAddFromModal}
+        />
+        <CartSuccessModal
+          visible={confirmation.visible}
+          productName={confirmation.productName}
+          quantity={confirmation.quantity}
+          onClose={handleHideConfirmation}
+        />
       </ScrollView>
     );
   }
@@ -316,20 +432,34 @@ const RestaurantsScreen = () => {
         )}
         ListEmptyComponent={() => (
           <View style={styles.emptyState}>
-            {loading ? (
-              <ActivityIndicator size="large" color="#f97316" />
-            ) : (
-              <Text style={styles.emptyText}>
-                {error ?? "Chưa có nhà hàng nào được hiển thị."}
-              </Text>
-            )}
-          </View>
-        )}
-        contentContainerStyle={[
-          styles.listContent,
-          { paddingTop: headerHeight + 24 },
-        ]}
-        showsVerticalScrollIndicator={false}
+          {loading ? (
+            <ActivityIndicator size="large" color="#f97316" />
+          ) : (
+            <Text style={styles.emptyText}>
+              {error ?? "Chưa có nhà hàng nào được hiển thị."}
+            </Text>
+          )}
+        </View>
+      )}
+      contentContainerStyle={[
+        styles.listContent,
+        { paddingTop: headerHeight + 24 },
+      ]}
+      showsVerticalScrollIndicator={false}
+    />
+
+      <ProductDetailModal
+        product={selectedProduct}
+        visible={Boolean(selectedProduct)}
+        onClose={handleCloseProduct}
+        onAddToCart={handleAddFromModal}
+      />
+
+      <CartSuccessModal
+        visible={confirmation.visible}
+        productName={confirmation.productName}
+        quantity={confirmation.quantity}
+        onClose={handleHideConfirmation}
       />
     </View>
   );
@@ -339,6 +469,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff8f2",
+  },
+  cardImageWrapper: {
+    overflow: "hidden",
+    borderRadius: 18,
+  },
+  cardBody: {
+    backgroundColor: "#fff",
+    padding: 16,
+    gap: 8,
+    borderRadius: 18,
+    marginTop: -18,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 4,
   },
   header: {
     position: "absolute",
@@ -405,16 +551,9 @@ const styles = StyleSheet.create({
   placeholderIcon: {
     fontSize: 28,
   },
-  overlay: {
+  overlaySoft: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.35)",
-  },
-  cardContentOverlay: {
-    position: "absolute",
-    left: 16,
-    right: 16,
-    bottom: 16,
-    gap: 10,
+    backgroundColor: "rgba(0,0,0,0.18)",
   },
   titleRow: {
     flexDirection: "row",
@@ -424,7 +563,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#f8fafc",
+    color: "#0f172a",
     flexShrink: 1,
   },
   badge: {
@@ -438,7 +577,7 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     fontSize: 14,
-    color: "#e5e7eb",
+    color: "#4b5563",
   },
   metaRow: {
     flexDirection: "row",
@@ -448,10 +587,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 13,
-    color: "#e5e7eb",
-  },
-  metaIcon: {
-    fontSize: 14,
+    color: "#4b5563",
   },
   metaIcon: {
     fontSize: 14,
@@ -462,8 +598,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   tagChip: {
-    backgroundColor: "rgba(255,255,255,0.14)",
-    color: "#f8fafc",
+    backgroundColor: "#fef2f2",
+    color: "#b91c1c",
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 12,
@@ -486,7 +622,18 @@ const styles = StyleSheet.create({
     color: "#f97316",
   },
   menuList: {
+    gap: 16,
+  },
+  menuItemCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 12,
     gap: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
   },
   menuItemRow: {
     flexDirection: "row",
@@ -498,8 +645,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   menuItemName: {
-    fontSize: 14,
-    fontWeight: "700",
+    fontSize: 15,
+    fontWeight: "800",
     color: "#1f2937",
   },
   menuTag: {
@@ -517,13 +664,13 @@ const styles = StyleSheet.create({
     color: "#4b5563",
   },
   menuPrice: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "800",
     color: "#f04e23",
   },
   menuImage: {
-    width: 68,
-    height: 68,
+    width: 74,
+    height: 74,
     borderRadius: 14,
     backgroundColor: "#f3f4f6",
   },
@@ -531,9 +678,34 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  moreMenuText: {
+  menuActions: {
+    flexDirection: "row",
+    gap: 10,
+    justifyContent: "flex-end",
+  },
+  secondaryButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    backgroundColor: "#fff",
+  },
+  secondaryButtonLabel: {
+    color: "#1f2937",
+    fontWeight: "700",
     fontSize: 12,
-    color: "#6b7280",
+  },
+  primaryButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: "#ff5a1f",
+  },
+  primaryButtonLabel: {
+    color: "#fff",
+    fontWeight: "800",
+    fontSize: 12,
   },
   emptyMenuText: {
     fontSize: 13,
@@ -550,7 +722,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   hero: {
-    height: 320,
+    height: 260,
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
     overflow: "hidden",
@@ -562,23 +734,31 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.45)",
   },
-  heroContent: {
-    position: "absolute",
-    bottom: 24,
-    left: 20,
-    right: 20,
-    gap: 10,
-  },
   backButton: {
-    alignSelf: "flex-start",
-    paddingVertical: 8,
+    position: "absolute",
+    top: 18,
+    left: 18,
+    paddingVertical: 10,
     paddingHorizontal: 12,
-    backgroundColor: "rgba(255,255,255,0.14)",
+    backgroundColor: "rgba(0,0,0,0.35)",
     borderRadius: 10,
   },
   backText: {
     color: "#fff",
     fontWeight: "700",
+  },
+  heroInfoCard: {
+    backgroundColor: "#fff",
+    marginTop: -36,
+    marginHorizontal: 20,
+    borderRadius: 20,
+    padding: 16,
+    gap: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 5,
   },
   heroBadge: {
     alignSelf: "flex-start",
@@ -590,21 +770,33 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   heroTitle: {
-    color: "#fff",
-    fontSize: 28,
+    color: "#111827",
+    fontSize: 26,
     fontWeight: "900",
   },
   heroDescription: {
-    color: "#e5e7eb",
-    fontSize: 15,
+    color: "#4b5563",
+    fontSize: 14,
   },
-  heroMeta: {
+  heroMetaRow: {
     flexDirection: "row",
-    gap: 12,
+    gap: 10,
     flexWrap: "wrap",
   },
-  heroMetaItem: {
-    color: "#fef3c7",
+  heroMetaPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#f9fafb",
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  heroMetaIcon: {
+    fontSize: 12,
+  },
+  heroMetaText: {
+    color: "#111827",
     fontWeight: "700",
   },
   tagsRowDetail: {
@@ -629,6 +821,11 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 16,
     gap: 12,
+  },
+  menuSubtitle: {
+    marginTop: 6,
+    fontSize: 12,
+    color: "#6b7280",
   },
   emptyState: {
     paddingVertical: 80,
