@@ -20,14 +20,15 @@ export const fetchCollection = async (collection) => {
 };
 
 export const fetchAllData = async () => {
-  const [categories, menuItems, restaurants, orders] = await Promise.all([
+  const [categories, menuItems, restaurants, orders, users] = await Promise.all([
     fetchCollection("categories"),
     fetchCollection("menuItems"),
     fetchCollection("restaurants"),
     fetchCollection("orders"),
+    fetchCollection("users"),
   ]);
 
-  return { categories, menuItems, restaurants, orders };
+  return { categories, menuItems, restaurants, orders, users };
 };
 
 const postJSON = async (collection, payload) => {
@@ -130,3 +131,7 @@ export const deleteRestaurant = async (id) => {
 
   return true;
 };
+
+export const fetchUsers = async () => fetchCollection("users");
+
+export const createUser = async (payload) => postJSON("users", payload);

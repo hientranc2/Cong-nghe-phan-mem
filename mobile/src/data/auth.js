@@ -13,9 +13,9 @@ export const authContent = {
       fields: [
         {
           id: "phone",
-          label: "Số điện thoại",
-          placeholder: "Nhập số điện thoại đã đăng ký",
-          keyboardType: "phone-pad"
+          label: "Số điện thoại hoặc email",
+          placeholder: "Nhập số điện thoại hoặc email đã đăng ký",
+          keyboardType: "default"
         },
         {
           id: "password",

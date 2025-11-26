@@ -10,6 +10,7 @@ function RegisterPage({
   const subtitle =
     texts.subtitle ?? "Đăng ký tài khoản để đặt món và theo dõi lịch sử đơn hàng.";
   const nameLabel = texts.nameLabel ?? "Họ và tên";
+  const phoneLabel = texts.phoneLabel ?? "Số điện thoại";
   const emailLabel = texts.emailLabel ?? "Email";
   const passwordLabel = texts.passwordLabel ?? "Mật khẩu";
   const submitLabel = texts.submitLabel ?? "Đăng ký";
@@ -23,25 +24,29 @@ function RegisterPage({
 
   const [formState, setFormState] = useState({
     name: "",
+    phone: "",
     email: "",
     password: "",
   });
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormState((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
     setInfo("");
+    setIsSubmitting(true);
 
     try {
-      const result = onRegister({
+      const result = await onRegister({
         name: formState.name,
+        phone: formState.phone,
         email: formState.email.trim(),
         password: formState.password,
       });
@@ -54,6 +59,8 @@ function RegisterPage({
       setInfo(successMessage);
     } catch (submissionError) {
       setError(defaultErrorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -86,6 +93,18 @@ function RegisterPage({
               required
             />
           </label>
+          <label htmlFor="register-phone">
+            {phoneLabel}
+            <input
+              id="register-phone"
+              name="phone"
+              type="tel"
+              value={formState.phone}
+              onChange={handleChange}
+              placeholder="0901 234 567"
+              autoComplete="tel"
+            />
+          </label>
           <label htmlFor="register-email">
             {emailLabel}
             <input
@@ -113,9 +132,9 @@ function RegisterPage({
               required
             />
           </label>
-     
+
           <button type="submit" className="auth-submit">
-            {submitLabel}
+            {isSubmitting ? "Đang xử lý..." : submitLabel}
           </button>
         </form>
         <p className="auth-card__switch">

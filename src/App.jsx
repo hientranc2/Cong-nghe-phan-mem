@@ -16,20 +16,22 @@ import AdminDashboard from "./admin/AdminDashboard";
 import RestaurantDashboard from "./pages/RestaurantDashboard";
 import { categories as defaultCategories, menuItems as defaultMenuItems } from "./data/menuData";
 import { restaurants as defaultRestaurants } from "./data/restaurants";
-  import { contentByLanguage } from "./i18n/translations";
-  import {
-    createMenuItem,
-    createOrder,
-    createRestaurant,
+import { contentByLanguage } from "./i18n/translations";
+import {
+  createMenuItem,
+  createOrder,
+  createRestaurant,
+  createUser,
   deleteMenuItem,
-    deleteOrder,
-    deleteRestaurant,
-    fetchAllData,
-    fetchOrders,
-    updateMenuItem,
-    updateOrder,
-    updateRestaurant,
-  } from "./api/client";
+  deleteOrder,
+  deleteRestaurant,
+  fetchAllData,
+  fetchOrders,
+  fetchUsers,
+  updateMenuItem,
+  updateOrder,
+  updateRestaurant,
+} from "./api/client";
 
 
 const heroBackground =
@@ -83,6 +85,7 @@ const DEFAULT_USERS = [
 ];
 
 const normalizeEmail = (email = "") => email.trim().toLowerCase();
+const normalizePhone = (phone = "") => phone.replace(/\D/g, "");
 
 const mergeUsersByEmail = (users = []) => {
   const byEmail = new Map();
@@ -300,6 +303,20 @@ function App() {
     }
   }, []);
 
+  const syncUsersFromServer = useCallback(async () => {
+    try {
+      const remoteUsers = await fetchUsers();
+      if (Array.isArray(remoteUsers)) {
+        setUsers((prev) => mergeUsersByEmail([...prev, ...remoteUsers]));
+        return remoteUsers;
+      }
+    } catch (error) {
+      console.error("Không thể đồng bộ tài khoản từ server", error);
+    }
+
+    return [];
+  }, []);
+
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
@@ -344,6 +361,10 @@ function App() {
         if (Array.isArray(data.orders)) {
           setAdminOrders(data.orders);
           setOrderHistory(data.orders);
+        }
+
+        if (Array.isArray(data.users) && data.users.length > 0) {
+          setUsers((prev) => mergeUsersByEmail([...prev, ...data.users]));
         }
       } catch (error) {
         console.error("Không thể đồng bộ dữ liệu từ json-server", error);
@@ -1043,25 +1064,36 @@ function App() {
 
   
 
-  const handleLogin = ({ email = "", password = "" }) => {
+  const handleLogin = async ({ email = "", phone = "", password = "" }) => {
     const normalizedEmail = normalizeEmail(email);
-    if (!normalizedEmail || !password) {
+    const normalizedPhone = normalizePhone(phone);
+
+    if ((!normalizedEmail && !normalizedPhone) || !password) {
       return {
         success: false,
-        message: "Vui lòng nhập email và mật khẩu.",
+        message: "Vui lòng nhập email, số điện thoại và mật khẩu.",
       };
     }
 
-    const matchedUser = users.find(
-      (candidate) =>
-        normalizeEmail(candidate.email) === normalizedEmail &&
-        candidate.password === password
-    );
+    let mergedUsers = users;
+    const remoteUsers = await syncUsersFromServer();
+    if (remoteUsers.length > 0) {
+      mergedUsers = mergeUsersByEmail([...mergedUsers, ...remoteUsers]);
+    }
+
+    const matchedUser = mergedUsers.find((candidate) => {
+      const emailMatch =
+        normalizedEmail && normalizeEmail(candidate.email) === normalizedEmail;
+      const phoneMatch =
+        normalizedPhone && normalizePhone(candidate.phone ?? "") === normalizedPhone;
+
+      return (emailMatch || phoneMatch) && candidate.password === password;
+    });
 
     if (!matchedUser) {
       return {
         success: false,
-        message: "Email hoặc mật khẩu không chính xác.",
+        message: "Thông tin đăng nhập chưa chính xác. Vui lòng thử lại.",
       };
     }
 
@@ -1074,14 +1106,16 @@ function App() {
     return { success: true, user: safeUser };
   };
 
-  const handleRegister = ({
+  const handleRegister = async ({
     name = "",
     email = "",
+    phone = "",
     password = "",
     role = "customer",
   }) => {
     const trimmedName = name.trim();
     const normalizedEmail = normalizeEmail(email);
+    const normalizedPhone = normalizePhone(phone);
     const allowedRoles = ["customer", "admin", "restaurant"];
     const normalizedRole = allowedRoles.includes(role) ? role : "customer";
 
@@ -1092,14 +1126,25 @@ function App() {
       };
     }
 
-    const exists = users.some(
-      (candidate) => normalizeEmail(candidate.email) === normalizedEmail
-    );
+    let mergedUsers = users;
+    const remoteUsers = await syncUsersFromServer();
+    if (remoteUsers.length > 0) {
+      mergedUsers = mergeUsersByEmail([...mergedUsers, ...remoteUsers]);
+    }
+
+    const exists = mergedUsers.some((candidate) => {
+      const sameEmail = normalizeEmail(candidate.email) === normalizedEmail;
+      const samePhone =
+        normalizedPhone &&
+        normalizePhone(candidate.phone ?? "") === normalizedPhone;
+      return sameEmail || samePhone;
+    });
 
     if (exists) {
       return {
         success: false,
-        message: "Email đã được đăng ký. Vui lòng sử dụng email khác.",
+        message:
+          "Email hoặc số điện thoại đã được đăng ký. Vui lòng sử dụng thông tin khác.",
       };
     }
 
@@ -1107,9 +1152,19 @@ function App() {
       id: `user-${Date.now()}`,
       name: trimmedName,
       email: normalizedEmail,
+      phone: normalizedPhone,
       password,
       role: normalizedRole,
     };
+
+    try {
+      const created = await createUser(newUser);
+      if (created?.id) {
+        newUser.id = created.id;
+      }
+    } catch (error) {
+      console.error("Không thể lưu tài khoản mới lên server", error);
+    }
 
     setUsers((prevUsers) => mergeUsersByEmail([...prevUsers, newUser]));
     const { password: _password, ...safeUser } = newUser;

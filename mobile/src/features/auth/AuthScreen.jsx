@@ -76,6 +76,7 @@ const AuthScreen = ({ onBack, onLoginSuccess = () => {} }) => {
     return errors;
   }, [formValues]);
 
+
   const handleSubmit = useCallback(
     async (formId) => {
       const errors = validateForm(formId);
@@ -90,65 +91,74 @@ const AuthScreen = ({ onBack, onLoginSuccess = () => {} }) => {
         return;
       }
 
-    setIsSubmitting(true);
-    setFormStatus((prev) => ({ ...prev, [formId]: undefined }));
+      setIsSubmitting(true);
+      setFormStatus((prev) => ({ ...prev, [formId]: undefined }));
 
-    try {
-      let result;
-      if (formId === "login") {
-        result = authService.login(formValues.login);
-      } else {
-        result = authService.register(formValues.register);
-      }
-
-      if (result.success) {
-        setFormValues((prev) => ({
-          ...prev,
-          [formId]: { ...initialValues[formId] },
-          ...(formId === "register"
-            ? {
-                login: {
-                  ...prev.login,
-                  phone: prev.register.phone ?? "",
-                  password: ""
-                }
-              }
-            : {})
-        }));
-      }
-
-      setFormStatus((prev) => ({
-        ...prev,
-        [formId]: {
-          type: result.success ? "success" : "error",
-          message: result.message
+      try {
+        let result;
+        if (formId === "login") {
+          result = await authService.login(formValues.login);
+        } else {
+          result = await authService.register(formValues.register);
         }
-      }));
 
-      if (result.success) {
-        if (formId === "register") {
-          setActiveTab("login");
-          setFormErrors((prev) => ({ ...prev, login: {} }));
-          setFormStatus((prev) => ({
+        if (result.success) {
+          setFormValues((prev) => ({
             ...prev,
-            login: {
-              type: "success",
-              message: "Đăng ký thành công! Vui lòng đăng nhập."
-            }
+            [formId]: { ...initialValues[formId] },
+            ...(formId === "register"
+              ? {
+                  login: {
+                    ...prev.login,
+                    phone: prev.register.phone ?? "",
+                    password: ""
+                  }
+                }
+              : {})
           }));
         }
 
-        if (formId === "login" && result.user) {
-          Alert.alert("Đăng nhập thành công", result.message);
-          onLoginSuccess(result.user);
+        setFormStatus((prev) => ({
+          ...prev,
+          [formId]: {
+            type: result.success ? "success" : "error",
+            message: result.message
+          }
+        }));
+
+        if (result.success) {
+          if (formId === "register") {
+            setActiveTab("login");
+            setFormErrors((prev) => ({ ...prev, login: {} }));
+            setFormStatus((prev) => ({
+              ...prev,
+              login: {
+                type: "success",
+                message: "Đăng ký thành công! Vui lòng đăng nhập."
+              }
+            }));
+          }
+
+          if (formId === "login" && result.user) {
+            Alert.alert("Đăng nhập thành công", result.message);
+            onLoginSuccess(result.user);
+          }
         }
+      } catch (submissionError) {
+        setFormStatus((prev) => ({
+          ...prev,
+          [formId]: {
+            type: "error",
+            message: "Không thể xử lý yêu cầu. Vui lòng thử lại."
+          }
+        }));
+      } finally {
+        setIsSubmitting(false);
       }
-    } finally {
-      setIsSubmitting(false);
-    }
-  },
+    },
     [formValues, initialValues, onLoginSuccess, validateForm]
   );
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
