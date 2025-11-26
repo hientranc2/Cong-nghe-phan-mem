@@ -27,6 +27,8 @@ const ACTIVE_STATUS = "Đang giao";
 const CANCELLED_STATUS = "Đã hủy";
 const ACTIVE_STATUS_COLOR = "#f97316";
 const CANCELLED_STATUS_COLOR = "#ef4444";
+const normalizePhone = (phone) => (phone ?? "").replace(/\D/g, "");
+const normalizeEmail = (email) => (email ?? "").trim().toLowerCase();
 
 const DEFAULT_ORDER_ACTIONS = [
   { id: "cancel", label: "Hủy đơn hàng", variant: "secondary" },
@@ -140,6 +142,13 @@ const buildOrderViewModel = (rawOrder = {}) => {
     status: normalizedStatusLabel,
     statusColor,
     actions,
+    userId:
+      rawOrder.userId ??
+      rawOrder.customer?.id ??
+      rawOrder.customerId ??
+      rawOrder.user?.id,
+    contactPhone: rawOrder.customer?.phone,
+    contactEmail: rawOrder.customer?.email,
     details: {
       ...rawOrder,
       id,
@@ -154,12 +163,47 @@ const buildOrderViewModel = (rawOrder = {}) => {
   };
 };
 
+const filterOrdersForUser = (allOrders, user) => {
+  if (!user) {
+    return [];
+  }
+
+  const targetPhone = normalizePhone(user.phone);
+  const targetEmail = normalizeEmail(user.email);
+
+  return allOrders.filter((order) => {
+    if (!order) {
+      return false;
+    }
+
+    const source = order.details ?? order;
+    const orderUserId =
+      order.userId ??
+      source.userId ??
+      source.customer?.id ??
+      source.customerId ??
+      source.user?.id;
+    const orderPhone = normalizePhone(order.contactPhone ?? source.customer?.phone);
+    const orderEmail = normalizeEmail(order.contactEmail ?? source.customer?.email);
+
+    const matchesId = Boolean(user.id && orderUserId && orderUserId === user.id);
+    const matchesPhone = Boolean(targetPhone && orderPhone && targetPhone === orderPhone);
+    const matchesEmail = Boolean(targetEmail && orderEmail && targetEmail === orderEmail);
+
+    return matchesId || matchesPhone || matchesEmail;
+  });
+};
+
 export default function App() {
   const [activeScreen, setActiveScreen] = useState(SCREENS.home);
   const [authenticatedUser, setAuthenticatedUser] = useState(null);
   const [lastOrder, setLastOrder] = useState(null);
   const [homeTab, setHomeTab] = useState(HOME_TAB);
   const [orders, setOrders] = useState([]);
+  const visibleOrders = useMemo(
+    () => filterOrdersForUser(orders, authenticatedUser),
+    [orders, authenticatedUser]
+  );
 
   useEffect(() => {
     let active = true;
@@ -202,7 +246,7 @@ export default function App() {
     [setActiveScreen]
   );
   const goToCart = useCallback(() => setActiveScreen(SCREENS.cart), [setActiveScreen]);
- const goToCheckout = useCallback(() => {
+  const goToCheckout = useCallback(() => {
     if (!authenticatedUser) {
       goToAuth();
       return;
@@ -222,6 +266,7 @@ export default function App() {
     (user) => {
       if (user) {
         setAuthenticatedUser({
+          id: user.id,
           fullName: user.fullName ?? user.name,
           phone: user.phone,
           email: user.email,
@@ -259,7 +304,21 @@ export default function App() {
         total: order.subtotal ?? order.total ?? 0,
         itemsCount: countOrderItems(order.items),
         source: order.source ?? "mobile",
+        userId:
+          authenticatedUser?.id ??
+          authenticatedUser?.email ??
+          authenticatedUser?.phone,
         ...order,
+        customer: {
+          id:
+            authenticatedUser?.id ??
+            order.customer?.id ??
+            authenticatedUser?.email ??
+            authenticatedUser?.phone,
+          name: order.customer?.name ?? authenticatedUser?.fullName,
+          phone: order.customer?.phone ?? authenticatedUser?.phone,
+          email: order.customer?.email ?? authenticatedUser?.email,
+        },
       };
 
       const optimisticView = buildOrderViewModel(enhancedOrder);
@@ -278,7 +337,7 @@ export default function App() {
           console.error("Không thể lưu đơn hàng lên API", error);
         });
     },
-    [goHome, goToOrderConfirmation]
+    [authenticatedUser, goHome, goToOrderConfirmation]
   );
 
   const handleTrackOrder = useCallback(() => {
@@ -291,7 +350,23 @@ export default function App() {
   }, [goHome, goToOrderTracking, lastOrder]);
 
   const handleOrdersChange = useCallback((nextOrders) => {
-    setOrders(Array.isArray(nextOrders) ? nextOrders : []);
+    if (!Array.isArray(nextOrders)) {
+      return;
+    }
+
+    setOrders((previous) => {
+      const merged = new Map(
+        (Array.isArray(previous) ? previous : []).map((order) => [order?.id, order])
+      );
+
+      nextOrders.forEach((order) => {
+        if (order?.id) {
+          merged.set(order.id, order);
+        }
+      });
+
+      return Array.from(merged.values());
+    });
   }, []);
 
   const handleOrderAction = useCallback(
@@ -336,7 +411,7 @@ export default function App() {
               user={authenticatedUser}
               onViewCart={screenHandlers.goToCart}
               initialTab={homeTab}
-              orders={orders}
+              orders={visibleOrders}
               onOrdersChange={handleOrdersChange}
               onOrderAction={handleOrderAction}
               onTabChange={handleHomeTabChange}
