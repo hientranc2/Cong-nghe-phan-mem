@@ -917,7 +917,72 @@
       "role": "restaurant",
       "restaurantId": "fco-taco-hub",
       "restaurantSlug": "taco-hub"
+    },
+    {
+      "id": "user-1764186919459",
+      "name": "Terry Trần",
+      "fullName": "Terry Trần",
+      "email": "terry@gmail.com",
+      "phone": "0909004747",
+      "password": "123123",
+      "role": "customer",
+      "tier": "Tiêu chuẩn",
+      "active": true,
+      "joinedAt": "2025-11-26"
     }
   ],
-  "orders": []
+  "orders": [
+    {
+      "id": "ORD-1764186936072",
+      "items": [
+        {
+          "id": "fco-burger-blaze",
+          "categoryId": "cat-burger",
+          "name": "Burger Blaze Bò Mỹ",
+          "description": "Bánh burger bò Mỹ nướng than, sốt phô mai cheddar và bacon giòn.",
+          "price": 69000,
+          "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=900&q=80",
+          "image": "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=900&q=80",
+          "calories": 520,
+          "time": 12,
+          "tag": "Best Seller",
+          "isBestSeller": true,
+          "translations": {
+            "vi": {
+              "name": "Burger Blaze Bò Mỹ",
+              "description": "Bánh burger bò Mỹ nướng than, sốt phô mai cheddar và bacon giòn.",
+              "tag": "Best Seller"
+            },
+            "en": {
+              "name": "Blaze Angus Burger",
+              "description": "Char-grilled American beef burger with cheddar cheese sauce and crispy bacon.",
+              "tag": "Best Seller"
+            }
+          },
+          "restaurantId": "fco-burger-artisan",
+          "restaurantSlug": "burger-artisan",
+          "restaurantName": "Burger Artisan House",
+          "quantity": 1
+        }
+      ],
+      "subtotal": 69000,
+      "shipping": 0,
+      "total": 69000,
+      "note": "",
+      "deliveryOption": "today",
+      "restaurantId": "fco-burger-artisan",
+      "restaurantSlug": "burger-artisan",
+      "restaurantName": "Burger Artisan House",
+      "createdAt": "2025-11-26T19:55:32.877Z",
+      "customer": {
+        "name": "Terry Trần",
+        "phone": "0909004747",
+        "email": "terry@gmail.com",
+        "address": "abc",
+        "paymentMethod": "cash"
+      },
+      "confirmedAt": "2025-11-26T19:55:36.072Z",
+      "ownerEmail": "terry@gmail.com"
+    }
+  ]
 }

@@ -35,6 +35,14 @@ const normalizeOrders = (orders = []) =>
       id: order?.id || order?.code || `ORD-${index + 1}`,
       customer:
         order?.customer?.name || order?.customerName || order?.customer || "Khách",
+         restaurantId:
+        order?.restaurantId ||
+        order?.restaurant?.id ||
+        order?.restaurantSlug ||
+        null,
+      restaurantSlug: order?.restaurantSlug || order?.restaurant?.slug || null,
+      restaurantName:
+        order?.restaurantName || order?.restaurant?.name || order?.restaurant || "",
       total,
       status: status || "Đang xử lý",
       items: itemCount,
@@ -134,13 +142,7 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
     };
   }, []);
 
-  const activeOrders = useMemo(
-    () =>
-      orders.filter((order) =>
-        String(order.status).toLowerCase().match(/giao|chuẩn|xác nhận/)
-      ),
-    [orders]
-  );
+  
 
   const currentRestaurant = useMemo(() => {
     if (!restaurants.length) return null;
@@ -178,6 +180,35 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
   const availableDishes = useMemo(
     () => restaurantMenu.filter((item) => item.status !== "soldout"),
     [restaurantMenu]
+  );
+  const restaurantOrders = useMemo(() => {
+    if (!currentRestaurant) return orders;
+
+    const normalizeValue = (value) => String(value ?? "").trim().toLowerCase();
+
+    const restaurantId = normalizeValue(currentRestaurant.id);
+    const restaurantSlug = normalizeValue(currentRestaurant.slug);
+    const restaurantName = normalizeValue(currentRestaurant.name);
+
+    return orders.filter((order) => {
+      const orderId = normalizeValue(order.restaurantId);
+      const orderSlug = normalizeValue(order.restaurantSlug);
+      const orderName = normalizeValue(order.restaurantName);
+
+      return (
+        (orderId && orderId === restaurantId) ||
+        (orderSlug && orderSlug === restaurantSlug) ||
+        (orderName && orderName === restaurantName)
+      );
+    });
+  }, [currentRestaurant, orders]);
+
+  const activeOrders = useMemo(
+    () =>
+      restaurantOrders.filter((order) =>
+        String(order.status).toLowerCase().match(/giao|chuẩn|xác nhận/)
+      ),
+    [restaurantOrders]
   );
 
  
@@ -229,7 +260,7 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
           </View>
           <View style={styles.card}>
             <Text style={styles.cardLabel}>Tổng đơn</Text>
-            <Text style={styles.cardValue}>{orders.length}</Text>
+            <Text style={styles.cardValue}>{restaurantOrders.length}</Text>
             <Text style={styles.cardHint}>Bao gồm lịch sử</Text>
           </View>
           <View style={styles.card}>
@@ -395,10 +426,10 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
             </TouchableOpacity>
           )}
 
-          {orders.length === 0 ? (
+          {restaurantOrders.length === 0 ? (
             <Text style={styles.emptyText}>Chưa có đơn hàng.</Text>
           ) : (
-            orders.slice(0, 6).map((order) => (
+            restaurantOrders.slice(0, 6).map((order) => (
               <View key={order.id} style={styles.listItem}>
                 <View style={styles.listTextGroup}>
                   <Text style={styles.itemTitle}>{order.id}</Text>
