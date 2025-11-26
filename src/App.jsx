@@ -14,6 +14,7 @@ import OrderTrackingPage from "./pages/OrderTrackingPage.jsx";
 import OrderHistoryPage from "./pages/OrderHistoryPage.jsx";
 import AdminDashboard from "./admin/AdminDashboard";
 import RestaurantDashboard from "./pages/RestaurantDashboard";
+import RestaurantPage from "./pages/RestaurantPage";
 import { categories as defaultCategories, menuItems as defaultMenuItems } from "./data/menuData";
 import { restaurants as defaultRestaurants } from "./data/restaurants";
 import { contentByLanguage } from "./i18n/translations";
@@ -161,6 +162,12 @@ const parseViewFromHash = () => {
 
   if (/^\/checkout$/.test(hash)) {
     return { type: "checkout" };
+  }
+
+  const restaurantDetailMatch = hash.match(/^\/restaurants\/([\w-]+)/);
+
+  if (restaurantDetailMatch && restaurantDetailMatch[1]) {
+    return { type: "restaurantDetail", slug: restaurantDetailMatch[1] };
   }
 
   const match = hash.match(/^\/category\/([\w-]+)/);
@@ -882,6 +889,14 @@ function App() {
     }
   };
 
+  const handleViewRestaurant = (slug) => {
+    if (!slug) return;
+    pendingSectionRef.current = null;
+    if (typeof window !== "undefined") {
+      window.location.hash = `/restaurants/${slug}`;
+    }
+  };
+
   
 
   const addToCart = (item) => {
@@ -953,6 +968,12 @@ function App() {
     }
   }, [view, activeCategory, redirectToHome]);
 
+  useEffect(() => {
+    if (view.type === "restaurantDetail" && !activeRestaurantDetail) {
+      redirectToHome();
+    }
+  }, [view, activeRestaurantDetail, redirectToHome]);
+
   const categoryItems = useMemo(() => {
     if (!activeCategory) {
       return [];
@@ -962,6 +983,23 @@ function App() {
       (item) => item.categoryId === activeCategory.id
     );
   }, [activeCategory, translatedMenuItems]);
+
+  const activeRestaurantDetail = useMemo(() => {
+    if (view.type !== "restaurantDetail") {
+      return null;
+    }
+
+    return (
+      translatedRestaurants.find((restaurant) => restaurant.slug === view.slug) ??
+      null
+    );
+  }, [view, translatedRestaurants]);
+
+  const restaurantMenuItems = useMemo(() => {
+    if (!activeRestaurantDetail) return [];
+    const ids = new Set(activeRestaurantDetail.menuItemIds ?? []);
+    return translatedMenuItems.filter((item) => ids.has(item.id));
+  }, [activeRestaurantDetail, translatedMenuItems]);
 
   const activeProduct = useMemo(() => {
     if (view.type !== "product") {
@@ -995,7 +1033,8 @@ function App() {
       view.type === "orderConfirmation" ||
       view.type === "orderTracking" ||
       view.type === "admin" ||
-      view.type === "restaurant"
+      view.type === "restaurant" ||
+      view.type === "restaurantDetail"
     ) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -1514,6 +1553,19 @@ function App() {
         onViewProduct={handleViewProduct}
       />
     );
+  } else if (view.type === "restaurantDetail" && activeRestaurantDetail) {
+    pageContent = (
+      <RestaurantPage
+        restaurant={activeRestaurantDetail}
+        menuItems={restaurantMenuItems}
+        addToCart={addToCart}
+        onNavigateHome={handleNavigateHome}
+        onNavigateRestaurants={() => handleNavigateSection("restaurants")}
+        texts={content.restaurantPage ?? {}}
+        menuLabels={content.menuLabels}
+        onViewProduct={handleViewProduct}
+      />
+    );
   } else if (view.type === "login") {
     pageContent = (
       <LoginPage
@@ -1579,12 +1631,12 @@ function App() {
         categories={translatedCategories}
         bestSellers={bestSellers}
         restaurants={translatedRestaurants}
-        menuItems={translatedMenuItems}
         combos={combos}
         promotions={promotions}
         addToCart={addToCart}
         onSelectCategory={handleSelectCategory}
         onViewProduct={handleViewProduct}
+        onViewRestaurant={handleViewRestaurant}
         texts={content.home}
         menuLabels={content.menuLabels}
       />
