@@ -1,4 +1,3 @@
-import { useMemo, useState } from "react";
 import Menu from "../components/Menu";
 
 function HomePage({
@@ -9,10 +8,10 @@ function HomePage({
   restaurants = [],
   combos = [],
   promotions = [],
-  menuItems = [],
   addToCart,
   onSelectCategory = () => {},
   onViewProduct = () => {},
+  onViewRestaurant = () => {},
   texts = {},
   menuLabels = {},
 }) {
@@ -56,28 +55,6 @@ function HomePage({
   const aboutBadgeValue = texts.aboutBadgeValue ?? "98%";
   const aboutBadgeLabel =
     texts.aboutBadgeLabel ?? "Khách hàng quay lại lần 2";
-  const [activeRestaurantId, setActiveRestaurantId] = useState(null);
-
-  const activeRestaurant = useMemo(
-    () => restaurants.find((restaurant) => restaurant.id === activeRestaurantId),
-    [activeRestaurantId, restaurants]
-  );
-
-  const activeRestaurantMenuItems = useMemo(() => {
-    if (!activeRestaurant) return [];
-    const ids = new Set(activeRestaurant.menuItemIds ?? []);
-    return menuItems.filter((item) => ids.has(item.id));
-  }, [activeRestaurant, menuItems]);
-
-  const handleSelectRestaurant = (restaurantId) => {
-    setActiveRestaurantId((current) => (current === restaurantId ? null : restaurantId));
-  };
-
-  const restaurantMenuHeading = texts.restaurantMenuHeading ?? "Menu của nhà hàng";
-  const restaurantMenuDescription =
-    texts.restaurantMenuDescription ??
-    "Chọn nhà hàng để xem nhanh các món đặc trưng và thêm vào giỏ của bạn.";
-
   return (
     <main>
       <section className="hero" style={{ backgroundImage: `url(${heroBackground})` }}>
@@ -150,11 +127,11 @@ function HomePage({
               }}
               role="button"
               tabIndex={0}
-              onClick={() => handleSelectRestaurant(restaurant.id)}
+              onClick={() => onViewRestaurant(restaurant.slug)}
               onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") {
                   event.preventDefault();
-                  handleSelectRestaurant(restaurant.id);
+                  onViewRestaurant(restaurant.slug);
                 }
               }}
             >
@@ -173,30 +150,11 @@ function HomePage({
                 </div>
               )}
               <div className="restaurant-card__cta">
-                {activeRestaurantId === restaurant.id
-                  ? texts.restaurantCollapseCta ?? "Thu gọn menu"
-                  : texts.restaurantCta ?? "Xem các món"}
+                {texts.restaurantCta ?? "Xem các món"}
               </div>
             </article>
           ))}
         </div>
-
-        {activeRestaurant && (
-          <div className="restaurant-menu-preview">
-            <div className="section-heading">
-              <h3>
-                {restaurantMenuHeading} · {activeRestaurant.name}
-              </h3>
-              <p>{restaurantMenuDescription}</p>
-            </div>
-            <Menu
-              items={activeRestaurantMenuItems}
-              addToCart={addToCart}
-              labels={menuLabels}
-              onViewItem={onViewProduct}
-            />
-          </div>
-        )}
       </section>
 
           <section className="best-seller" id="best-seller">
