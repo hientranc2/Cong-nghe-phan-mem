@@ -1,8 +1,19 @@
+import { Platform } from "react-native";
+import bundledData from "../../../db.json";
+
+const getDefaultApiBase = () => {
+  if (Platform.OS === "android") {
+    return "http://10.0.2.2:3001";
+  }
+
+  return "http://localhost:3001";
+};
+
 const API_BASE =
   (typeof globalThis !== "undefined" &&
     globalThis.process &&
     globalThis.process.env?.EXPO_PUBLIC_API_URL) ??
-  "http://localhost:3001";
+  getDefaultApiBase();
 
 const parseJSON = async (response) => {
   const contentType = response.headers.get("content-type") ?? "";
@@ -31,6 +42,9 @@ const fetchFallbackDataset = async () => {
   return null;
 };
 
+const getBundledDataset = () =>
+  bundledData && typeof bundledData === "object" ? bundledData : null;
+
 export const fetchCollection = async (collection) => {
   const primaryUrl = `${API_BASE}/${collection}`;
   const primaryResponse = await fetch(primaryUrl).catch(() => null);
@@ -45,6 +59,11 @@ export const fetchCollection = async (collection) => {
   const fallbackData = await fetchFallbackDataset();
   if (fallbackData && Array.isArray(fallbackData[collection])) {
     return fallbackData[collection];
+  }
+
+  const bundledDataset = getBundledDataset();
+  if (bundledDataset && Array.isArray(bundledDataset[collection])) {
+    return bundledDataset[collection];
   }
 
   throw new Error(
