@@ -176,7 +176,13 @@ const normalizeAdminOrder = (order, index) => {
   };
 };
 
-function AdminDashboard({ orders: remoteOrders = [], restaurants: remoteRestaurants = [] }) {
+function AdminDashboard({
+  orders: remoteOrders = [],
+  restaurants: remoteRestaurants = [],
+  onCreateRestaurant,
+  onUpdateRestaurant,
+  onDeleteRestaurant,
+}) {
   const [drones, setDrones] = useState(DEFAULT_DRONES);
   const [customers, setCustomers] = useState(DEFAULT_CUSTOMERS);
   const [orders, setOrders] = useState(
@@ -289,7 +295,7 @@ function AdminDashboard({ orders: remoteOrders = [], restaurants: remoteRestaura
     );
   };
 
-  const handleSubmitForm = (event) => {
+  const handleSubmitForm = async (event) => {
     event.preventDefault();
     if (!activeForm) return;
 
@@ -340,15 +346,25 @@ function AdminDashboard({ orders: remoteOrders = [], restaurants: remoteRestaura
     if (type === "restaurant") {
       if (mode === "create") {
         const id = values.id?.trim() || nextId("nh", restaurants);
-        setRestaurants([...restaurants, { ...values, id }]);
+        const payload = { ...values, id };
+        if (onCreateRestaurant) {
+          await onCreateRestaurant(payload);
+        } else {
+          setRestaurants([...restaurants, payload]);
+        }
       } else {
-        setRestaurants(
-          restaurants.map((restaurant) =>
-            restaurant.id === values.id
-              ? { ...restaurant, ...values }
-              : restaurant
-          )
-        );
+        const payload = { ...values };
+        if (onUpdateRestaurant) {
+          await onUpdateRestaurant(payload);
+        } else {
+          setRestaurants(
+            restaurants.map((restaurant) =>
+              restaurant.id === values.id
+                ? { ...restaurant, ...payload }
+                : restaurant
+            )
+          );
+        }
       }
     }
 
@@ -366,7 +382,11 @@ function AdminDashboard({ orders: remoteOrders = [], restaurants: remoteRestaura
       setOrders(orders.filter((order) => order.id !== id));
     }
     if (type === "restaurant") {
-      setRestaurants(restaurants.filter((restaurant) => restaurant.id !== id));
+      if (onDeleteRestaurant) {
+        onDeleteRestaurant(id);
+      } else {
+        setRestaurants(restaurants.filter((restaurant) => restaurant.id !== id));
+      }
     }
   };
 
