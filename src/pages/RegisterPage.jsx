@@ -10,6 +10,7 @@ function RegisterPage({
   const subtitle =
     texts.subtitle ?? "Đăng ký tài khoản để đặt món và theo dõi lịch sử đơn hàng.";
   const nameLabel = texts.nameLabel ?? "Họ và tên";
+  const phoneLabel = texts.phoneLabel ?? "Số điện thoại";
   const emailLabel = texts.emailLabel ?? "Email";
   const passwordLabel = texts.passwordLabel ?? "Mật khẩu";
   const submitLabel = texts.submitLabel ?? "Đăng ký";
@@ -23,6 +24,7 @@ function RegisterPage({
 
   const [formState, setFormState] = useState({
     name: "",
+    phone: "",
     email: "",
     password: "",
   });
@@ -34,14 +36,15 @@ function RegisterPage({
     setFormState((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
     setInfo("");
 
     try {
-      const result = onRegister({
+      const result = await onRegister({
         name: formState.name,
+        phone: formState.phone,
         email: formState.email.trim(),
         password: formState.password,
       });
@@ -83,6 +86,20 @@ function RegisterPage({
               onChange={handleChange}
               placeholder="Nguyễn Văn A"
               autoComplete="name"
+              required
+            />
+          </label>
+          <label htmlFor="register-phone">
+            {phoneLabel}
+            <input
+              id="register-phone"
+              name="phone"
+              type="tel"
+              value={formState.phone}
+              onChange={handleChange}
+              placeholder="0988 123 456"
+              autoComplete="tel"
+              inputMode="tel"
               required
             />
           </label>

@@ -96,9 +96,9 @@ const AuthScreen = ({ onBack, onLoginSuccess = () => {} }) => {
     try {
       let result;
       if (formId === "login") {
-        result = authService.login(formValues.login);
+        result = await authService.login(formValues.login);
       } else {
-        result = authService.register(formValues.register);
+        result = await authService.register(formValues.register);
       }
 
       if (result.success) {

@@ -812,6 +812,7 @@
       "id": "admin",
       "name": "Quản trị viên FCO",
       "email": "admin@fco.vn",
+      "phone": "0900000001",
       "password": "admin123",
       "role": "admin"
     },
@@ -819,8 +820,42 @@
       "id": "restaurant",
       "name": "Nhà hàng FCO",
       "email": "restaurant@fco.vn",
+      "phone": "0900000002",
       "password": "fco123",
       "role": "restaurant"
+    },
+    {
+      "id": "user-01",
+      "name": "Nguyễn Minh Anh",
+      "email": "minhanh@example.com",
+      "phone": "0988123456",
+      "password": "matkhau123",
+      "role": "customer",
+      "tier": "Vàng",
+      "active": true,
+      "joinedAt": "2024-05-12"
+    },
+    {
+      "id": "user-02",
+      "name": "Trần Quốc Bảo",
+      "email": "quocbao@example.com",
+      "phone": "0909555777",
+      "password": "matkhau123",
+      "role": "customer",
+      "tier": "Bạc",
+      "active": true,
+      "joinedAt": "2024-05-08"
+    },
+    {
+      "id": "user-03",
+      "name": "Lê Thu Hà",
+      "email": "thuha@example.com",
+      "phone": "0977222333",
+      "password": "matkhau123",
+      "role": "customer",
+      "tier": "Tiêu chuẩn",
+      "active": false,
+      "joinedAt": "2024-04-28"
     }
   ],
   "orders": []

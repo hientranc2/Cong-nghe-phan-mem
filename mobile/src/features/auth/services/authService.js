@@ -1,17 +1,15 @@
-const users = [
-  {
-    fullName: "Nguyễn Văn A",
-    phone: "0987654321",
-    email: "nguyenvana@example.com",
-    password: "matkhau123"
-  }
-];
+import { createUser, fetchCollection } from "../../utils/api";
 
-const normalizePhone = (phone) => phone.replace(/\D/g, "");
+const normalizePhone = (phone) => (phone ?? "").replace(/\D/g, "");
+
+const loadUsers = async () => {
+  const remoteUsers = await fetchCollection("users");
+  return Array.isArray(remoteUsers) ? remoteUsers : [];
+};
 
 export const authService = {
-  login: ({ phone, password }) => {
-    const normalizedPhone = normalizePhone(phone ?? "");
+  login: async ({ phone, password }) => {
+    const normalizedPhone = normalizePhone(phone);
     const trimmedPassword = password?.trim() ?? "";
 
     if (!normalizedPhone) {
@@ -25,6 +23,17 @@ export const authService = {
       return {
         success: false,
         message: "Vui lòng nhập mật khẩu để tiếp tục."
+      };
+    }
+
+    let users = [];
+
+    try {
+      users = await loadUsers();
+    } catch (error) {
+      return {
+        success: false,
+        message: "Không thể kết nối tới máy chủ. Vui lòng thử lại."
       };
     }
 
@@ -48,12 +57,12 @@ export const authService = {
 
     return {
       success: true,
-      message: `Xin chào ${existingUser.fullName}! Bạn đã đăng nhập thành công.`,
+      message: `Xin chào ${existingUser.fullName || existingUser.name}! Bạn đã đăng nhập thành công.`,
       user: existingUser
     };
   },
-  register: ({ fullName, phone, email, password }) => {
-    const normalizedPhone = normalizePhone(phone ?? "");
+  register: async ({ fullName, phone, email, password }) => {
+    const normalizedPhone = normalizePhone(phone);
     const safeFullName = fullName?.trim();
     const safeEmail = email?.trim();
     const trimmedPassword = password?.trim();
@@ -86,6 +95,17 @@ export const authService = {
       };
     }
 
+    let users = [];
+
+    try {
+      users = await loadUsers();
+    } catch (error) {
+      return {
+        success: false,
+        message: "Không thể kiểm tra tài khoản hiện có."
+      };
+    }
+
     const phoneExists = users.some(
       (user) => normalizePhone(user.phone) === normalizedPhone
     );
@@ -97,12 +117,24 @@ export const authService = {
       };
     }
 
-    users.push({
-      fullName: safeFullName,
-      phone: normalizedPhone,
-      email: safeEmail,
-      password: trimmedPassword
-    });
+    try {
+      await createUser({
+        name: safeFullName,
+        fullName: safeFullName,
+        phone: normalizedPhone,
+        email: safeEmail,
+        password: trimmedPassword,
+        role: "customer",
+        tier: "Tiêu chuẩn",
+        active: true,
+        joinedAt: new Date().toISOString().slice(0, 10)
+      });
+    } catch (error) {
+      return {
+        success: false,
+        message: "Không thể lưu tài khoản mới. Vui lòng thử lại."
+      };
+    }
 
     return {
       success: true,

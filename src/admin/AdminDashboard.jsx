@@ -179,12 +179,18 @@ const normalizeAdminOrder = (order, index) => {
 function AdminDashboard({
   orders: remoteOrders = [],
   restaurants: remoteRestaurants = [],
+  customers: remoteCustomers = [],
   onCreateRestaurant,
   onUpdateRestaurant,
   onDeleteRestaurant,
+  onCreateCustomer,
+  onUpdateCustomer,
+  onDeleteCustomer,
 }) {
   const [drones, setDrones] = useState(DEFAULT_DRONES);
-  const [customers, setCustomers] = useState(DEFAULT_CUSTOMERS);
+  const [customers, setCustomers] = useState(
+    remoteCustomers.length > 0 ? remoteCustomers : DEFAULT_CUSTOMERS
+  );
   const [orders, setOrders] = useState(
     remoteOrders.length > 0 ? remoteOrders : DEFAULT_ORDERS
   );
@@ -204,6 +210,12 @@ function AdminDashboard({
       setRestaurants(remoteRestaurants);
     }
   }, [remoteRestaurants]);
+
+  useEffect(() => {
+    if (remoteCustomers.length > 0) {
+      setCustomers(remoteCustomers);
+    }
+  }, [remoteCustomers]);
 
   useEffect(() => {
     setSearch("");
@@ -315,16 +327,24 @@ function AdminDashboard({
     }
 
     if (type === "customer") {
+      const id = values.id?.trim() || nextId("kh", customers);
+      const joinedAt = values.joinedAt?.trim()
+        ? values.joinedAt
+        : new Date().toISOString().slice(0, 10);
+      const payload = { ...values, id, joinedAt };
+
       if (mode === "create") {
-        const id = values.id?.trim() || nextId("kh", customers);
-        const joinedAt = values.joinedAt?.trim()
-          ? values.joinedAt
-          : new Date().toISOString().slice(0, 10);
-        setCustomers([...customers, { ...values, id, joinedAt }]);
+        if (onCreateCustomer) {
+          await onCreateCustomer(payload);
+        } else {
+          setCustomers([...customers, payload]);
+        }
+      } else if (onUpdateCustomer) {
+        await onUpdateCustomer(payload);
       } else {
         setCustomers(
           customers.map((customer) =>
-            customer.id === values.id ? { ...customer, ...values } : customer
+            customer.id === values.id ? { ...customer, ...payload } : customer
           )
         );
       }
@@ -376,7 +396,11 @@ function AdminDashboard({
       setDrones(drones.filter((drone) => drone.id !== id));
     }
     if (type === "customer") {
-      setCustomers(customers.filter((customer) => customer.id !== id));
+      if (onDeleteCustomer) {
+        onDeleteCustomer(id);
+      } else {
+        setCustomers(customers.filter((customer) => customer.id !== id));
+      }
     }
     if (type === "order") {
       setOrders(orders.filter((order) => order.id !== id));

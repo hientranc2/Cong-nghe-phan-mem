@@ -10,7 +10,7 @@ function LoginPage({
   const title = texts.title ?? "Đăng nhập";
   const subtitle =
     texts.subtitle ?? "Đăng nhập để theo dõi đơn hàng và thanh toán nhanh chóng.";
-  const emailLabel = texts.emailLabel ?? "Email";
+  const phoneLabel = texts.phoneLabel ?? "Số điện thoại";
   const passwordLabel = texts.passwordLabel ?? "Mật khẩu";
   const submitLabel = texts.submitLabel ?? "Đăng nhập";
   const registerPrompt = texts.registerPrompt ?? "Chưa có tài khoản?";
@@ -21,7 +21,7 @@ function LoginPage({
     texts.errorMessage ?? "Đăng nhập không thành công. Vui lòng kiểm tra lại.";
  
 
-  const [formState, setFormState] = useState({ email: "", password: "" });
+  const [formState, setFormState] = useState({ phone: "", password: "" });
   const [error, setError] = useState("");
 
   const handleChange = (event) => {
@@ -35,7 +35,7 @@ function LoginPage({
 
     try {
       const result = onLogin({
-        email: formState.email.trim(),
+        phone: formState.phone,
         password: formState.password,
       });
 
@@ -64,16 +64,17 @@ function LoginPage({
           </div>
         )}
         <form className="auth-form" onSubmit={handleSubmit}>
-          <label htmlFor="login-email">
-            {emailLabel}
+          <label htmlFor="login-phone">
+            {phoneLabel}
             <input
-              id="login-email"
-              name="email"
-              type="email"
-              value={formState.email}
+              id="login-phone"
+              name="phone"
+              type="tel"
+              value={formState.phone}
               onChange={handleChange}
-              placeholder="you@example.com"
-              autoComplete="email"
+              placeholder="0988 123 456"
+              autoComplete="tel"
+              inputMode="tel"
               required
             />
           </label>

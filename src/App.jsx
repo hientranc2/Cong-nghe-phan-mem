@@ -16,20 +16,23 @@ import AdminDashboard from "./admin/AdminDashboard";
 import RestaurantDashboard from "./pages/RestaurantDashboard";
 import { categories as defaultCategories, menuItems as defaultMenuItems } from "./data/menuData";
 import { restaurants as defaultRestaurants } from "./data/restaurants";
-  import { contentByLanguage } from "./i18n/translations";
-  import {
-    createMenuItem,
-    createOrder,
-    createRestaurant,
+import { contentByLanguage } from "./i18n/translations";
+import {
+  createMenuItem,
+  createOrder,
+  createRestaurant,
+  createUser,
   deleteMenuItem,
-    deleteOrder,
-    deleteRestaurant,
-    fetchAllData,
-    fetchOrders,
-    updateMenuItem,
-    updateOrder,
-    updateRestaurant,
-  } from "./api/client";
+  deleteOrder,
+  deleteRestaurant,
+  deleteUser,
+  fetchAllData,
+  fetchOrders,
+  updateMenuItem,
+  updateOrder,
+  updateRestaurant,
+  updateUser,
+} from "./api/client";
 
 
 const heroBackground =
@@ -70,6 +73,7 @@ const DEFAULT_USERS = [
     id: "admin",
     name: "Quản trị viên FCO",
     email: "admin@fco.vn",
+    phone: "0900000001",
     password: "admin123",
     role: "admin",
   },
@@ -77,27 +81,65 @@ const DEFAULT_USERS = [
     id: "restaurant",
     name: "Nhà hàng FCO",
     email: "restaurant@fco.vn",
+    phone: "0900000002",
     password: "fco123",
     role: "restaurant",
+  },
+  {
+    id: "user-01",
+    name: "Nguyễn Minh Anh",
+    email: "minhanh@example.com",
+    phone: "0988123456",
+    password: "matkhau123",
+    role: "customer",
+    tier: "Vàng",
+    active: true,
+    joinedAt: "2024-05-12",
+  },
+  {
+    id: "user-02",
+    name: "Trần Quốc Bảo",
+    email: "quocbao@example.com",
+    phone: "0909555777",
+    password: "matkhau123",
+    role: "customer",
+    tier: "Bạc",
+    active: true,
+    joinedAt: "2024-05-08",
+  },
+  {
+    id: "user-03",
+    name: "Lê Thu Hà",
+    email: "thuha@example.com",
+    phone: "0977222333",
+    password: "matkhau123",
+    role: "customer",
+    tier: "Tiêu chuẩn",
+    active: false,
+    joinedAt: "2024-04-28",
   },
 ];
 
 const normalizeEmail = (email = "") => email.trim().toLowerCase();
+const normalizePhone = (phone = "") => phone.replace(/\D+/g, "");
 
-const mergeUsersByEmail = (users = []) => {
-  const byEmail = new Map();
+const mergeUsers = (users = []) => {
+  const byContact = new Map();
 
   users.forEach((user) => {
-    const key = normalizeEmail(user.email);
+    const phoneKey = normalizePhone(user.phone);
+    const emailKey = normalizeEmail(user.email);
+    const key = phoneKey || emailKey;
+
     if (!key) {
       return;
     }
 
-    const existing = byEmail.get(key) ?? {};
-    byEmail.set(key, { ...existing, ...user });
+    const existing = byContact.get(key) ?? {};
+    byContact.set(key, { ...existing, ...user });
   });
 
-  return Array.from(byEmail.values());
+  return Array.from(byContact.values());
 };
 
 const slugify = (value = "") =>
@@ -279,7 +321,7 @@ function App() {
       const storedUsers = JSON.parse(
         window.localStorage.getItem(USERS_STORAGE_KEY) ?? "[]"
       );
-      const merged = mergeUsersByEmail([
+      const merged = mergeUsers([
         ...DEFAULT_USERS,
         ...(Array.isArray(storedUsers) ? storedUsers : []),
       ]);
@@ -345,6 +387,12 @@ function App() {
           setAdminOrders(data.orders);
           setOrderHistory(data.orders);
         }
+
+        if (Array.isArray(data.users) && data.users.length > 0) {
+          setUsers((prevUsers) =>
+            mergeUsers([...prevUsers, ...DEFAULT_USERS, ...data.users])
+          );
+        }
       } catch (error) {
         console.error("Không thể đồng bộ dữ liệu từ json-server", error);
       }
@@ -374,7 +422,7 @@ function App() {
       return;
     }
 
-    if (currentUser?.email) {
+    if (currentUser?.email || currentUser?.phone) {
       window.localStorage.setItem(
         CURRENT_USER_STORAGE_KEY,
         JSON.stringify(currentUser)
@@ -419,13 +467,30 @@ function App() {
     [restaurantList, language]
   );
 
+  const adminCustomers = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    const filtered = users.filter((user) => user.role === "customer");
+
+    return filtered.map((user, index) => ({
+      id: user.id || `kh-${String(index + 1).padStart(2, "0")}`,
+      name: user.name || user.email || `Khách hàng ${index + 1}`,
+      email: user.email ?? "",
+      phone: user.phone ?? "",
+      tier: user.tier ?? "Tiêu chuẩn",
+      active: user.active ?? true,
+      joinedAt: user.joinedAt ?? today,
+    }));
+  }, [users]);
+
   const customerOrders = useMemo(() => {
     if (!currentUser || currentUser.role !== "customer") {
       return [];
     }
 
     const customerEmail = normalizeEmail(currentUser.email);
-    if (!customerEmail) {
+    const customerPhone = normalizePhone(currentUser.phone);
+
+    if (!customerEmail && !customerPhone) {
       return [];
     }
 
@@ -433,7 +498,14 @@ function App() {
       const orderEmail = normalizeEmail(
         order.ownerEmail ?? order.customer?.email ?? ""
       );
-      return orderEmail === customerEmail;
+      const orderPhone = normalizePhone(
+        order.customer?.phone ?? order.phone ?? order.ownerPhone ?? ""
+      );
+
+      return (
+        (customerPhone && orderPhone === customerPhone) ||
+        (customerEmail && orderEmail === customerEmail)
+      );
     });
 
     return filtered
@@ -444,7 +516,8 @@ function App() {
         return bTime - aTime;
       });
   }, [currentUser, orderHistory]);
-    const activeCustomerOrdersCount = useMemo(() => {
+
+  const activeCustomerOrdersCount = useMemo(() => {
     if (customerOrders.length === 0) {
       return 0;
     }
@@ -674,6 +747,94 @@ function App() {
       await deleteRestaurant(restaurantId);
     } catch (error) {
       console.error("Không thể xóa nhà hàng trên json-server", error);
+    }
+  };
+
+  const upsertUserState = (user) => {
+    if (!user) return;
+
+    setUsers((prevUsers) => mergeUsers([...prevUsers, user]));
+  };
+
+  const syncCreatedUser = async (user) => {
+    if (!user) return;
+
+    const normalizedPhone = normalizePhone(user.phone);
+    const existingByPhone = users.find(
+      (entry) => normalizedPhone && normalizePhone(entry.phone) === normalizedPhone
+    );
+    const fallbackPassword =
+      user.password ?? existingByPhone?.password ?? "matkhau123";
+    const payload = {
+      ...user,
+      id: user.id || `user-${Date.now()}`,
+      phone: normalizedPhone || user.phone,
+      password: fallbackPassword,
+      role: user.role ?? "customer",
+      tier: user.tier ?? "Tiêu chuẩn",
+      active: user.active ?? true,
+      joinedAt: user.joinedAt ?? new Date().toISOString().slice(0, 10),
+    };
+
+    upsertUserState(payload);
+
+    try {
+      const saved = await createUser(payload);
+      if (saved) {
+        upsertUserState({ ...payload, ...saved });
+      }
+    } catch (error) {
+      console.error("Không thể lưu khách hàng lên máy chủ", error);
+    }
+  };
+
+  const syncUpdatedUser = async (user) => {
+    const normalizedPhone = normalizePhone(user?.phone);
+    const existing = users.find(
+      (entry) =>
+        entry.id === user?.id ||
+        (normalizedPhone && normalizePhone(entry.phone) === normalizedPhone)
+    );
+
+    if (!existing && !user?.id) {
+      return;
+    }
+
+    const payload = {
+      ...existing,
+      ...user,
+      phone: normalizedPhone || existing?.phone,
+      password: existing?.password ?? user?.password ?? "matkhau123",
+      role: existing?.role ?? user?.role ?? "customer",
+      tier: user?.tier ?? existing?.tier ?? "Tiêu chuẩn",
+      active: user?.active ?? existing?.active ?? true,
+      joinedAt:
+        user?.joinedAt ?? existing?.joinedAt ?? new Date().toISOString().slice(0, 10),
+    };
+
+    upsertUserState(payload);
+
+    if (!payload.id) return;
+
+    try {
+      const saved = await updateUser(payload.id, payload);
+      if (saved) {
+        upsertUserState({ ...payload, ...saved });
+      }
+    } catch (error) {
+      console.error("Không thể cập nhật khách hàng trên máy chủ", error);
+    }
+  };
+
+  const syncDeletedUser = async (userId) => {
+    if (!userId) return;
+
+    setUsers((prevUsers) => prevUsers.filter((user) => user.id !== userId));
+
+    try {
+      await deleteUser(userId);
+    } catch (error) {
+      console.error("Không thể xóa khách hàng trên máy chủ", error);
     }
   };
 
@@ -1043,25 +1204,25 @@ function App() {
 
   
 
-  const handleLogin = ({ email = "", password = "" }) => {
-    const normalizedEmail = normalizeEmail(email);
-    if (!normalizedEmail || !password) {
+  const handleLogin = ({ phone = "", password = "" }) => {
+    const normalizedPhone = normalizePhone(phone);
+    if (!normalizedPhone || !password) {
       return {
         success: false,
-        message: "Vui lòng nhập email và mật khẩu.",
+        message: "Vui lòng nhập số điện thoại và mật khẩu.",
       };
     }
 
     const matchedUser = users.find(
       (candidate) =>
-        normalizeEmail(candidate.email) === normalizedEmail &&
+        normalizePhone(candidate.phone) === normalizedPhone &&
         candidate.password === password
     );
 
     if (!matchedUser) {
       return {
         success: false,
-        message: "Email hoặc mật khẩu không chính xác.",
+        message: "Số điện thoại hoặc mật khẩu không chính xác.",
       };
     }
 
@@ -1074,45 +1235,64 @@ function App() {
     return { success: true, user: safeUser };
   };
 
-  const handleRegister = ({
+  const handleRegister = async ({
     name = "",
+    phone = "",
     email = "",
     password = "",
     role = "customer",
   }) => {
     const trimmedName = name.trim();
+    const normalizedPhone = normalizePhone(phone);
     const normalizedEmail = normalizeEmail(email);
     const allowedRoles = ["customer", "admin", "restaurant"];
     const normalizedRole = allowedRoles.includes(role) ? role : "customer";
 
-    if (!trimmedName || !normalizedEmail || !password) {
+    if (!trimmedName || !normalizedPhone || !normalizedEmail || !password) {
       return {
         success: false,
-        message: "Vui lòng điền đầy đủ thông tin đăng ký.",
+        message: "Vui lòng điền đầy đủ họ tên, số điện thoại, email và mật khẩu.",
       };
     }
 
     const exists = users.some(
-      (candidate) => normalizeEmail(candidate.email) === normalizedEmail
+      (candidate) =>
+        normalizePhone(candidate.phone) === normalizedPhone ||
+        normalizeEmail(candidate.email) === normalizedEmail
     );
 
     if (exists) {
       return {
         success: false,
-        message: "Email đã được đăng ký. Vui lòng sử dụng email khác.",
+        message: "Số điện thoại hoặc email đã được đăng ký.",
       };
     }
 
     const newUser = {
       id: `user-${Date.now()}`,
       name: trimmedName,
+      phone: normalizedPhone,
       email: normalizedEmail,
       password,
       role: normalizedRole,
+      tier: "Tiêu chuẩn",
+      active: true,
+      joinedAt: new Date().toISOString().slice(0, 10),
     };
 
-    setUsers((prevUsers) => mergeUsersByEmail([...prevUsers, newUser]));
-    const { password: _password, ...safeUser } = newUser;
+    let persistedUser = newUser;
+
+    try {
+      const response = await createUser(newUser);
+      if (response) {
+        persistedUser = { ...newUser, ...response };
+      }
+    } catch (error) {
+      console.error("Không thể lưu tài khoản mới vào máy chủ", error);
+    }
+
+    setUsers((prevUsers) => mergeUsers([...prevUsers, persistedUser]));
+    const { password: _password, ...safeUser } = persistedUser;
     setCurrentUser(safeUser);
     setIsCartOpen(false);
     redirectAfterAuth(safeUser, authRedirect);
@@ -1496,9 +1676,13 @@ function App() {
       <AdminDashboard
         orders={adminOrders}
         restaurants={restaurantList}
+        customers={adminCustomers}
         onCreateRestaurant={syncCreatedRestaurant}
         onUpdateRestaurant={syncUpdatedRestaurant}
         onDeleteRestaurant={syncDeletedRestaurant}
+        onCreateCustomer={syncCreatedUser}
+        onUpdateCustomer={syncUpdatedUser}
+        onDeleteCustomer={syncDeletedUser}
       />
     );
   }

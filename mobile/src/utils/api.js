@@ -100,3 +100,5 @@ const postJSON = async (collection, payload) => {
 };
 
 export const createOrder = async (order) => postJSON("orders", order);
+
+export const createUser = async (user) => postJSON("users", user);
