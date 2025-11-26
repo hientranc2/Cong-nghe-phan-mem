@@ -453,6 +453,9 @@ const styles = StyleSheet.create({
   metaIcon: {
     fontSize: 14,
   },
+  metaIcon: {
+    fontSize: 14,
+  },
   tagsRow: {
     flexDirection: "row",
     flexWrap: "wrap",
