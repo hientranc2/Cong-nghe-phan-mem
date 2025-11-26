@@ -116,7 +116,7 @@ const RestaurantsScreen = () => {
         <Text style={styles.heading}>Nhà hàng</Text>
         <Text style={styles.subheading}>Chuỗi nhà hàng FCO</Text>
         <Text style={styles.description}>
-          Đồng bộ dữ liệu từ dtb.json để cập nhật tức thời như trên web.
+          Đồng bộ dữ liệu trực tiếp từ db.json để luôn khớp với phiên bản web.
         </Text>
       </View>
       <FlatList
