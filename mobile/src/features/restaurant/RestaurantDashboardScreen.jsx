@@ -180,6 +180,13 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
     [restaurantMenu]
   );
 
+  const categories = [
+    "Khai vị",
+    "Món chính",
+    "Tráng miệng",
+    "Đồ uống",
+  ];
+
   const tabs = [
     { key: "overview", label: "Tổng quan" },
     { key: "orders", label: "Đơn hàng" },
