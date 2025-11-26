@@ -188,7 +188,7 @@ function AdminFormDrawer({
             <option value="">-- Chọn drone --</option>
             {drones.map((drone) => (
               <option key={drone.id} value={drone.id}>
-                {drone.name}
+                {drone.name} ({drone.id})
               </option>
             ))}
           </select>
