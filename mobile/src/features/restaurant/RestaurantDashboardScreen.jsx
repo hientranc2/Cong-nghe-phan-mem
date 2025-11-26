@@ -79,9 +79,14 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
     price: "",
     status: "available",
     tag: "",
+    image: "",
+    category: "Khai vị",
+    description: "",
   });
   const [editingOrderId, setEditingOrderId] = useState(null);
   const [editingDishId, setEditingDishId] = useState(null);
+  const [showOrderForm, setShowOrderForm] = useState(false);
+  const [showDishForm, setShowDishForm] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -162,6 +167,13 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
     [restaurantMenu]
   );
 
+  const categories = [
+    "Khai vị",
+    "Món chính",
+    "Tráng miệng",
+    "Đồ uống",
+  ];
+
   const tabs = [
     { key: "overview", label: "Tổng quan" },
     { key: "orders", label: "Đơn hàng" },
@@ -231,86 +243,87 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quản lý đơn hàng</Text>
 
-          <View style={styles.formCard}>
-            <Text style={styles.formTitle}>
-              {editingOrderId ? "Chỉnh sửa đơn" : "Cập nhật trạng thái"}
-            </Text>
-            <View style={styles.formRow}>
+          {showOrderForm ? (
+            <View style={styles.formCard}>
+              <Text style={styles.formTitle}>
+                {editingOrderId ? "Chỉnh sửa đơn" : "Cập nhật trạng thái"}
+              </Text>
+              <View style={styles.formRow}>
+                <View style={styles.formField}>
+                  <Text style={styles.formLabel}>Mã đơn</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="ORD-1234"
+                    value={orderForm.id}
+                    onChangeText={(text) =>
+                      setOrderForm((prev) => ({ ...prev, id: text }))
+                    }
+                  />
+                </View>
+                <View style={styles.formField}>
+                  <Text style={styles.formLabel}>Khách hàng</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Tên khách"
+                    value={orderForm.customer}
+                    onChangeText={(text) =>
+                      setOrderForm((prev) => ({ ...prev, customer: text }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.formRow}>
+                <View style={styles.formField}>
+                  <Text style={styles.formLabel}>Số món</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="numeric"
+                    value={String(orderForm.items)}
+                    onChangeText={(text) =>
+                      setOrderForm((prev) => ({ ...prev, items: text }))
+                    }
+                  />
+                </View>
+                <View style={styles.formField}>
+                  <Text style={styles.formLabel}>Tổng tiền (đ)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="numeric"
+                    value={String(orderForm.total)}
+                    onChangeText={(text) =>
+                      setOrderForm((prev) => ({ ...prev, total: text }))
+                    }
+                  />
+                </View>
+              </View>
               <View style={styles.formField}>
-                <Text style={styles.formLabel}>Mã đơn</Text>
+                <Text style={styles.formLabel}>Trạng thái</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="ORD-1234"
-                  value={orderForm.id}
+                  placeholder="Đang giao"
+                  value={orderForm.status}
                   onChangeText={(text) =>
-                    setOrderForm((prev) => ({ ...prev, id: text }))
+                    setOrderForm((prev) => ({ ...prev, status: text }))
                   }
                 />
               </View>
               <View style={styles.formField}>
-                <Text style={styles.formLabel}>Khách hàng</Text>
+                <Text style={styles.formLabel}>Địa chỉ</Text>
                 <TextInput
-                  style={styles.input}
-                  placeholder="Tên khách"
-                  value={orderForm.customer}
+                  style={[styles.input, styles.multiline]}
+                  placeholder="Ghi chú giao hàng"
+                  value={orderForm.address}
+                  multiline
                   onChangeText={(text) =>
-                    setOrderForm((prev) => ({ ...prev, customer: text }))
+                    setOrderForm((prev) => ({ ...prev, address: text }))
                   }
                 />
               </View>
-            </View>
-            <View style={styles.formRow}>
-              <View style={styles.formField}>
-                <Text style={styles.formLabel}>Số món</Text>
-                <TextInput
-                  style={styles.input}
-                  keyboardType="numeric"
-                  value={String(orderForm.items)}
-                  onChangeText={(text) =>
-                    setOrderForm((prev) => ({ ...prev, items: text }))
-                  }
-                />
-              </View>
-              <View style={styles.formField}>
-                <Text style={styles.formLabel}>Tổng tiền (đ)</Text>
-                <TextInput
-                  style={styles.input}
-                  keyboardType="numeric"
-                  value={String(orderForm.total)}
-                  onChangeText={(text) =>
-                    setOrderForm((prev) => ({ ...prev, total: text }))
-                  }
-                />
-              </View>
-            </View>
-            <View style={styles.formField}>
-              <Text style={styles.formLabel}>Trạng thái</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Đang giao"
-                value={orderForm.status}
-                onChangeText={(text) =>
-                  setOrderForm((prev) => ({ ...prev, status: text }))
-                }
-              />
-            </View>
-            <View style={styles.formField}>
-              <Text style={styles.formLabel}>Địa chỉ</Text>
-              <TextInput
-                style={[styles.input, styles.multiline]}
-                placeholder="Ghi chú giao hàng"
-                value={orderForm.address}
-                multiline
-                onChangeText={(text) =>
-                  setOrderForm((prev) => ({ ...prev, address: text }))
-                }
-              />
-            </View>
-            <View style={styles.formActions}>
-              {editingOrderId && (
+              <View style={styles.formActions}>
                 <TouchableOpacity
                   style={[styles.actionButton, styles.ghostButton]}
                   onPress={() => {
+                    setShowOrderForm(false);
                     setOrderForm({
                       id: "",
                       customer: "",
@@ -324,44 +337,55 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
                 >
                   <Text style={styles.actionButtonLabel}>Hủy</Text>
                 </TouchableOpacity>
-              )}
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={async () => {
-                  const sanitized = {
-                    ...orderForm,
-                    items: Math.max(Number(orderForm.items) || 0, 0),
-                    total: Math.max(Number(orderForm.total) || 0, 0),
-                  };
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={async () => {
+                    const sanitized = {
+                      ...orderForm,
+                      items: Math.max(Number(orderForm.items) || 0, 0),
+                      total: Math.max(Number(orderForm.total) || 0, 0),
+                    };
 
-                  if (!sanitized.id) {
-                    Alert.alert(
-                      "Thiếu mã đơn",
-                      "Vui lòng chọn đơn từ danh sách để chỉnh sửa."
+                    if (!sanitized.id) {
+                      Alert.alert(
+                        "Thiếu mã đơn",
+                        "Vui lòng chọn đơn từ danh sách để chỉnh sửa."
+                      );
+                      return;
+                    }
+
+                    try {
+                      await updateOrder(sanitized.id, sanitized);
+                    } catch (error) {
+                      console.warn("Không thể cập nhật đơn hàng", error);
+                    }
+
+                    setOrders((prev) =>
+                      prev.map((order) =>
+                        order.id === sanitized.id ? { ...order, ...sanitized } : order
+                      )
                     );
-                    return;
-                  }
-
-                  try {
-                    await updateOrder(sanitized.id, sanitized);
-                  } catch (error) {
-                    console.warn("Không thể cập nhật đơn hàng", error);
-                  }
-
-                  setOrders((prev) =>
-                    prev.map((order) =>
-                      order.id === sanitized.id ? { ...order, ...sanitized } : order
-                    )
-                  );
-                  setEditingOrderId(null);
-                }}
-              >
-                <Text style={styles.actionButtonLabel}>
-                  {editingOrderId ? "Lưu đơn" : "Cập nhật"}
-                </Text>
-              </TouchableOpacity>
+                    setEditingOrderId(null);
+                    setShowOrderForm(false);
+                  }}
+                >
+                  <Text style={styles.actionButtonLabel}>
+                    {editingOrderId ? "Lưu đơn" : "Cập nhật"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          ) : (
+            <TouchableOpacity
+              style={[styles.formCard, styles.centeredCard]}
+              onPress={() => setShowOrderForm(true)}
+            >
+              <Text style={styles.formTitle}>Chọn đơn để sửa</Text>
+              <Text style={styles.emptyText}>
+                Nhấn "Sửa" trên danh sách hoặc chạm để nhập mã đơn thủ công.
+              </Text>
+            </TouchableOpacity>
+          )}
 
           {orders.length === 0 ? (
             <Text style={styles.emptyText}>Chưa có đơn hàng.</Text>
@@ -390,6 +414,7 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
                     onPress={() => {
                       setActiveTab("orders");
                       setEditingOrderId(order.id);
+                      setShowOrderForm(true);
                       setOrderForm({
                         id: order.id,
                         customer: order.customer,
@@ -441,59 +466,152 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Menu nổi bật</Text>
 
-          <View style={styles.formCard}>
-            <Text style={styles.formTitle}>
-              {editingDishId ? "Sửa món" : "Thêm món mới"}
-            </Text>
-            <View style={styles.formField}>
-              <Text style={styles.formLabel}>Tên món</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Tên món ăn"
-                value={dishForm.name}
-                onChangeText={(text) =>
-                  setDishForm((prev) => ({ ...prev, name: text }))
-                }
-              />
-            </View>
-            <View style={styles.formField}>
-              <Text style={styles.formLabel}>Giá bán (đ)</Text>
-              <TextInput
-                style={styles.input}
-                keyboardType="numeric"
-                value={String(dishForm.price)}
-                onChangeText={(text) =>
-                  setDishForm((prev) => ({ ...prev, price: text }))
-                }
-              />
-            </View>
-            <View style={styles.formField}>
-              <Text style={styles.formLabel}>Nhãn</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Spicy, Best seller..."
-                value={dishForm.tag}
-                onChangeText={(text) =>
-                  setDishForm((prev) => ({ ...prev, tag: text }))
-                }
-              />
-            </View>
-            <View style={styles.formField}>
-              <Text style={styles.formLabel}>Trạng thái</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="available / soldout"
-                value={dishForm.status}
-                onChangeText={(text) =>
-                  setDishForm((prev) => ({ ...prev, status: text }))
-                }
-              />
-            </View>
-            <View style={styles.formActions}>
-              {editingDishId && (
+          {showDishForm ? (
+            <View style={styles.formCard}>
+              <Text style={styles.formTitle}>
+                {editingDishId ? "Sửa món" : "Thêm món mới"}
+              </Text>
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Tên món</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Tên món ăn"
+                  value={dishForm.name}
+                  onChangeText={(text) =>
+                    setDishForm((prev) => ({ ...prev, name: text }))
+                  }
+                />
+              </View>
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Hình ảnh</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Link ảnh món ăn"
+                  value={dishForm.image}
+                  onChangeText={(text) =>
+                    setDishForm((prev) => ({ ...prev, image: text }))
+                  }
+                />
+              </View>
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Danh mục</Text>
+                <View style={styles.chipRow}>
+                  {categories.map((category) => {
+                    const active = dishForm.category === category;
+                    return (
+                      <TouchableOpacity
+                        key={category}
+                        style={[styles.chip, active && styles.activeChip]}
+                        onPress={() =>
+                          setDishForm((prev) => ({ ...prev, category }))
+                        }
+                      >
+                        <Text
+                          style={[styles.chipLabel, active && styles.activeChipLabel]}
+                        >
+                          {category}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Giá bán (đ)</Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="numeric"
+                  value={String(dishForm.price)}
+                  onChangeText={(text) =>
+                    setDishForm((prev) => ({ ...prev, price: text }))
+                  }
+                />
+              </View>
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Mô tả ngắn</Text>
+                <TextInput
+                  style={[styles.input, styles.multiline]}
+                  placeholder="Mô tả nhanh về món"
+                  value={dishForm.description}
+                  multiline
+                  onChangeText={(text) =>
+                    setDishForm((prev) => ({ ...prev, description: text }))
+                  }
+                />
+              </View>
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Nhãn</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Spicy, Best seller..."
+                  value={dishForm.tag}
+                  onChangeText={(text) =>
+                    setDishForm((prev) => ({ ...prev, tag: text }))
+                  }
+                />
+              </View>
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Trạng thái</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="available / soldout"
+                  value={dishForm.status}
+                  onChangeText={(text) =>
+                    setDishForm((prev) => ({ ...prev, status: text }))
+                  }
+                />
+              </View>
+              <View style={styles.formActions}>
                 <TouchableOpacity
                   style={[styles.actionButton, styles.ghostButton]}
                   onPress={() => {
+                    setEditingDishId(null);
+                    setShowDishForm(false);
+                    setDishForm({
+                      id: "",
+                      name: "",
+                      price: "",
+                      status: "available",
+                      tag: "",
+                      image: "",
+                      category: "Khai vị",
+                      description: "",
+                    });
+                  }}
+                >
+                  <Text style={styles.actionButtonLabel}>Hủy</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={async () => {
+                    const sanitized = {
+                      ...dishForm,
+                      price: Math.max(Number(dishForm.price) || 0, 0),
+                      status: dishForm.status || "available",
+                    };
+
+                    try {
+                      if (editingDishId) {
+                        await updateMenuItem(editingDishId, sanitized);
+                        setMenuItems((prev) =>
+                          prev.map((item) =>
+                            item.id === editingDishId
+                              ? { ...item, ...sanitized }
+                              : item
+                          )
+                        );
+                      } else {
+                        const created = await createMenuItem(sanitized);
+                        const record = created || {
+                          ...sanitized,
+                          id: Date.now().toString(),
+                        };
+                        setMenuItems((prev) => [...prev, record]);
+                      }
+                    } catch (error) {
+                      console.warn("Không thể lưu món ăn", error);
+                    }
+
                     setEditingDishId(null);
                     setDishForm({
                       id: "",
@@ -501,54 +619,41 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
                       price: "",
                       status: "available",
                       tag: "",
+                      image: "",
+                      category: "Khai vị",
+                      description: "",
                     });
+                    setShowDishForm(false);
                   }}
                 >
-                  <Text style={styles.actionButtonLabel}>Hủy</Text>
+                  <Text style={styles.actionButtonLabel}>
+                    {editingDishId ? "Lưu món" : "Thêm món"}
+                  </Text>
                 </TouchableOpacity>
-              )}
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={async () => {
-                  const sanitized = {
-                    ...dishForm,
-                    price: Math.max(Number(dishForm.price) || 0, 0),
-                    status: dishForm.status || "available",
-                  };
-
-                  try {
-                    if (editingDishId) {
-                      await updateMenuItem(editingDishId, sanitized);
-                      setMenuItems((prev) =>
-                        prev.map((item) =>
-                          item.id === editingDishId ? { ...item, ...sanitized } : item
-                        )
-                      );
-                    } else {
-                      const created = await createMenuItem(sanitized);
-                      const record = created || { ...sanitized, id: Date.now().toString() };
-                      setMenuItems((prev) => [...prev, record]);
-                    }
-                  } catch (error) {
-                    console.warn("Không thể lưu món ăn", error);
-                  }
-
-                  setEditingDishId(null);
-                  setDishForm({
-                    id: "",
-                    name: "",
-                    price: "",
-                    status: "available",
-                    tag: "",
-                  });
-                }}
-              >
-                <Text style={styles.actionButtonLabel}>
-                  {editingDishId ? "Lưu món" : "Thêm món"}
-                </Text>
-              </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          ) : (
+            <TouchableOpacity
+              style={[styles.formCard, styles.centeredCard]}
+              onPress={() => {
+                setEditingDishId(null);
+                setDishForm({
+                  id: "",
+                  name: "",
+                  price: "",
+                  status: "available",
+                  tag: "",
+                  image: "",
+                  category: "Khai vị",
+                  description: "",
+                });
+                setShowDishForm(true);
+              }}
+            >
+              <Text style={styles.formTitle}>Thêm món</Text>
+              <Text style={styles.emptyText}>Nhấn để mở form thêm món mới.</Text>
+            </TouchableOpacity>
+          )}
 
           {restaurantMenu.length === 0 ? (
             <Text style={styles.emptyText}>Chưa có món ăn.</Text>
@@ -557,7 +662,12 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
               <View key={item.id} style={styles.listItem}>
                 <View style={styles.listTextGroup}>
                   <Text style={styles.itemTitle}>{item.name}</Text>
-                  <Text style={styles.itemSubtitle}>{item.tag}</Text>
+                  <Text style={styles.itemSubtitle}>
+                    {item.category || item.tag || "Chưa phân loại"}
+                  </Text>
+                  {!!item.description && (
+                    <Text style={styles.itemSubtitle}>{item.description}</Text>
+                  )}
                 </View>
                 <View
                   style={[
@@ -583,12 +693,16 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
                   <TouchableOpacity
                     onPress={() => {
                       setEditingDishId(item.id);
+                      setShowDishForm(true);
                       setDishForm({
                         id: item.id,
                         name: item.name,
                         price: String(item.price ?? 0),
                         status: item.status,
                         tag: item.tag,
+                        image: item.image || "",
+                        category: item.category || "Khai vị",
+                        description: item.description || "",
                       });
                     }}
                   >
@@ -758,6 +872,10 @@ const styles = StyleSheet.create({
   emptyText: {
     color: "#a16207",
   },
+  centeredCard: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
   formCard: {
     backgroundColor: "#fff7ed",
     borderRadius: 14,
@@ -784,6 +902,31 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#a16207",
     fontWeight: "600",
+  },
+  chipRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  chip: {
+    borderWidth: 1,
+    borderColor: "#fed7aa",
+    backgroundColor: "#fff7ed",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  activeChip: {
+    backgroundColor: "#f97316",
+    borderColor: "#f97316",
+  },
+  chipLabel: {
+    color: "#c2410c",
+    fontWeight: "600",
+    fontSize: 12,
+  },
+  activeChipLabel: {
+    color: "#fff7ed",
   },
   input: {
     backgroundColor: "#ffffff",
