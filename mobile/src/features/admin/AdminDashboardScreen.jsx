@@ -37,6 +37,21 @@ const normalizeOrders = (orders = []) => {
 const calculateRevenue = (orders = []) =>
   orders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
 
+const formatDate = (value) => {
+  if (!value) return "Vừa đăng ký";
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(parsed);
+};
+
 const AdminDashboardScreen = ({ user, onBack }) => {
   const [orders, setOrders] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
@@ -83,6 +98,21 @@ const AdminDashboardScreen = ({ user, onBack }) => {
 
   const revenue = useMemo(() => calculateRevenue(orders), [orders]);
 
+  const customerAccounts = useMemo(
+    () =>
+      users
+        .filter((account) => (account.role ?? "customer") === "customer")
+        .map((account, index) => ({
+          id: account.id || `kh-${index + 1}`,
+          name: account.fullName || account.name || "Khách hàng",
+          email: account.email || "Đang cập nhật",
+          phone: account.phone || "Chưa có",
+          tier: account.tier || "Tiêu chuẩn",
+          joinedAt: account.joinedAt || account.createdAt || null,
+        })),
+    [users]
+  );
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.headerRow}>
@@ -118,9 +148,9 @@ const AdminDashboardScreen = ({ user, onBack }) => {
           <Text style={styles.cardHint}>Đang hoạt động</Text>
         </View>
         <View style={styles.card}>
-          <Text style={styles.cardLabel}>Tài khoản</Text>
-          <Text style={styles.cardValue}>{users.length}</Text>
-          <Text style={styles.cardHint}>Đã đồng bộ</Text>
+          <Text style={styles.cardLabel}>Khách hàng</Text>
+          <Text style={styles.cardValue}>{customerAccounts.length}</Text>
+          <Text style={styles.cardHint}>Đăng ký web & mobile</Text>
         </View>
       </View>
 
@@ -164,6 +194,29 @@ const AdminDashboardScreen = ({ user, onBack }) => {
                   {restaurant.deliveryTime || "15-30 phút"}
                 </Text>
               </View>
+            </View>
+          ))
+        )}
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Khách hàng mới</Text>
+        {customerAccounts.length === 0 ? (
+          <Text style={styles.emptyText}>Chưa có khách hàng nào.</Text>
+        ) : (
+          customerAccounts.slice(0, 6).map((customer) => (
+            <View key={customer.id} style={styles.listItem}>
+              <View style={styles.listTextGroup}>
+                <Text style={styles.itemTitle}>{customer.name}</Text>
+                <Text style={styles.itemSubtitle}>{customer.email}</Text>
+                <Text style={styles.itemSubtitle}>{customer.phone}</Text>
+              </View>
+              <View style={[styles.tag, styles.secondaryTag]}>
+                <Text style={[styles.tagLabel, styles.secondaryTagLabel]}>
+                  {customer.tier}
+                </Text>
+              </View>
+              <Text style={styles.itemValue}>{formatDate(customer.joinedAt)}</Text>
             </View>
           ))
         )}

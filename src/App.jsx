@@ -566,6 +566,28 @@ function App() {
   const orderHistoryTexts = content.orderHistory ?? {};
   const restaurantTexts = content.restaurant ?? {};
 
+  const customerProfiles = useMemo(
+    () =>
+      users
+        .filter((user) => (user.role ?? "customer") === "customer")
+        .map((user, index) => {
+          const safeName = user.fullName || user.name || "Khách hàng";
+          const joinedAt = (user.joinedAt || "").toString().slice(0, 10);
+          const fallbackJoinedAt = new Date().toISOString().slice(0, 10);
+
+          return {
+            id: user.id || `kh-${String(index + 1).padStart(2, "0")}`,
+            name: safeName,
+            email: normalizeEmail(user.email) || "Đang cập nhật",
+            phone: user.phone || "Chưa có",
+            tier: user.tier || "Tiêu chuẩn",
+            active: user.active ?? true,
+            joinedAt: joinedAt || fallbackJoinedAt,
+          };
+        }),
+    [users]
+  );
+
   const appendMenuItem = (item) => {
     if (!item?.id) return;
 
@@ -1130,6 +1152,7 @@ function App() {
     const normalizedPhone = normalizePhone(phone);
     const allowedRoles = ["customer", "admin", "restaurant"];
     const normalizedRole = allowedRoles.includes(role) ? role : "customer";
+    const joinedAt = new Date().toISOString().slice(0, 10);
 
     if (!trimmedName || !normalizedEmail || !password) {
       return {
@@ -1168,6 +1191,9 @@ function App() {
       phone: normalizedPhone,
       password,
       role: normalizedRole,
+      tier: "Tiêu chuẩn",
+      active: true,
+      joinedAt,
     };
 
     try {
@@ -1570,6 +1596,7 @@ function App() {
       <AdminDashboard
         orders={adminOrders}
         restaurants={restaurantList}
+        customers={customerProfiles}
         onCreateRestaurant={syncCreatedRestaurant}
         onUpdateRestaurant={syncUpdatedRestaurant}
         onDeleteRestaurant={syncDeletedRestaurant}

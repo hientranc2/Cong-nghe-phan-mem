@@ -179,12 +179,15 @@ const normalizeAdminOrder = (order, index) => {
 function AdminDashboard({
   orders: remoteOrders = [],
   restaurants: remoteRestaurants = [],
+  customers: remoteCustomers = [],
   onCreateRestaurant,
   onUpdateRestaurant,
   onDeleteRestaurant,
 }) {
   const [drones, setDrones] = useState(DEFAULT_DRONES);
-  const [customers, setCustomers] = useState(DEFAULT_CUSTOMERS);
+  const [customers, setCustomers] = useState(
+    Array.isArray(remoteCustomers) ? remoteCustomers : DEFAULT_CUSTOMERS
+  );
   const [orders, setOrders] = useState(
     remoteOrders.length > 0 ? remoteOrders : DEFAULT_ORDERS
   );
@@ -208,6 +211,12 @@ function AdminDashboard({
   useEffect(() => {
     setSearch("");
   }, [activeSection]);
+
+  useEffect(() => {
+    if (Array.isArray(remoteCustomers)) {
+      setCustomers(remoteCustomers);
+    }
+  }, [remoteCustomers]);
 
   const filteredDrones = useMemo(() => {
     if (!search.trim()) return drones;
