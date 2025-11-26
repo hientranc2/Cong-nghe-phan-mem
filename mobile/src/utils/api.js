@@ -103,3 +103,44 @@ export const createRecord = async (collection, payload) =>
   postJSON(collection, payload);
 
 export const createOrder = async (order) => postJSON("orders", order);
+
+const patchJSON = async (collection, id, payload) => {
+  const url = `${API_BASE}/${collection}/${id}`;
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }).catch(() => null);
+
+  if (!response || !response.ok) {
+    throw new Error(
+      `API request failed${response ? `: ${response.status}` : ""}`
+    );
+  }
+
+  return parseJSON(response);
+};
+
+const deleteJSON = async (collection, id) => {
+  const url = `${API_BASE}/${collection}/${id}`;
+  const response = await fetch(url, { method: "DELETE" }).catch(() => null);
+
+  if (!response || !response.ok) {
+    throw new Error(
+      `API request failed${response ? `: ${response.status}` : ""}`
+    );
+  }
+
+  return true;
+};
+
+export const updateOrder = async (id, payload) => patchJSON("orders", id, payload);
+
+export const deleteOrder = async (id) => deleteJSON("orders", id);
+
+export const createMenuItem = async (payload) => postJSON("menuItems", payload);
+
+export const updateMenuItem = async (id, payload) =>
+  patchJSON("menuItems", id, payload);
+
+export const deleteMenuItem = async (id) => deleteJSON("menuItems", id);
