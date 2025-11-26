@@ -6,7 +6,7 @@ import BestSellerSection from "../components/product/BestSellerSection.jsx";
 import FloatingCartButton from "../components/FloatingCartButton.jsx";
 import BottomTabBar from "../components/BottomTabBar.jsx";
 import MenuScreen from "./MenuScreen.jsx";
-import PromoScreen from "./PromoScreen.jsx";
+import RestaurantsScreen from "./RestaurantsScreen.jsx";
 import MoreScreen from "./MoreScreen.jsx";
 import ProductDetailModal from "../components/product/ProductDetailModal.jsx";
 import CartSuccessModal from "../components/feedback/CartSuccessModal.jsx";
@@ -19,9 +19,27 @@ import { fetchCollection } from "../utils/api";
 
 const HOME_TAB = "home";
 const MENU_TAB = "menu";
-const PROMO_TAB = "promo";
+const RESTAURANTS_TAB = "restaurants";
 const ORDERS_TAB = "orders";
 const MORE_TAB = "more";
+
+const normalizeTab = (tabId) => {
+  if (tabId === "promo") {
+    return RESTAURANTS_TAB;
+  }
+
+  if (
+    tabId === MENU_TAB ||
+    tabId === RESTAURANTS_TAB ||
+    tabId === HOME_TAB ||
+    tabId === ORDERS_TAB ||
+    tabId === MORE_TAB
+  ) {
+    return tabId;
+  }
+
+  return HOME_TAB;
+};
 
 const HomeScreen = ({
   onPressLogin,
@@ -34,7 +52,7 @@ const HomeScreen = ({
   onTabChange,
   onLogout,
 }) => {
-  const [activeTab, setActiveTab] = useState(initialTab ?? HOME_TAB);
+  const [activeTab, setActiveTab] = useState(normalizeTab(initialTab));
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [confirmation, setConfirmation] = useState({
     visible: false,
@@ -53,28 +71,16 @@ const HomeScreen = ({
       return;
     }
 
-    setActiveTab((current) => (current === initialTab ? current : initialTab));
+    const nextTab = normalizeTab(initialTab);
+    setActiveTab((current) => (current === nextTab ? current : nextTab));
   }, [initialTab]);
 
   const handleTabPress = useCallback(
     (tabId) => {
-      if (
-        tabId === MENU_TAB ||
-        tabId === PROMO_TAB ||
-        tabId === HOME_TAB ||
-        tabId === ORDERS_TAB ||
-        tabId === MORE_TAB
-      ) {
-        setActiveTab(tabId);
-        if (typeof onTabChange === "function") {
-          onTabChange(tabId);
-        }
-        return;
-      }
-
-      setActiveTab(HOME_TAB);
+      const nextTab = normalizeTab(tabId);
+      setActiveTab(nextTab);
       if (typeof onTabChange === "function") {
-        onTabChange(HOME_TAB);
+        onTabChange(nextTab);
       }
     },
     [onTabChange]
@@ -207,8 +213,8 @@ const HomeScreen = ({
           categories={categories}
           items={menuData}
         />
-      ) : activeTab === PROMO_TAB ? (
-        <PromoScreen />
+      ) : activeTab === RESTAURANTS_TAB ? (
+        <RestaurantsScreen />
       ) : activeTab === ORDERS_TAB ? (
         <OrdersScreen
           onBackToHome={handleBackToHome}

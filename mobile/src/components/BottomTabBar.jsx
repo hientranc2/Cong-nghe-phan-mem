@@ -4,7 +4,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 const tabs = [
   { id: "home", label: "Trang chủ", icon: "🏠" },
   { id: "menu", label: "Thực đơn", icon: "🍽️" },
-  { id: "promo", label: "Khuyến mãi", icon: "🎁" },
+  { id: "restaurants", label: "Nhà hàng", icon: "🏬" },
   { id: "orders", label: "Đơn hàng", icon: "🧾" },
   { id: "more", label: "Xem thêm", icon: "☰" },
 ];
