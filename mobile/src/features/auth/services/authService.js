@@ -49,10 +49,18 @@ export const authService = {
       };
     }
 
+    const normalizedUser = {
+      ...existingUser,
+      name: existingUser.name ?? existingUser.fullName,
+      fullName: existingUser.fullName ?? existingUser.name,
+    };
+
     return {
       success: true,
-      message: `Xin chào ${existingUser.fullName ?? existingUser.name}! Bạn đã đăng nhập thành công.`,
-      user: existingUser,
+      message: `Xin chào ${
+        normalizedUser.fullName ?? normalizedUser.name
+      }! Bạn đã đăng nhập thành công.`,
+      user: normalizedUser,
     };
   },
   register: async ({ fullName, phone, email, password }) => {
@@ -107,6 +115,7 @@ export const authService = {
     try {
       await createRecord("users", {
         fullName: safeFullName,
+        name: safeFullName,
         phone: normalizedPhone,
         email: safeEmail,
         password: trimmedPassword,

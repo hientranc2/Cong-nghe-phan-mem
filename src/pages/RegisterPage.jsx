@@ -57,6 +57,7 @@ function RegisterPage({
       }
 
       setInfo(successMessage);
+      onNavigateLogin();
     } catch (submissionError) {
       setError(defaultErrorMessage);
     } finally {

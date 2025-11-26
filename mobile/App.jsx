@@ -222,7 +222,7 @@ export default function App() {
     (user) => {
       if (user) {
         setAuthenticatedUser({
-          fullName: user.fullName,
+          fullName: user.fullName ?? user.name,
           phone: user.phone,
           email: user.email,
         });

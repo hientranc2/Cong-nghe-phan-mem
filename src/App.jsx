@@ -87,17 +87,28 @@ const DEFAULT_USERS = [
 const normalizeEmail = (email = "") => email.trim().toLowerCase();
 const normalizePhone = (phone = "") => phone.replace(/\D/g, "");
 
+const mapUserProfile = (user = {}) => {
+  const resolvedName = user.name?.trim() || user.fullName?.trim() || "";
+
+  return {
+    ...user,
+    name: resolvedName || user.name || user.fullName || "",
+    fullName: user.fullName || resolvedName || user.name || "",
+  };
+};
+
 const mergeUsersByEmail = (users = []) => {
   const byEmail = new Map();
 
   users.forEach((user) => {
-    const key = normalizeEmail(user.email);
+    const normalized = mapUserProfile(user);
+    const key = normalizeEmail(normalized.email);
     if (!key) {
       return;
     }
 
     const existing = byEmail.get(key) ?? {};
-    byEmail.set(key, { ...existing, ...user });
+    byEmail.set(key, { ...existing, ...normalized });
   });
 
   return Array.from(byEmail.values());
@@ -1098,12 +1109,13 @@ function App() {
     }
 
     const { password: _password, ...safeUser } = matchedUser;
-    setCurrentUser(safeUser);
+    const normalizedUser = mapUserProfile(safeUser);
+    setCurrentUser(normalizedUser);
     setIsCartOpen(false);
     redirectAfterAuth(safeUser, authRedirect);
     setAuthRedirect(null);
     setAuthMessage("");
-    return { success: true, user: safeUser };
+    return { success: true, user: normalizedUser };
   };
 
   const handleRegister = async ({
@@ -1151,6 +1163,7 @@ function App() {
     const newUser = {
       id: `user-${Date.now()}`,
       name: trimmedName,
+      fullName: trimmedName,
       email: normalizedEmail,
       phone: normalizedPhone,
       password,
@@ -1167,16 +1180,22 @@ function App() {
     }
 
     setUsers((prevUsers) => mergeUsersByEmail([...prevUsers, newUser]));
+
     const { password: _password, ...safeUser } = newUser;
-    setCurrentUser(safeUser);
-    setIsCartOpen(false);
-    redirectAfterAuth(safeUser, authRedirect);
+    const normalizedUser = mapUserProfile(safeUser);
+    setAuthMessage(
+      "Đăng ký thành công! Vui lòng đăng nhập bằng tài khoản vừa tạo."
+    );
     setAuthRedirect(null);
-    setAuthMessage("");
+    setCurrentUser(null);
+    setIsCartOpen(false);
+    if (typeof window !== "undefined") {
+      window.location.hash = "/login";
+    }
 
     return {
       success: true,
-      user: safeUser,
+      user: normalizedUser,
     };
   };
 
