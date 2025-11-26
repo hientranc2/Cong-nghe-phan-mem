@@ -1,112 +1,128 @@
-const users = [
-  {
-    fullName: "Nguyễn Văn A",
-    phone: "0987654321",
-    email: "nguyenvana@example.com",
-    password: "matkhau123"
-  }
-];
+import { createRecord, fetchCollection } from "../../../utils/api";
 
-const normalizePhone = (phone) => phone.replace(/\D/g, "");
+const normalizePhone = (phone) => (phone ?? "").replace(/\D/g, "");
+const normalizeEmail = (email) => (email ?? "").trim().toLowerCase();
+
+const loadUsers = async () => {
+  try {
+    const users = await fetchCollection("users");
+    if (Array.isArray(users)) {
+      return users;
+    }
+  } catch (error) {
+    console.error("Không thể tải danh sách người dùng", error);
+  }
+
+  return [];
+};
 
 export const authService = {
-  login: ({ phone, password }) => {
-    const normalizedPhone = normalizePhone(phone ?? "");
+  login: async ({ phone, password }) => {
+    const identifier = phone?.trim() ?? "";
+    const normalizedPhone = normalizePhone(identifier);
+    const normalizedEmail = identifier.includes("@")
+      ? normalizeEmail(identifier)
+      : "";
     const trimmedPassword = password?.trim() ?? "";
 
-    if (!normalizedPhone) {
+    if ((!normalizedPhone && !normalizedEmail) || !trimmedPassword) {
       return {
         success: false,
-        message: "Vui lòng nhập số điện thoại để đăng nhập."
+        message: "Vui lòng nhập số điện thoại/email và mật khẩu.",
       };
     }
 
-    if (!trimmedPassword) {
-      return {
-        success: false,
-        message: "Vui lòng nhập mật khẩu để tiếp tục."
-      };
-    }
+    const users = await loadUsers();
+    const existingUser = users.find((user) => {
+      const phoneMatch =
+        normalizedPhone && normalizePhone(user.phone ?? "") === normalizedPhone;
+      const emailMatch =
+        normalizedEmail && normalizeEmail(user.email ?? "") === normalizedEmail;
 
-    const existingUser = users.find(
-      (user) => normalizePhone(user.phone) === normalizedPhone
-    );
+      return (phoneMatch || emailMatch) && user.password === trimmedPassword;
+    });
 
     if (!existingUser) {
       return {
         success: false,
-        message: "Số điện thoại chưa được đăng ký."
-      };
-    }
-
-    if (existingUser.password !== trimmedPassword) {
-      return {
-        success: false,
-        message: "Mật khẩu không chính xác."
+        message: "Thông tin đăng nhập chưa chính xác.",
       };
     }
 
     return {
       success: true,
-      message: `Xin chào ${existingUser.fullName}! Bạn đã đăng nhập thành công.`,
-      user: existingUser
+      message: `Xin chào ${existingUser.fullName ?? existingUser.name}! Bạn đã đăng nhập thành công.`,
+      user: existingUser,
     };
   },
-  register: ({ fullName, phone, email, password }) => {
+  register: async ({ fullName, phone, email, password }) => {
     const normalizedPhone = normalizePhone(phone ?? "");
     const safeFullName = fullName?.trim();
-    const safeEmail = email?.trim();
+    const safeEmail = normalizeEmail(email);
     const trimmedPassword = password?.trim();
 
     if (!safeFullName || safeFullName.length < 3) {
       return {
         success: false,
-        message: "Vui lòng nhập họ tên đầy đủ (tối thiểu 3 ký tự)."
+        message: "Vui lòng nhập họ tên đầy đủ (tối thiểu 3 ký tự).",
       };
     }
 
     if (!normalizedPhone || normalizedPhone.length < 9) {
       return {
         success: false,
-        message: "Số điện thoại không hợp lệ."
+        message: "Số điện thoại không hợp lệ.",
       };
     }
 
     if (!safeEmail || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(safeEmail)) {
       return {
         success: false,
-        message: "Email không hợp lệ."
+        message: "Email không hợp lệ.",
       };
     }
 
     if (!trimmedPassword || trimmedPassword.length < 8) {
       return {
         success: false,
-        message: "Mật khẩu phải có tối thiểu 8 ký tự."
+        message: "Mật khẩu phải có tối thiểu 8 ký tự.",
       };
     }
 
-    const phoneExists = users.some(
-      (user) => normalizePhone(user.phone) === normalizedPhone
-    );
+    const users = await loadUsers();
+    const duplicateUser = users.some((user) => {
+      const samePhone =
+        normalizedPhone && normalizePhone(user.phone ?? "") === normalizedPhone;
+      const sameEmail = normalizeEmail(user.email ?? "") === safeEmail;
+      return samePhone || sameEmail;
+    });
 
-    if (phoneExists) {
+    if (duplicateUser) {
       return {
         success: false,
-        message: "Số điện thoại đã được đăng ký trước đó."
+        message: "Số điện thoại hoặc email đã tồn tại.",
       };
     }
 
-    users.push({
-      fullName: safeFullName,
-      phone: normalizedPhone,
-      email: safeEmail,
-      password: trimmedPassword
-    });
+    try {
+      await createRecord("users", {
+        fullName: safeFullName,
+        phone: normalizedPhone,
+        email: safeEmail,
+        password: trimmedPassword,
+        role: "customer",
+      });
+    } catch (error) {
+      console.error("Không thể lưu tài khoản mới", error);
+      return {
+        success: false,
+        message: "Không thể tạo tài khoản mới. Vui lòng thử lại.",
+      };
+    }
 
     return {
       success: true,
-      message: "Tạo tài khoản thành công! Vui lòng đăng nhập để tiếp tục."
+      message: "Tạo tài khoản thành công! Vui lòng đăng nhập để tiếp tục.",
     };
-  }
+  },
 };
