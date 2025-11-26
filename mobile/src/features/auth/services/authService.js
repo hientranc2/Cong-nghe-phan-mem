@@ -120,6 +120,9 @@ export const authService = {
         email: safeEmail,
         password: trimmedPassword,
         role: "customer",
+        tier: "Tiêu chuẩn",
+        active: true,
+        joinedAt: new Date().toISOString().slice(0, 10),
       });
     } catch (error) {
       console.error("Không thể lưu tài khoản mới", error);
