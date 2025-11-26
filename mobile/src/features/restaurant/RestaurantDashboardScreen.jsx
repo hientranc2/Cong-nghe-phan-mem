@@ -40,6 +40,7 @@ const normalizeMenu = (items = []) =>
 const RestaurantDashboardScreen = ({ user, onBack }) => {
   const [orders, setOrders] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
+  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
     let active = true;
@@ -80,6 +81,12 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
     [menuItems]
   );
 
+  const tabs = [
+    { key: "overview", label: "Tổng quan" },
+    { key: "orders", label: "Đơn hàng" },
+    { key: "menu", label: "Menu" },
+  ];
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.headerRow}>
@@ -94,80 +101,102 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
         </View>
       </View>
 
-      <View style={styles.cardGrid}>
-        <View style={[styles.card, styles.primaryCard]}>
-          <Text style={styles.cardLabel}>Đơn đang xử lý</Text>
-          <Text style={styles.cardValue}>{activeOrders.length}</Text>
-          <Text style={styles.cardHint}>Từ web và mobile</Text>
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardLabel}>Tổng đơn</Text>
-          <Text style={styles.cardValue}>{orders.length}</Text>
-          <Text style={styles.cardHint}>Bao gồm lịch sử</Text>
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardLabel}>Món đang bán</Text>
-          <Text style={styles.cardValue}>{availableDishes.length}</Text>
-          <Text style={styles.cardHint}>Menu cập nhật theo web</Text>
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardLabel}>Đang tạm dừng</Text>
-          <Text style={styles.cardValue}>{menuItems.length - availableDishes.length}</Text>
-          <Text style={styles.cardHint}>Cần bật bán lại</Text>
-        </View>
+      <View style={styles.tabBar}>
+        {tabs.map((tab) => (
+          <TouchableOpacity
+            key={tab.key}
+            style={[styles.tabButton, activeTab === tab.key && styles.activeTab]}
+            onPress={() => setActiveTab(tab.key)}
+          >
+            <Text
+              style={[styles.tabLabel, activeTab === tab.key && styles.activeTabLabel]}
+            >
+              {tab.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Đơn gần nhất</Text>
-        {orders.length === 0 ? (
-          <Text style={styles.emptyText}>Chưa có đơn hàng.</Text>
-        ) : (
-          orders.slice(0, 6).map((order) => (
-            <View key={order.id} style={styles.listItem}>
-              <View style={styles.listTextGroup}>
-                <Text style={styles.itemTitle}>{order.id}</Text>
-                <Text style={styles.itemSubtitle}>
-                  {order.customer} • {order.items} món
-                </Text>
-              </View>
-              <View style={[styles.tag, styles.secondaryTag]}>
-                <Text style={[styles.tagLabel, styles.secondaryTagLabel]}>
-                  {order.status}
-                </Text>
-              </View>
-              <Text style={styles.itemValue}>
-                {new Intl.NumberFormat("vi-VN").format(order.total)} đ
-              </Text>
-            </View>
-          ))
-        )}
-      </View>
+      {activeTab === "overview" && (
+        <View style={styles.cardGrid}>
+          <View style={[styles.card, styles.primaryCard]}>
+            <Text style={styles.cardLabel}>Đơn đang xử lý</Text>
+            <Text style={styles.cardValue}>{activeOrders.length}</Text>
+            <Text style={styles.cardHint}>Từ web và mobile</Text>
+          </View>
+          <View style={styles.card}>
+            <Text style={styles.cardLabel}>Tổng đơn</Text>
+            <Text style={styles.cardValue}>{orders.length}</Text>
+            <Text style={styles.cardHint}>Bao gồm lịch sử</Text>
+          </View>
+          <View style={styles.card}>
+            <Text style={styles.cardLabel}>Món đang bán</Text>
+            <Text style={styles.cardValue}>{availableDishes.length}</Text>
+            <Text style={styles.cardHint}>Menu cập nhật theo web</Text>
+          </View>
+          <View style={styles.card}>
+            <Text style={styles.cardLabel}>Đang tạm dừng</Text>
+            <Text style={styles.cardValue}>{menuItems.length - availableDishes.length}</Text>
+            <Text style={styles.cardHint}>Cần bật bán lại</Text>
+          </View>
+        </View>
+      )}
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Menu nổi bật</Text>
-        {menuItems.length === 0 ? (
-          <Text style={styles.emptyText}>Chưa có món ăn.</Text>
-        ) : (
-          menuItems.slice(0, 6).map((item) => (
-            <View key={item.id} style={styles.listItem}>
-              <View style={styles.listTextGroup}>
-                <Text style={styles.itemTitle}>{item.name}</Text>
-                <Text style={styles.itemSubtitle}>{item.tag}</Text>
-              </View>
-              <View
-                style={[styles.tag, item.status === "soldout" && styles.dangerTag]}
-              >
-                <Text style={styles.tagLabel}>
-                  {item.status === "soldout" ? "Hết hàng" : "Đang bán"}
+      {activeTab === "orders" && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Đơn gần nhất</Text>
+          {orders.length === 0 ? (
+            <Text style={styles.emptyText}>Chưa có đơn hàng.</Text>
+          ) : (
+            orders.slice(0, 6).map((order) => (
+              <View key={order.id} style={styles.listItem}>
+                <View style={styles.listTextGroup}>
+                  <Text style={styles.itemTitle}>{order.id}</Text>
+                  <Text style={styles.itemSubtitle}>
+                    {order.customer} • {order.items} món
+                  </Text>
+                </View>
+                <View style={[styles.tag, styles.secondaryTag]}>
+                  <Text style={[styles.tagLabel, styles.secondaryTagLabel]}>
+                    {order.status}
+                  </Text>
+                </View>
+                <Text style={styles.itemValue}>
+                  {new Intl.NumberFormat("vi-VN").format(order.total)} đ
                 </Text>
               </View>
-              <Text style={styles.itemValue}>
-                {new Intl.NumberFormat("vi-VN").format(item.price)} đ
-              </Text>
-            </View>
-          ))
-        )}
-      </View>
+            ))
+          )}
+        </View>
+      )}
+
+      {activeTab === "menu" && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Menu nổi bật</Text>
+          {menuItems.length === 0 ? (
+            <Text style={styles.emptyText}>Chưa có món ăn.</Text>
+          ) : (
+            menuItems.slice(0, 6).map((item) => (
+              <View key={item.id} style={styles.listItem}>
+                <View style={styles.listTextGroup}>
+                  <Text style={styles.itemTitle}>{item.name}</Text>
+                  <Text style={styles.itemSubtitle}>{item.tag}</Text>
+                </View>
+                <View
+                  style={[styles.tag, item.status === "soldout" && styles.dangerTag]}
+                >
+                  <Text style={styles.tagLabel}>
+                    {item.status === "soldout" ? "Hết hàng" : "Đang bán"}
+                  </Text>
+                </View>
+                <Text style={styles.itemValue}>
+                  {new Intl.NumberFormat("vi-VN").format(item.price)} đ
+                </Text>
+              </View>
+            ))
+          )}
+        </View>
+      )}
     </ScrollView>
   );
 };
@@ -211,6 +240,35 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#a16207",
     textAlign: "right",
+  },
+  tabBar: {
+    flexDirection: "row",
+    backgroundColor: "#fff1e6",
+    padding: 6,
+    borderRadius: 999,
+    gap: 6,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 999,
+    alignItems: "center",
+  },
+  tabLabel: {
+    fontSize: 13,
+    color: "#c2410c",
+    fontWeight: "600",
+  },
+  activeTab: {
+    backgroundColor: "#f97316",
+    shadowColor: "#f97316",
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  activeTabLabel: {
+    color: "#ffffff",
   },
   cardGrid: {
     flexDirection: "row",
@@ -320,4 +378,3 @@ const styles = StyleSheet.create({
 });
 
 export default RestaurantDashboardScreen;
-
