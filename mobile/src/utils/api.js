@@ -99,4 +99,7 @@ const postJSON = async (collection, payload) => {
   return parseJSON(response);
 };
 
+export const createRecord = async (collection, payload) =>
+  postJSON(collection, payload);
+
 export const createOrder = async (order) => postJSON("orders", order);

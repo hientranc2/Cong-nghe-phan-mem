@@ -64,7 +64,8 @@ function Header({
     admin: "Quản trị viên",
     restaurant: "Nhà hàng đối tác",
   };
-  const userName = user?.name ?? texts?.anonymousLabel ?? "Người dùng";
+  const userName =
+    user?.name || user?.fullName || texts?.anonymousLabel || "Người dùng";
   const cartLabel = texts?.cartLabel ?? "Giỏ hàng";
   const cartAriaLabel = texts?.cartAriaLabel ?? "Giỏ hàng";
   const menuToggleLabel = texts?.menuToggleLabel ?? "Mở menu điều hướng";

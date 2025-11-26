@@ -10,7 +10,7 @@ function LoginPage({
   const title = texts.title ?? "Đăng nhập";
   const subtitle =
     texts.subtitle ?? "Đăng nhập để theo dõi đơn hàng và thanh toán nhanh chóng.";
-  const emailLabel = texts.emailLabel ?? "Email";
+  const emailLabel = texts.emailLabel ?? "Email hoặc số điện thoại";
   const passwordLabel = texts.passwordLabel ?? "Mật khẩu";
   const submitLabel = texts.submitLabel ?? "Đăng nhập";
   const registerPrompt = texts.registerPrompt ?? "Chưa có tài khoản?";
@@ -23,19 +23,23 @@ function LoginPage({
 
   const [formState, setFormState] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormState((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
+    setIsSubmitting(true);
 
     try {
-      const result = onLogin({
-        email: formState.email.trim(),
+      const trimmedIdentifier = formState.email.trim();
+      const result = await onLogin({
+        email: trimmedIdentifier,
+        phone: trimmedIdentifier,
         password: formState.password,
       });
 
@@ -44,6 +48,8 @@ function LoginPage({
       }
     } catch (submissionError) {
       setError(defaultErrorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -69,10 +75,10 @@ function LoginPage({
             <input
               id="login-email"
               name="email"
-              type="email"
+              type="text"
               value={formState.email}
               onChange={handleChange}
-              placeholder="you@example.com"
+              placeholder="you@example.com hoặc 0901 234 567"
               autoComplete="email"
               required
             />
@@ -90,8 +96,8 @@ function LoginPage({
               required
             />
           </label>
-          <button type="submit" className="auth-submit">
-            {submitLabel}
+          <button type="submit" className="auth-submit" disabled={isSubmitting}>
+            {isSubmitting ? "Đang đăng nhập..." : submitLabel}
           </button>
         </form>
         <p className="auth-card__switch">
