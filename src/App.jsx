@@ -68,6 +68,39 @@ const withRestaurantDefaults = (restaurant, fallbackImage = heroBackground) => {
 const USERS_STORAGE_KEY = "fcoUsers";
 const CURRENT_USER_STORAGE_KEY = "fcoCurrentUser";
 const ORDER_HISTORY_STORAGE_KEY = "fcoOrderHistory";
+const buildMenuRestaurantIndex = (restaurants = []) => {
+  const map = new Map();
+
+  restaurants.forEach((restaurant) => {
+    (restaurant.menuItemIds ?? []).forEach((menuId) => {
+      if (!map.has(menuId)) {
+        map.set(menuId, {
+          id: restaurant.id,
+          name: restaurant.name,
+          slug: restaurant.slug,
+        });
+      }
+    });
+  });
+
+  return map;
+};
+
+const DEFAULT_RESTAURANT_USERS = defaultRestaurants.map((restaurant, index) => {
+  const normalized = withRestaurantDefaults(restaurant);
+  const simpleEmail = `restaurant${index + 1}@gmail.com`;
+
+  return {
+    id: normalized.id,
+    name: normalized.name,
+    email: restaurant.email || simpleEmail,
+    password: restaurant.password || "fco123",
+    role: "restaurant",
+    restaurantId: normalized.id,
+    restaurantSlug: normalized.slug,
+  };
+});
+
 const DEFAULT_USERS = [
   {
     id: "admin",
@@ -76,13 +109,7 @@ const DEFAULT_USERS = [
     password: "admin123",
     role: "admin",
   },
-  {
-    id: "restaurant",
-    name: "Nhà hàng FCO",
-    email: "restaurant@fco.vn",
-    password: "fco123",
-    role: "restaurant",
-  },
+  ...DEFAULT_RESTAURANT_USERS,
 ];
 
 const normalizeEmail = (email = "") => email.trim().toLowerCase();
@@ -277,6 +304,21 @@ function App() {
   const [orderHistory, setOrderHistory] = useState([]);
   const [adminOrders, setAdminOrders] = useState([]);
 
+  const menuRestaurantIndex = useMemo(
+    () => buildMenuRestaurantIndex(restaurantList),
+    [restaurantList]
+  );
+
+  const restaurantById = useMemo(
+    () => new Map(restaurantList.map((restaurant) => [restaurant.id, restaurant])),
+    [restaurantList]
+  );
+
+  const restaurantBySlug = useMemo(
+    () => new Map(restaurantList.map((restaurant) => [restaurant.slug, restaurant])),
+    [restaurantList]
+  );
+
 
 
   useEffect(() => {
@@ -449,14 +491,48 @@ function App() {
   );
 
   const translatedMenuItems = useMemo(
-    () => translateMenuItems(menuItemList, language),
-    [menuItemList, language]
+    () =>
+      translateMenuItems(menuItemList, language).map((item) => {
+        const mappedRestaurant = menuRestaurantIndex.get(item.id);
+        const restaurantId = item.restaurantId ?? mappedRestaurant?.id ?? null;
+        const restaurantSlug =
+          item.restaurantSlug ?? mappedRestaurant?.slug ?? null;
+        const restaurantName =
+          item.restaurantName ?? mappedRestaurant?.name ?? null;
+
+        return {
+          ...item,
+          restaurantId,
+          restaurantSlug,
+          restaurantName,
+        };
+      }),
+    [language, menuItemList, menuRestaurantIndex]
   );
 
   const translatedRestaurants = useMemo(
     () => translateRestaurants(restaurantList, language),
     [restaurantList, language]
   );
+
+  const activeRestaurantAccount = useMemo(() => {
+    if (!currentUser || currentUser.role !== "restaurant") {
+      return null;
+    }
+
+    if (currentUser.restaurantId && restaurantById.has(currentUser.restaurantId)) {
+      return restaurantById.get(currentUser.restaurantId);
+    }
+
+    const normalizedSlug = (currentUser.restaurantSlug || currentUser.slug || "")
+      .toString()
+      .trim();
+    if (normalizedSlug && restaurantBySlug.has(normalizedSlug)) {
+      return restaurantBySlug.get(normalizedSlug);
+    }
+
+    return restaurantList[0] ?? null;
+  }, [currentUser, restaurantById, restaurantBySlug, restaurantList]);
 
   const customerOrders = useMemo(() => {
     if (!currentUser || currentUser.role !== "customer") {
@@ -526,6 +602,9 @@ function App() {
           name: latest.name,
           description: latest.description,
           tag: latest.tag,
+          restaurantId: latest.restaurantId,
+          restaurantName: latest.restaurantName,
+          restaurantSlug: latest.restaurantSlug,
         };
       });
     });
@@ -572,6 +651,37 @@ function App() {
     content.orderConfirmation ?? content.auth?.orderConfirmation ?? {};
   const orderHistoryTexts = content.orderHistory ?? {};
   const restaurantTexts = content.restaurant ?? {};
+
+  const deriveRestaurantFromItems = useCallback(
+    (items = []) => {
+      const restaurantIds = items
+        .map((item) => item?.restaurantId ?? menuRestaurantIndex.get(item?.id)?.id)
+        .filter(Boolean);
+
+      if (restaurantIds.length === 0) {
+        return { restaurantId: null, restaurantName: null, restaurantSlug: null };
+      }
+
+      const firstId = restaurantIds[0];
+      const isConsistent = restaurantIds.every((id) => id === firstId);
+
+      if (!isConsistent) {
+        return { restaurantId: null, restaurantName: null, restaurantSlug: null };
+      }
+
+      const restaurant = restaurantById.get(firstId) ?? null;
+      const fallbackItem = items.find(
+        (item) => (item?.restaurantId ?? null) === firstId
+      );
+
+      return {
+        restaurantId: firstId,
+        restaurantSlug: restaurant?.slug ?? fallbackItem?.restaurantSlug ?? null,
+        restaurantName: restaurant?.name ?? fallbackItem?.restaurantName ?? null,
+      };
+    },
+    [menuRestaurantIndex, restaurantById]
+  );
 
   const customerProfiles = useMemo(
     () =>
@@ -1002,6 +1112,44 @@ function App() {
     return translatedMenuItems.filter((item) => ids.has(item.id));
   }, [activeRestaurantDetail, translatedMenuItems]);
 
+  const restaurantMenuItemsForUser = useMemo(() => {
+    if (!activeRestaurantAccount) {
+      return [];
+    }
+
+    const knownMenuIds = new Set(activeRestaurantAccount.menuItemIds ?? []);
+
+    return menuItemList.filter((item) => {
+      if (item.restaurantId) {
+        return item.restaurantId === activeRestaurantAccount.id;
+      }
+
+      return knownMenuIds.has(item.id);
+    });
+  }, [activeRestaurantAccount, menuItemList]);
+
+  const restaurantOrdersForUser = useMemo(() => {
+    if (!activeRestaurantAccount) {
+      return [];
+    }
+
+    return adminOrders.filter((order) => {
+      const derivedRestaurant = deriveRestaurantFromItems(order.items ?? []);
+      const restaurantId = order.restaurantId ?? derivedRestaurant.restaurantId;
+      const restaurantSlug = order.restaurantSlug ?? derivedRestaurant.restaurantSlug;
+
+      if (restaurantId) {
+        return restaurantId === activeRestaurantAccount.id;
+      }
+
+      if (restaurantSlug) {
+        return restaurantSlug === activeRestaurantAccount.slug;
+      }
+
+      return false;
+    });
+  }, [activeRestaurantAccount, adminOrders, deriveRestaurantFromItems]);
+
   const activeProduct = useMemo(() => {
     if (view.type !== "product") {
       return null;
@@ -1302,8 +1450,10 @@ function App() {
     }
 
     const itemsCopy = orderDetails.items.map((item) => ({ ...item }));
+    const restaurantInfo = deriveRestaurantFromItems(itemsCopy);
     setPendingOrder({
       ...orderDetails,
+      ...restaurantInfo,
       items: itemsCopy,
       createdAt: new Date().toISOString(),
     });
@@ -1660,10 +1810,11 @@ function App() {
     return (
       <RestaurantDashboard
         user={currentUser}
+        restaurant={activeRestaurantAccount}
         texts={restaurantTexts}
-        menuItems={menuItemList}
+        menuItems={restaurantMenuItemsForUser}
         categories={categories}
-        orders={adminOrders}
+        orders={restaurantOrdersForUser}
         onCreateMenuItem={syncMenuItemToServer}
         onUpdateMenuItem={syncUpdatedMenuItem}
         onDeleteMenuItem={syncDeletedMenuItem}

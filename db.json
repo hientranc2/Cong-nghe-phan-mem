@@ -816,11 +816,49 @@
       "role": "admin"
     },
     {
-      "id": "restaurant",
-      "name": "Nhà hàng FCO",
-      "email": "restaurant@fco.vn",
+      "id": "fco-burger-artisan",
+      "name": "Burger Artisan House",
+      "email": "restaurant1@gmail.com",
       "password": "fco123",
-      "role": "restaurant"
+      "role": "restaurant",
+      "restaurantId": "fco-burger-artisan",
+      "restaurantSlug": "burger-artisan"
+    },
+    {
+      "id": "fco-pizza-lab",
+      "name": "Pizza Pazzi",
+      "email": "restaurant2@gmail.com",
+      "password": "fco123",
+      "role": "restaurant",
+      "restaurantId": "fco-pizza-lab",
+      "restaurantSlug": "pizza-lab"
+    },
+    {
+      "id": "fco-fried-bar",
+      "name": "Chicken Fried Bar",
+      "email": "restaurant3@gmail.com",
+      "password": "fco123",
+      "role": "restaurant",
+      "restaurantId": "fco-fried-bar",
+      "restaurantSlug": "fried-bar"
+    },
+    {
+      "id": "fco-drinks-lounge",
+      "name": "FCO Drinks Lounge",
+      "email": "restaurant4@gmail.com",
+      "password": "fco123",
+      "role": "restaurant",
+      "restaurantId": "fco-drinks-lounge",
+      "restaurantSlug": "drinks-lounge"
+    },
+    {
+      "id": "fco-taco-hub",
+      "name": "FCO Taco Hub",
+      "email": "restaurant5@gmail.com",
+      "password": "fco123",
+      "role": "restaurant",
+      "restaurantId": "fco-taco-hub",
+      "restaurantSlug": "taco-hub"
     }
   ],
   "orders": []
