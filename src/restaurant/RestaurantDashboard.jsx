@@ -689,16 +689,6 @@ function RestaurantDashboard({
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
-  const handleStartAddOrder = () => {
-    setActiveTab("orders");
-    setIsOrderFormVisible(true);
-    setEditingOrderId(null);
-    setOrderForm({
-      ...EMPTY_ORDER_FORM,
-      placedAt: formatOrderDateInput(new Date().toISOString()),
-    });
-  };
-
   const handleStartEditOrder = (order) => {
     setActiveTab("orders");
     setIsOrderFormVisible(true);
@@ -803,9 +793,7 @@ function RestaurantDashboard({
           headerTexts={headerTexts}
           navigationTexts={navigationTexts}
           menuTexts={menuTexts}
-          ordersTexts={ordersTexts}
           onAddDish={handleStartAddDish}
-          onAddOrder={handleStartAddOrder}
           onBackHome={onBackHome}
         />
 
