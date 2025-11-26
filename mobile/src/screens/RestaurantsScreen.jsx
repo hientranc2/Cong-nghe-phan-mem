@@ -443,7 +443,7 @@ const RestaurantsScreen = () => {
       )}
       contentContainerStyle={[
         styles.listContent,
-        { paddingTop: headerHeight + 24 },
+        { paddingTop: headerHeight + 24, paddingBottom: 140 },
       ]}
       showsVerticalScrollIndicator={false}
     />
@@ -716,7 +716,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   detailContent: {
-    paddingBottom: 40,
+    paddingBottom: 140,
   },
   heroWrapper: {
     marginBottom: 16,
