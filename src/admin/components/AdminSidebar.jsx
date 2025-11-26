@@ -40,14 +40,11 @@ function AdminSidebar({ activeSection, onSectionChange, onCreate }) {
         <button type="button" onClick={() => onCreate?.("drone")}>
           + Drone mới
         </button>
-        <button type="button" onClick={() => onCreate?.("customer")}>
+        <button type="button" onClick={() => onCreate?.("customer")}> 
           + Khách hàng
         </button>
-        <button type="button" onClick={() => onCreate?.("restaurant")}>
+        <button type="button" onClick={() => onCreate?.("restaurant")}> 
           + Nhà hàng
-        </button>
-        <button type="button" onClick={() => onCreate?.("order")}>
-          + Đơn hàng
         </button>
       </div>
     </aside>

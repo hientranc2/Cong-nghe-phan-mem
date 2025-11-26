@@ -130,6 +130,11 @@ const STATUS_OPTIONS = {
 
 const CUSTOMER_TIERS = ["Tiêu chuẩn", "Bạc", "Vàng", "Kim cương"];
 
+const selectDefaultDroneId = (drones = []) =>
+  drones.find((drone) => drone.status !== "Đang bảo trì")?.id ||
+  drones[0]?.id ||
+  "Chưa phân công";
+
 const formatCurrency = (value) =>
   new Intl.NumberFormat("vi-VN", {
     style: "currency",
@@ -151,7 +156,8 @@ const nextId = (prefix, existing) => {
   return `${prefix}-${String(numeric + 1).padStart(2, "0")}`;
 };
 
-const normalizeAdminOrder = (order, index) => {
+const normalizeAdminOrder = (order, index, drones) => {
+  const fallbackDroneId = order?.droneId || order?.driver || selectDefaultDroneId(drones);
   const totalValue =
     Number(order?.total) ||
     Number(order?.subtotal) ||
@@ -170,7 +176,7 @@ const normalizeAdminOrder = (order, index) => {
       order?.address ||
       order?.destination ||
       "Đang cập nhật",
-    droneId: order?.droneId || order?.driver || "-",
+    droneId: fallbackDroneId,
     total: totalValue,
     status: order?.status || "Đang chuẩn bị",
   };
@@ -180,6 +186,8 @@ function AdminDashboard({
   orders: remoteOrders = [],
   restaurants: remoteRestaurants = [],
   customers: remoteCustomers = [],
+  onUpdateOrder,
+  onDeleteOrder,
   onCreateRestaurant,
   onUpdateRestaurant,
   onDeleteRestaurant,
@@ -197,7 +205,7 @@ function AdminDashboard({
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    if (remoteOrders.length > 0) {
+    if (Array.isArray(remoteOrders)) {
       setOrders(remoteOrders);
     }
   }, [remoteOrders]);
@@ -252,8 +260,8 @@ function AdminDashboard({
   }, [search, customers]);
 
   const normalizedOrders = useMemo(
-    () => orders.map((order, index) => normalizeAdminOrder(order, index)),
-    [orders]
+    () => orders.map((order, index) => normalizeAdminOrder(order, index, drones)),
+    [orders, drones]
   );
 
   const filteredOrders = useMemo(() => {
@@ -281,6 +289,10 @@ function AdminDashboard({
   }, [search, restaurants]);
 
   const handleOpenForm = (type, mode, payload = null) => {
+    if (type === "order" && mode === "create") {
+      return;
+    }
+
     setActiveForm({
       type,
       mode,
@@ -340,15 +352,21 @@ function AdminDashboard({
     }
 
     if (type === "order") {
+      const ensuredDroneId = values.droneId || selectDefaultDroneId(drones);
+      const payload = { ...values, droneId: ensuredDroneId };
+
       if (mode === "create") {
-        const id = values.id?.trim() || nextId("od", orders);
-        setOrders([...orders, { ...values, id }]);
+        const id = payload.id?.trim() || nextId("od", orders);
+        const nextOrder = { ...payload, id };
+        setOrders([...orders, nextOrder]);
+        onUpdateOrder?.(nextOrder);
       } else {
         setOrders(
           orders.map((order) =>
-            order.id === values.id ? { ...order, ...values } : order
+            order.id === values.id ? { ...order, ...payload } : order
           )
         );
+        onUpdateOrder?.(payload);
       }
     }
 
@@ -389,6 +407,7 @@ function AdminDashboard({
     }
     if (type === "order") {
       setOrders(orders.filter((order) => order.id !== id));
+      onDeleteOrder?.(id);
     }
     if (type === "restaurant") {
       if (onDeleteRestaurant) {
@@ -526,13 +545,12 @@ function AdminDashboard({
       {activeSection === "orders" && (
         <AdminOrdersSection
           orders={filteredOrders}
-          onCreate={() => handleOpenForm("order", "create")}
           onEdit={(order) => handleOpenForm("order", "edit", order)}
-            onDelete={(id) => handleDelete("order", id)}
-            emptyMessage={emptyMessage}
-            formatCurrency={formatCurrency}
-          />
-        )}
+          onDelete={(id) => handleDelete("order", id)}
+          emptyMessage={emptyMessage}
+          formatCurrency={formatCurrency}
+        />
+      )}
       </main>
 
       <AdminFormDrawer

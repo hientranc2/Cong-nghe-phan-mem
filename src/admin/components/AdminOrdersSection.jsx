@@ -1,4 +1,4 @@
-function AdminOrdersSection({ orders, onCreate, onEdit, onDelete, emptyMessage, formatCurrency }) {
+function AdminOrdersSection({ orders, onEdit, onDelete, emptyMessage, formatCurrency }) {
   return (
     <section className="collection" id="orders">
       <div className="collection-heading">
@@ -6,9 +6,6 @@ function AdminOrdersSection({ orders, onCreate, onEdit, onDelete, emptyMessage, 
           <h2>Đơn hàng</h2>
           <p>Theo dõi các chuyến giao và giá trị đơn theo từng drone.</p>
         </div>
-        <button type="button" onClick={onCreate}>
-          Tạo đơn hàng
-        </button>
       </div>
       <div className="table-wrapper">
         <table>

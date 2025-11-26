@@ -1967,6 +1967,8 @@ function App() {
         orders={adminOrders}
         restaurants={restaurantList}
         customers={customerProfiles}
+        onUpdateOrder={syncUpdatedOrder}
+        onDeleteOrder={syncDeletedOrder}
         onCreateRestaurant={syncCreatedRestaurant}
         onUpdateRestaurant={syncUpdatedRestaurant}
         onDeleteRestaurant={syncDeletedRestaurant}
