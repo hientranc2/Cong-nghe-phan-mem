@@ -177,15 +177,60 @@ const normalizeDish = (dish, index, categoryLabelById = new Map()) => ({
   image: dish?.image || dish?.imageUrl || dish?.thumbnail || "",
 });
 
-const normalizeOrder = (order, index) => ({
-  id: order?.id || `DH-${String(index + 1000).padStart(4, "0")}`,
-  customer: order?.customer || "Khách lẻ",
-  items: Number(order?.items) || 0,
-  total: Number(order?.total) || 0,
-  status: order?.status || "Chờ xác nhận",
-  placedAt: order?.placedAt || new Date().toISOString(),
-  address: order?.address || "",
-});
+const resolveOrderItemCount = (order) => {
+  if (Array.isArray(order?.items)) {
+    return order.items.reduce(
+      (sum, item) => sum + (Number(item?.quantity) || 1),
+      0
+    );
+  }
+
+  return (
+    Number(order?.items) ||
+    Number(order?.itemsCount) ||
+    Number(order?.totalItems) ||
+    0
+  );
+};
+
+const resolveOrderTotal = (order) => {
+  const itemsTotal = Array.isArray(order?.items)
+    ? order.items.reduce((sum, item) => {
+        const price = Number(item?.price) || 0;
+        const quantity = Number(item?.quantity) || 1;
+        return sum + price * quantity;
+      }, 0)
+    : 0;
+
+  return (
+    Number(order?.total) ||
+    Number(order?.subtotal) ||
+    Number(order?.amount) ||
+    itemsTotal ||
+    0
+  );
+};
+
+const normalizeOrder = (order, index) => {
+  const placedAt =
+    order?.placedAt || order?.confirmedAt || order?.createdAt || new Date();
+  const customerName =
+    (typeof order?.customer === "string"
+      ? order.customer
+      : order?.customer?.name) ||
+    order?.customerName ||
+    "Khách lẻ";
+
+  return {
+    id: order?.id || `DH-${String(index + 1000).padStart(4, "0")}`,
+    customer: customerName,
+    items: resolveOrderItemCount(order),
+    total: resolveOrderTotal(order),
+    status: order?.status || "Chờ xác nhận",
+    placedAt: placedAt instanceof Date ? placedAt.toISOString() : placedAt,
+    address: order?.address || order?.customer?.address || order?.destination || "",
+  };
+};
 
 const parseDate = (value) => {
   if (!value) return null;
@@ -219,6 +264,7 @@ function RestaurantDashboard({
   texts = {},
   onBackHome = () => {},
   menuItems: remoteMenuItems = [],
+  orders: remoteOrders = [],
   categories = [],
   onCreateMenuItem,
   onUpdateMenuItem,
@@ -260,6 +306,10 @@ function RestaurantDashboard({
     return DEFAULT_MENU_ITEMS;
   });
   const [orders, setOrders] = useState(() => {
+    if (Array.isArray(remoteOrders) && remoteOrders.length > 0) {
+      return remoteOrders.map(normalizeOrder);
+    }
+
     if (Array.isArray(texts.orders) && texts.orders.length > 0) {
       return texts.orders.map(normalizeOrder);
     }
@@ -283,6 +333,14 @@ function RestaurantDashboard({
       )
     );
   }, [remoteMenuItems, categoryLabelById]);
+
+  useEffect(() => {
+    if (!Array.isArray(remoteOrders)) {
+      return;
+    }
+
+    setOrders(remoteOrders.map((order, index) => normalizeOrder(order, index)));
+  }, [remoteOrders]);
 
   const navigationTexts = {
     overview: texts.navigation?.overview ?? "Tổng quan",
