@@ -282,6 +282,8 @@ export default function App() {
           phone: user.phone,
           email: user.email,
           role: user.role ?? "customer",
+          restaurantId: user.restaurantId,
+          restaurantSlug: user.restaurantSlug,
         };
         setAuthenticatedUser(normalizedUser);
         setActiveScreen(resolveLandingScreen(normalizedUser.role));

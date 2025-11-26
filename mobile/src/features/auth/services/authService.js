@@ -53,6 +53,8 @@ export const authService = {
       ...existingUser,
       name: existingUser.name ?? existingUser.fullName,
       fullName: existingUser.fullName ?? existingUser.name,
+      restaurantId: existingUser.restaurantId ?? existingUser.restaurantSlug,
+      restaurantSlug: existingUser.restaurantSlug ?? existingUser.restaurantId,
     };
 
     return {

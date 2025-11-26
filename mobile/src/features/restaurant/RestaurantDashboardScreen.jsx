@@ -35,11 +35,22 @@ const normalizeMenu = (items = []) =>
     price: Number(item?.price) || 0,
     status: String(item?.status || "available").toLowerCase(),
     tag: item?.tag || item?.badge || item?.category || "",
+    restaurantId: item?.restaurantId ?? null,
+    restaurantSlug: item?.restaurantSlug ?? null,
   }));
+
+const normalizeRestaurant = (restaurant) => ({
+  ...restaurant,
+  id: restaurant?.id,
+  name: restaurant?.name || restaurant?.title || "Nhà hàng FCO",
+  slug: restaurant?.slug,
+  menuItemIds: restaurant?.menuItemIds ?? [],
+});
 
 const RestaurantDashboardScreen = ({ user, onBack }) => {
   const [orders, setOrders] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
+  const [restaurants, setRestaurants] = useState([]);
   const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
@@ -47,15 +58,22 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
 
     const loadData = async () => {
       try {
-        const [orderResponse, menuResponse] = await Promise.all([
-          fetchCollection("orders").catch(() => []),
-          fetchCollection("menuItems").catch(() => []),
-        ]);
+        const [orderResponse, menuResponse, restaurantResponse] =
+          await Promise.all([
+            fetchCollection("orders").catch(() => []),
+            fetchCollection("menuItems").catch(() => []),
+            fetchCollection("restaurants").catch(() => []),
+          ]);
 
         if (!active) return;
 
         setOrders(normalizeOrders(Array.isArray(orderResponse) ? orderResponse : []));
         setMenuItems(normalizeMenu(Array.isArray(menuResponse) ? menuResponse : []));
+        setRestaurants(
+          Array.isArray(restaurantResponse)
+            ? restaurantResponse.map(normalizeRestaurant)
+            : []
+        );
       } catch (error) {
         console.warn("Không thể đồng bộ dữ liệu nhà hàng trên mobile", error);
       }
@@ -76,9 +94,42 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
     [orders]
   );
 
+  const currentRestaurant = useMemo(() => {
+    if (!restaurants.length) return null;
+
+    if (user?.restaurantId) {
+      const byId = restaurants.find((r) => r.id === user.restaurantId);
+      if (byId) return byId;
+    }
+
+    if (user?.restaurantSlug) {
+      const bySlug = restaurants.find((r) => r.slug === user.restaurantSlug);
+      if (bySlug) return bySlug;
+    }
+
+    return restaurants[0];
+  }, [restaurants, user?.restaurantId, user?.restaurantSlug]);
+
+  const restaurantMenu = useMemo(() => {
+    if (!currentRestaurant) return menuItems;
+
+    const allowedIds = new Set(currentRestaurant.menuItemIds || []);
+
+    return menuItems.filter((item) => {
+      if (
+        (item.restaurantId && item.restaurantId === currentRestaurant.id) ||
+        (item.restaurantSlug && item.restaurantSlug === currentRestaurant.slug)
+      ) {
+        return true;
+      }
+
+      return allowedIds.has(item.id);
+    });
+  }, [currentRestaurant, menuItems]);
+
   const availableDishes = useMemo(
-    () => menuItems.filter((item) => item.status !== "soldout"),
-    [menuItems]
+    () => restaurantMenu.filter((item) => item.status !== "soldout"),
+    [restaurantMenu]
   );
 
   const tabs = [
@@ -97,7 +148,9 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
 
         <View>
           <Text style={styles.heading}>Quản lý nhà hàng</Text>
-          <Text style={styles.subheading}>{user?.name || "Restaurant"}</Text>
+          <Text style={styles.subheading}>
+            {currentRestaurant?.name || user?.name || "Restaurant"}
+          </Text>
         </View>
       </View>
 
@@ -136,7 +189,9 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
           </View>
           <View style={styles.card}>
             <Text style={styles.cardLabel}>Đang tạm dừng</Text>
-            <Text style={styles.cardValue}>{menuItems.length - availableDishes.length}</Text>
+            <Text style={styles.cardValue}>
+              {Math.max(restaurantMenu.length - availableDishes.length, 0)}
+            </Text>
             <Text style={styles.cardHint}>Cần bật bán lại</Text>
           </View>
         </View>
@@ -173,10 +228,10 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
       {activeTab === "menu" && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Menu nổi bật</Text>
-          {menuItems.length === 0 ? (
+          {restaurantMenu.length === 0 ? (
             <Text style={styles.emptyText}>Chưa có món ăn.</Text>
           ) : (
-            menuItems.slice(0, 6).map((item) => (
+            restaurantMenu.slice(0, 6).map((item) => (
               <View key={item.id} style={styles.listItem}>
                 <View style={styles.listTextGroup}>
                   <Text style={styles.itemTitle}>{item.name}</Text>

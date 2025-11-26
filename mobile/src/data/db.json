@@ -820,7 +820,9 @@
       "name": "Nhà hàng FCO",
       "email": "restaurant@fco.vn",
       "password": "fco123",
-      "role": "restaurant"
+      "role": "restaurant",
+      "restaurantId": "fco-taco-hub",
+      "restaurantSlug": "taco-hub"
     }
   ],
   "orders": []
