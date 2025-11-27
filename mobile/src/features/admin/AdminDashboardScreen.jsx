@@ -60,6 +60,7 @@ const AdminDashboardScreen = ({ user, onBack }) => {
   const [users, setUsers] = useState([]);
   const [activeTab, setActiveTab] = useState("overview");
   const [editingOrderId, setEditingOrderId] = useState(null);
+  const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
   const [orderForm, setOrderForm] = useState({
     id: "",
     customer: "",
@@ -123,8 +124,17 @@ const AdminDashboardScreen = ({ user, onBack }) => {
 
   const revenue = useMemo(() => calculateRevenue(orders), [orders]);
 
+  const statusOptions = [
+    "Đang chuẩn bị",
+    "Đang giao",
+    "Hoàn tất",
+    "Tạm hoãn",
+    "Đang xử lý",
+  ];
+
   const handleEditOrder = (order) => {
     setEditingOrderId(order.id);
+    setIsStatusMenuOpen(false);
     setOrderForm({
       id: order.id,
       customer: order.customer ?? "",
@@ -143,6 +153,7 @@ const AdminDashboardScreen = ({ user, onBack }) => {
       status: "Đang xử lý",
       total: "",
     });
+    setIsStatusMenuOpen(false);
   };
 
   const handleSaveOrder = async () => {
@@ -172,6 +183,7 @@ const AdminDashboardScreen = ({ user, onBack }) => {
 
     resetOrderForm();
     refreshData();
+    setIsStatusMenuOpen(false);
   };
 
   const handleDeleteOrder = (orderId) => {
@@ -309,14 +321,40 @@ const AdminDashboardScreen = ({ user, onBack }) => {
               </View>
               <View style={styles.formField}>
                 <Text style={styles.formLabel}>Trạng thái</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Đang xử lý"
-                  value={orderForm.status}
-                  onChangeText={(text) =>
-                    setOrderForm((prev) => ({ ...prev, status: text }))
-                  }
-                />
+                <View>
+                  <TouchableOpacity
+                    style={[styles.input, styles.selectInput]}
+                    onPress={() => setIsStatusMenuOpen((prev) => !prev)}
+                  >
+                    <Text style={styles.selectValue}>
+                      {orderForm.status || "Chọn trạng thái"}
+                    </Text>
+                    <Text style={styles.chevron}>⌄</Text>
+                  </TouchableOpacity>
+                  {isStatusMenuOpen && (
+                    <View style={styles.selectMenu}>
+                      {statusOptions.map((status) => (
+                        <TouchableOpacity
+                          key={status}
+                          style={styles.selectOption}
+                          onPress={() => {
+                            setOrderForm((prev) => ({ ...prev, status }));
+                            setIsStatusMenuOpen(false);
+                          }}
+                        >
+                          <Text
+                            style={[
+                              styles.optionLabel,
+                              orderForm.status === status && styles.selectedOption,
+                            ]}
+                          >
+                            {status}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                </View>
               </View>
               <View style={styles.formField}>
                 <Text style={styles.formLabel}>Tổng tiền (đ)</Text>
@@ -636,6 +674,47 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     color: "#7c2d12",
+  },
+  selectInput: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  selectValue: {
+    color: "#7c2d12",
+    fontWeight: "600",
+  },
+  chevron: {
+    color: "#a16207",
+    fontWeight: "700",
+    fontSize: 16,
+  },
+  selectMenu: {
+    marginTop: 6,
+    borderWidth: 1,
+    borderColor: "#fed7aa",
+    borderRadius: 10,
+    backgroundColor: "#ffffff",
+    overflow: "hidden",
+    shadowColor: "#f97316",
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+  selectOption: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#fff1e6",
+  },
+  optionLabel: {
+    color: "#7c2d12",
+    fontWeight: "600",
+  },
+  selectedOption: {
+    color: "#f97316",
   },
   formActions: {
     flexDirection: "row",
