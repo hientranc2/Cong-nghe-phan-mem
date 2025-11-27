@@ -60,11 +60,11 @@ const ProductDetailModal = ({ product, visible, onClose, onAddToCart }) => {
     onAddToCart?.(product, quantity);
   };
 
-  if (!product) {
-    return null;
-  }
-
   const galleryImages = useMemo(() => {
+    if (!product) {
+      return [];
+    }
+
     const providedGallery = Array.isArray(product.gallery)
       ? product.gallery.filter(Boolean)
       : [];
@@ -82,7 +82,7 @@ const ProductDetailModal = ({ product, visible, onClose, onAddToCart }) => {
     }
 
     return baseImages;
-  }, [product.gallery, product.image]);
+  }, [product]);
 
   const [activeSlide, setActiveSlide] = useState(0);
   const screenWidth = Dimensions.get("window").width;
@@ -99,6 +99,10 @@ const ProductDetailModal = ({ product, visible, onClose, onAddToCart }) => {
     const currentIndex = Math.round(contentOffset.x / slideWidth);
     setActiveSlide(Math.min(Math.max(currentIndex, 0), galleryImages.length - 1));
   };
+
+  if (!product) {
+    return null;
+  }
 
   return (
     <Modal
