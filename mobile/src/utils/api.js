@@ -144,3 +144,11 @@ export const updateMenuItem = async (id, payload) =>
   patchJSON("menuItems", id, payload);
 
 export const deleteMenuItem = async (id) => deleteJSON("menuItems", id);
+
+export const createRestaurant = async (payload) =>
+  postJSON("restaurants", payload);
+
+export const updateRestaurant = async (id, payload) =>
+  patchJSON("restaurants", id, payload);
+
+export const deleteRestaurant = async (id) => deleteJSON("restaurants", id);

@@ -9,7 +9,14 @@ import {
   View,
 } from "react-native";
 
-import { deleteOrder, fetchCollection, updateOrder } from "../../utils/api";
+import {
+  createRestaurant,
+  deleteOrder,
+  deleteRestaurant,
+  fetchCollection,
+  updateOrder,
+  updateRestaurant,
+} from "../../utils/api";
 
 const normalizeOrders = (orders = []) => {
   return orders.map((order, index) => {
@@ -54,6 +61,43 @@ const formatDate = (value) => {
   }).format(parsed);
 };
 
+const DEFAULT_RESTAURANT_IMAGE =
+  "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=1000&q=80";
+
+const normalizeRestaurantPayload = (restaurant = {}) => {
+  const safeName = restaurant?.name?.trim() || "Nhà hàng FCO";
+  const safeAddress = restaurant?.address?.trim() || restaurant?.city || "";
+  const normalizedId = restaurant?.id?.trim() || `nh-${Date.now()}`;
+  const normalizedSlug =
+    restaurant?.slug?.trim() ||
+    safeName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "") ||
+    normalizedId;
+
+  return {
+    id: normalizedId,
+    slug: normalizedSlug,
+    name: safeName,
+    badge: restaurant?.badge?.trim() || safeName,
+    address: safeAddress,
+    city: restaurant?.city?.trim() || safeAddress || "Đang cập nhật",
+    hotline: restaurant?.hotline?.trim() || "",
+    deliveryTime: restaurant?.deliveryTime?.trim() || "15-30 phút",
+    description:
+      restaurant?.description?.trim() ||
+      (safeAddress ? `Địa chỉ: ${safeAddress}` : "Đang cập nhật"),
+    img:
+      restaurant?.img ||
+      restaurant?.image ||
+      restaurant?.photo ||
+      restaurant?.imageUrl ||
+      DEFAULT_RESTAURANT_IMAGE,
+    tags: restaurant?.tags || [],
+  };
+};
+
 const AdminDashboardScreen = ({ user, onBack }) => {
   const [orders, setOrders] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
@@ -68,6 +112,16 @@ const AdminDashboardScreen = ({ user, onBack }) => {
     status: "Đang xử lý",
     total: "",
   });
+  const [restaurantFormMode, setRestaurantFormMode] = useState(null);
+  const [restaurantForm, setRestaurantForm] = useState({
+    id: "",
+    name: "",
+    address: "",
+    hotline: "",
+    city: "",
+    deliveryTime: "",
+  });
+  const [isSavingRestaurant, setIsSavingRestaurant] = useState(false);
 
   const refreshData = useCallback(() => {
     let active = true;
@@ -156,6 +210,18 @@ const AdminDashboardScreen = ({ user, onBack }) => {
     setIsStatusMenuOpen(false);
   };
 
+  const resetRestaurantForm = () => {
+    setRestaurantForm({
+      id: "",
+      name: "",
+      address: "",
+      hotline: "",
+      city: "",
+      deliveryTime: "",
+    });
+    setRestaurantFormMode(null);
+  };
+
   const handleSaveOrder = async () => {
     if (!orderForm.id) {
       Alert.alert("Chưa chọn đơn", "Vui lòng chọn đơn cần chỉnh sửa.");
@@ -202,6 +268,103 @@ const AdminDashboardScreen = ({ user, onBack }) => {
           setOrders((prev) => prev.filter((order) => order.id !== orderId));
           if (editingOrderId === orderId) {
             resetOrderForm();
+          }
+
+          refreshData();
+        },
+      },
+    ]);
+  };
+
+  const handleStartCreateRestaurant = () => {
+    setRestaurantFormMode("create");
+    setRestaurantForm({
+      id: "",
+      name: "",
+      address: "",
+      hotline: "",
+      city: "",
+      deliveryTime: "",
+    });
+  };
+
+  const handleEditRestaurant = (restaurant) => {
+    setRestaurantFormMode("edit");
+    setRestaurantForm({
+      id: restaurant?.id ?? "",
+      name: restaurant?.name ?? "",
+      address: restaurant?.address ?? restaurant?.city ?? "",
+      hotline: restaurant?.hotline ?? "",
+      city: restaurant?.city ?? "",
+      deliveryTime: restaurant?.deliveryTime ?? "",
+    });
+  };
+
+  const upsertRestaurantState = (payload) => {
+    const normalized = normalizeRestaurantPayload(payload);
+    setRestaurants((prev) => {
+      const exists = prev.some((entry) => entry.id === normalized.id);
+      return exists
+        ? prev.map((entry) =>
+            entry.id === normalized.id ? { ...entry, ...normalized } : entry
+          )
+        : [normalized, ...prev];
+    });
+  };
+
+  const handleSaveRestaurant = async () => {
+    if (!restaurantForm.name?.trim()) {
+      Alert.alert("Thiếu thông tin", "Vui lòng nhập tên nhà hàng.");
+      return;
+    }
+
+    const payload = normalizeRestaurantPayload(restaurantForm);
+    setIsSavingRestaurant(true);
+
+    try {
+      if (restaurantFormMode === "edit" && payload.id) {
+        const saved = await updateRestaurant(payload.id, payload).catch(() =>
+          null
+        );
+        upsertRestaurantState(saved ?? payload);
+      } else {
+        const tempId = payload.id || `nh-${Date.now()}`;
+        upsertRestaurantState({ ...payload, id: tempId });
+        const saved = await createRestaurant({ ...payload, id: tempId }).catch(
+          () => null
+        );
+        if (saved) {
+          upsertRestaurantState(saved);
+        }
+      }
+
+      resetRestaurantForm();
+      refreshData();
+    } catch (error) {
+      console.warn("Không thể lưu nhà hàng", error);
+    } finally {
+      setIsSavingRestaurant(false);
+    }
+  };
+
+  const handleDeleteRestaurant = (restaurantId) => {
+    Alert.alert("Xóa nhà hàng", "Bạn có chắc muốn xóa nhà hàng này?", [
+      { text: "Hủy", style: "cancel" },
+      {
+        text: "Xóa",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteRestaurant(restaurantId);
+          } catch (error) {
+            console.warn("Không thể xóa nhà hàng", error);
+          }
+
+          setRestaurants((prev) =>
+            prev.filter((restaurant) => restaurant.id !== restaurantId)
+          );
+          if (restaurantForm.id === restaurantId) {
+            resetRestaurantForm();
           }
 
           refreshData();
@@ -414,20 +577,152 @@ const AdminDashboardScreen = ({ user, onBack }) => {
 
       {activeTab === "restaurants" && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Nhà hàng</Text>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Nhà hàng</Text>
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={handleStartCreateRestaurant}
+            >
+              <Text style={styles.secondaryButtonLabel}>+ Thêm nhà hàng</Text>
+            </TouchableOpacity>
+          </View>
+
+          {restaurantFormMode && (
+            <View style={[styles.section, styles.formCard]}>
+              <Text style={styles.formTitle}>
+                {restaurantFormMode === "edit"
+                  ? `Chỉnh sửa ${restaurantForm.name || restaurantForm.id}`
+                  : "Tạo nhà hàng"}
+              </Text>
+
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Mã (tùy chọn)</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="nh-01"
+                  value={restaurantForm.id}
+                  onChangeText={(text) =>
+                    setRestaurantForm((prev) => ({ ...prev, id: text }))
+                  }
+                />
+              </View>
+
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Tên nhà hàng</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Tên hiển thị"
+                  value={restaurantForm.name}
+                  onChangeText={(text) =>
+                    setRestaurantForm((prev) => ({ ...prev, name: text }))
+                  }
+                />
+              </View>
+
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Địa chỉ</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Địa chỉ hoặc khu vực"
+                  value={restaurantForm.address}
+                  onChangeText={(text) =>
+                    setRestaurantForm((prev) => ({ ...prev, address: text }))
+                  }
+                />
+              </View>
+
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Hotline</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Số điện thoại liên hệ"
+                  keyboardType="phone-pad"
+                  value={restaurantForm.hotline}
+                  onChangeText={(text) =>
+                    setRestaurantForm((prev) => ({ ...prev, hotline: text }))
+                  }
+                />
+              </View>
+
+              <View style={styles.formRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.formLabel}>Khu vực</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="VD: Quận 1, TP.HCM"
+                    value={restaurantForm.city}
+                    onChangeText={(text) =>
+                      setRestaurantForm((prev) => ({ ...prev, city: text }))
+                    }
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.formLabel}>Thời gian giao</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="15-30 phút"
+                    value={restaurantForm.deliveryTime}
+                    onChangeText={(text) =>
+                      setRestaurantForm((prev) => ({ ...prev, deliveryTime: text }))
+                    }
+                  />
+                </View>
+              </View>
+
+              <View style={styles.formActions}>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.ghostButton]}
+                  onPress={resetRestaurantForm}
+                >
+                  <Text style={[styles.actionButtonLabel, styles.ghostLabel]}>
+                    Hủy
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={handleSaveRestaurant}
+                  disabled={isSavingRestaurant}
+                >
+                  <Text style={styles.actionButtonLabel}>
+                    {isSavingRestaurant ? "Đang lưu..." : "Lưu"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
           {restaurants.length === 0 ? (
             <Text style={styles.emptyText}>Chưa có dữ liệu nhà hàng.</Text>
           ) : (
-            restaurants.slice(0, 5).map((restaurant) => (
+            restaurants.map((restaurant) => (
               <View key={restaurant.id} style={styles.listItem}>
                 <View style={styles.listTextGroup}>
                   <Text style={styles.itemTitle}>{restaurant.name}</Text>
-                  <Text style={styles.itemSubtitle}>{restaurant.city}</Text>
-                </View>
-                <View style={[styles.tag, styles.secondaryTag]}>
-                  <Text style={[styles.tagLabel, styles.secondaryTagLabel]}>
-                    {restaurant.deliveryTime || "15-30 phút"}
+                  <Text style={styles.itemSubtitle}>
+                    {restaurant.address || restaurant.city}
                   </Text>
+                  {!!restaurant.hotline && (
+                    <Text style={styles.itemSubtitle}>{restaurant.hotline}</Text>
+                  )}
+                </View>
+                <View style={styles.listSideActions}>
+                  <View style={[styles.tag, styles.secondaryTag]}>
+                    <Text style={[styles.tagLabel, styles.secondaryTagLabel]}>
+                      {restaurant.deliveryTime || "15-30 phút"}
+                    </Text>
+                  </View>
+                  <View style={styles.inlineActions}>
+                    <TouchableOpacity
+                      onPress={() => handleEditRestaurant(restaurant)}
+                    >
+                      <Text style={styles.link}>Sửa</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleDeleteRestaurant(restaurant.id)}
+                    >
+                      <Text style={[styles.link, styles.dangerLink]}>Xóa</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             ))
@@ -580,11 +875,30 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     elevation: 2,
   },
+  sectionHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+    gap: 10,
+  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: "700",
     color: "#7c2d12",
     marginBottom: 12,
+  },
+  secondaryButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: "#fff1e6",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#fdba74",
+  },
+  secondaryButtonLabel: {
+    color: "#c2410c",
+    fontWeight: "700",
   },
   emptyText: {
     color: "#a16207",
@@ -611,6 +925,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#7c2d12",
     fontWeight: "700",
+  },
+  listSideActions: {
+    alignItems: "flex-end",
+    gap: 8,
   },
   tag: {
     alignSelf: "flex-start",
@@ -661,6 +979,10 @@ const styles = StyleSheet.create({
   },
   formField: {
     gap: 6,
+  },
+  formRow: {
+    flexDirection: "row",
+    gap: 12,
   },
   formLabel: {
     color: "#92400e",
