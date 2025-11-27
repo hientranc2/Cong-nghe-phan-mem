@@ -1,3 +1,4 @@
+
 {
   "categories": [
     {
@@ -362,8 +363,8 @@
       "name": "Gà Rán Cay Blaze",
       "description": "Đùi gà tẩm bột cay, chiên áp suất giữ thịt mọng nước.",
       "price": 78000,
-      "img": "https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=900&q=80",
-      "image": "https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=900&q=80",
+      "img": "mobile/src/assets/blaze.jpg",
+      "image": "mobile/src/assets/blaze.jpg",
       "calories": 640,
       "time": 12,
       "tag": "Spicy",
@@ -387,8 +388,8 @@
       "name": "Cánh Gà Mật Ong Bơ",
       "description": "Cánh gà chiên sốt mật ong bơ, rắc mè rang thơm.",
       "price": 72000,
-      "img": "https://images.unsplash.com/photo-1608038506297-1c351b117d38?auto=format&fit=crop&w=900&q=80",
-      "image": "https://images.unsplash.com/photo-1608038506297-1c351b117d38?auto=format&fit=crop&w=900&q=80",
+       "img": "mobile/src/assets/canhgabo.jpg",
+      "image": "mobile/src/assets/canhgabo.jpg",
       "calories": 510,
       "time": 10,
       "tag": "Sweet & Spicy",
@@ -412,8 +413,8 @@
       "name": "Taco Fiesta Mexico",
       "description": "Vỏ taco ngô nướng, nhân bò cay, salsa cà chua và bắp nướng.",
       "price": 92000,
-      "img": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=900&q=80",
-      "image": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&w=900&q=80",
+       "img": "mobile/src/assets/tacos.jpg",
+      "image": "mobile/src/assets/tacos.jpg",
       "calories": 480,
       "time": 13,
       "tag": "Fusion",
@@ -687,8 +688,8 @@
       "name": "Gà Popcorn Phô Mai",
       "description": "Gà popcorn chiên giòn phủ phô mai cheddar.",
       "price": 49000,
-      "img": "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=900&q=80",
-      "image": "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=900&q=80",
+      "img": "src/assets/gavien.jpg",
+      "image": "src/assets/gavien.jpg",
       "calories": 430,
       "time": 9,
       "tag": "Cheesy",
