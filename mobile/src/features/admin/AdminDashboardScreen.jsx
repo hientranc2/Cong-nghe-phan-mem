@@ -11,11 +11,14 @@ import {
 
 import {
   createRestaurant,
+  createUser,
   deleteOrder,
   deleteRestaurant,
+  deleteUser,
   fetchCollection,
   updateOrder,
   updateRestaurant,
+  updateUser,
 } from "../../utils/api";
 
 const normalizeOrders = (orders = []) => {
@@ -98,6 +101,24 @@ const normalizeRestaurantPayload = (restaurant = {}) => {
   };
 };
 
+const normalizeCustomerPayload = (customer = {}) => {
+  const normalizedId = customer?.id?.trim() || `kh-${Date.now()}`;
+  const safeName = customer?.fullName?.trim() || customer?.name?.trim();
+  const today = new Date().toISOString().slice(0, 10);
+
+  return {
+    id: normalizedId,
+    name: safeName || "Khách hàng",
+    fullName: safeName || "Khách hàng",
+    email: customer?.email?.trim() || "dangcapnhat@fco.vn",
+    phone: customer?.phone?.trim() || "",
+    tier: customer?.tier?.trim() || "Tiêu chuẩn",
+    active: customer?.active ?? true,
+    joinedAt: customer?.joinedAt || today,
+    role: "customer",
+  };
+};
+
 const AdminDashboardScreen = ({ user, onBack }) => {
   const [orders, setOrders] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
@@ -122,6 +143,17 @@ const AdminDashboardScreen = ({ user, onBack }) => {
     deliveryTime: "",
   });
   const [isSavingRestaurant, setIsSavingRestaurant] = useState(false);
+  const [customerFormMode, setCustomerFormMode] = useState(null);
+  const [customerForm, setCustomerForm] = useState({
+    id: "",
+    name: "",
+    email: "",
+    phone: "",
+    tier: "Tiêu chuẩn",
+    active: true,
+    joinedAt: "",
+  });
+  const [isSavingCustomer, setIsSavingCustomer] = useState(false);
 
   const refreshData = useCallback(() => {
     let active = true;
@@ -220,6 +252,19 @@ const AdminDashboardScreen = ({ user, onBack }) => {
       deliveryTime: "",
     });
     setRestaurantFormMode(null);
+  };
+
+  const resetCustomerForm = () => {
+    setCustomerForm({
+      id: "",
+      name: "",
+      email: "",
+      phone: "",
+      tier: "Tiêu chuẩn",
+      active: true,
+      joinedAt: "",
+    });
+    setCustomerFormMode(null);
   };
 
   const handleSaveOrder = async () => {
@@ -365,6 +410,106 @@ const AdminDashboardScreen = ({ user, onBack }) => {
           );
           if (restaurantForm.id === restaurantId) {
             resetRestaurantForm();
+          }
+
+          refreshData();
+        },
+      },
+    ]);
+  };
+
+  const handleStartCreateCustomer = () => {
+    setCustomerFormMode("create");
+    setCustomerForm({
+      id: "",
+      name: "",
+      email: "",
+      phone: "",
+      tier: "Tiêu chuẩn",
+      active: true,
+      joinedAt: "",
+    });
+  };
+
+  const handleEditCustomer = (customer) => {
+    setCustomerFormMode("edit");
+    setCustomerForm({
+      id: customer?.id ?? "",
+      name: customer?.name ?? customer?.fullName ?? "",
+      email: customer?.email ?? "",
+      phone: customer?.phone ?? "",
+      tier: customer?.tier ?? "Tiêu chuẩn",
+      active: customer?.active ?? true,
+      joinedAt: customer?.joinedAt ?? "",
+    });
+  };
+
+  const upsertCustomerState = (payload) => {
+    const normalized = normalizeCustomerPayload(payload);
+    setUsers((prev) => {
+      const exists = prev.some((entry) => entry.id === normalized.id);
+      return exists
+        ? prev.map((entry) =>
+            entry.id === normalized.id ? { ...entry, ...normalized } : entry
+          )
+        : [...prev, normalized];
+    });
+  };
+
+  const handleSaveCustomer = async () => {
+    if (!customerForm.name?.trim()) {
+      Alert.alert("Thiếu thông tin", "Vui lòng nhập tên khách hàng.");
+      return;
+    }
+
+    if (!customerForm.email?.trim()) {
+      Alert.alert("Thiếu thông tin", "Vui lòng nhập email liên hệ.");
+      return;
+    }
+
+    const payload = normalizeCustomerPayload(customerForm);
+    setIsSavingCustomer(true);
+
+    try {
+      if (customerFormMode === "edit" && payload.id) {
+        const saved = await updateUser(payload.id, payload).catch(() => null);
+        upsertCustomerState(saved ?? payload);
+      } else {
+        const tempId = payload.id || `kh-${Date.now()}`;
+        upsertCustomerState({ ...payload, id: tempId });
+        const saved = await createUser({ ...payload, id: tempId }).catch(() =>
+          null
+        );
+        if (saved) {
+          upsertCustomerState(saved);
+        }
+      }
+
+      resetCustomerForm();
+      refreshData();
+    } catch (error) {
+      console.warn("Không thể lưu khách hàng", error);
+    } finally {
+      setIsSavingCustomer(false);
+    }
+  };
+
+  const handleDeleteCustomer = (customerId) => {
+    Alert.alert("Xóa khách hàng", "Bạn có chắc muốn xóa khách này?", [
+      { text: "Hủy", style: "cancel" },
+      {
+        text: "Xóa",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteUser(customerId);
+          } catch (error) {
+            console.warn("Không thể xóa khách hàng", error);
+          }
+
+          setUsers((prev) => prev.filter((user) => user.id !== customerId));
+          if (customerForm.id === customerId) {
+            resetCustomerForm();
           }
 
           refreshData();
@@ -732,23 +877,188 @@ const AdminDashboardScreen = ({ user, onBack }) => {
 
       {activeTab === "customers" && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Khách hàng mới</Text>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Khách hàng</Text>
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={handleStartCreateCustomer}
+            >
+              <Text style={styles.secondaryButtonLabel}>+ Thêm khách</Text>
+            </TouchableOpacity>
+          </View>
+
+          {customerFormMode && (
+            <View style={[styles.section, styles.formCard]}>
+              <Text style={styles.formTitle}>
+                {customerFormMode === "edit"
+                  ? `Chỉnh sửa ${customerForm.name || customerForm.id}`
+                  : "Tạo khách hàng"}
+              </Text>
+
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Mã (tùy chọn)</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="kh-01"
+                  value={customerForm.id}
+                  onChangeText={(text) =>
+                    setCustomerForm((prev) => ({ ...prev, id: text }))
+                  }
+                />
+              </View>
+
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Họ tên</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Tên khách hàng"
+                  value={customerForm.name}
+                  onChangeText={(text) =>
+                    setCustomerForm((prev) => ({ ...prev, name: text }))
+                  }
+                />
+              </View>
+
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Email</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="example@gmail.com"
+                  keyboardType="email-address"
+                  value={customerForm.email}
+                  onChangeText={(text) =>
+                    setCustomerForm((prev) => ({ ...prev, email: text }))
+                  }
+                />
+              </View>
+
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Số điện thoại</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="0909..."
+                  keyboardType="phone-pad"
+                  value={customerForm.phone}
+                  onChangeText={(text) =>
+                    setCustomerForm((prev) => ({ ...prev, phone: text }))
+                  }
+                />
+              </View>
+
+              <View style={styles.formRow}>
+                <View style={[styles.formField, { flex: 1 }]}>
+                  <Text style={styles.formLabel}>Hạng</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Tiêu chuẩn"
+                    value={customerForm.tier}
+                    onChangeText={(text) =>
+                      setCustomerForm((prev) => ({ ...prev, tier: text }))
+                    }
+                  />
+                </View>
+                <View style={[styles.formField, { flex: 1 }]}>
+                  <Text style={styles.formLabel}>Ngày tham gia</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="YYYY-MM-DD"
+                    value={customerForm.joinedAt}
+                    onChangeText={(text) =>
+                      setCustomerForm((prev) => ({ ...prev, joinedAt: text }))
+                    }
+                  />
+                </View>
+              </View>
+
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Trạng thái</Text>
+                <View style={styles.inlineActions}>
+                  <TouchableOpacity
+                    style={styles.secondaryButton}
+                    onPress={() =>
+                      setCustomerForm((prev) => ({ ...prev, active: true }))
+                    }
+                  >
+                    <Text
+                      style={[
+                        styles.secondaryButtonLabel,
+                        customerForm.active && { color: "#15803d" },
+                      ]}
+                    >
+                      Nhận ưu đãi
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.secondaryButton}
+                    onPress={() =>
+                      setCustomerForm((prev) => ({ ...prev, active: false }))
+                    }
+                  >
+                    <Text
+                      style={[
+                        styles.secondaryButtonLabel,
+                        !customerForm.active && { color: "#dc2626" },
+                      ]}
+                    >
+                      Tạm ngưng
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.formActions}>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.ghostButton]}
+                  onPress={resetCustomerForm}
+                  disabled={isSavingCustomer}
+                >
+                  <Text style={[styles.actionButtonLabel, styles.ghostLabel]}>
+                    Hủy
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={handleSaveCustomer}
+                  disabled={isSavingCustomer}
+                >
+                  <Text style={styles.actionButtonLabel}>
+                    {isSavingCustomer ? "Đang lưu..." : "Lưu"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
           {customerAccounts.length === 0 ? (
             <Text style={styles.emptyText}>Chưa có khách hàng nào.</Text>
           ) : (
-            customerAccounts.slice(0, 6).map((customer) => (
+            customerAccounts.map((customer) => (
               <View key={customer.id} style={styles.listItem}>
                 <View style={styles.listTextGroup}>
                   <Text style={styles.itemTitle}>{customer.name}</Text>
                   <Text style={styles.itemSubtitle}>{customer.email}</Text>
                   <Text style={styles.itemSubtitle}>{customer.phone}</Text>
                 </View>
-                <View style={[styles.tag, styles.secondaryTag]}>
-                  <Text style={[styles.tagLabel, styles.secondaryTagLabel]}>
-                    {customer.tier}
+                <View style={styles.listSideActions}>
+                  <View style={[styles.tag, styles.secondaryTag]}>
+                    <Text style={[styles.tagLabel, styles.secondaryTagLabel]}>
+                      {customer.tier}
+                    </Text>
+                  </View>
+                  <Text style={styles.itemValue}>
+                    {formatDate(customer.joinedAt)}
                   </Text>
+                  <View style={styles.inlineActions}>
+                    <TouchableOpacity onPress={() => handleEditCustomer(customer)}>
+                      <Text style={styles.link}>Sửa</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleDeleteCustomer(customer.id)}
+                    >
+                      <Text style={[styles.link, styles.dangerLink]}>Xóa</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-                <Text style={styles.itemValue}>{formatDate(customer.joinedAt)}</Text>
               </View>
             ))
           )}
