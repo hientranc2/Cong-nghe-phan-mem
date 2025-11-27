@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
+  Dimensions,
 } from "react-native";
 
 import { resolveImageSource } from "../../utils/image";
@@ -63,6 +64,42 @@ const ProductDetailModal = ({ product, visible, onClose, onAddToCart }) => {
     return null;
   }
 
+  const galleryImages = useMemo(() => {
+    const providedGallery = Array.isArray(product.gallery)
+      ? product.gallery.filter(Boolean)
+      : [];
+
+    const baseImages = providedGallery.length
+      ? providedGallery
+      : [product.image].filter(Boolean);
+
+    if (baseImages.length === 0) {
+      return [];
+    }
+
+    if (baseImages.length === 1) {
+      return [...baseImages, baseImages[0]];
+    }
+
+    return baseImages;
+  }, [product.gallery, product.image]);
+
+  const [activeSlide, setActiveSlide] = useState(0);
+  const screenWidth = Dimensions.get("window").width;
+  const slideWidth = screenWidth - 40;
+
+  useEffect(() => {
+    if (visible) {
+      setActiveSlide(0);
+    }
+  }, [product?.id, visible]);
+
+  const handleMomentumEnd = (event) => {
+    const { contentOffset } = event.nativeEvent;
+    const currentIndex = Math.round(contentOffset.x / slideWidth);
+    setActiveSlide(Math.min(Math.max(currentIndex, 0), galleryImages.length - 1));
+  };
+
   return (
     <Modal
       animationType="slide"
@@ -85,15 +122,39 @@ const ProductDetailModal = ({ product, visible, onClose, onAddToCart }) => {
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.heroWrapper}>
-              <View style={styles.heroImageContainer}>
-                <Image
-                  source={resolveImageSource(product.image)}
-                  style={styles.heroImage}
-                />
-              </View>
+              <ScrollView
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onMomentumScrollEnd={handleMomentumEnd}
+              >
+                {galleryImages.map((imageSource, index) => (
+                  <View
+                    key={`${product.id}-gallery-${index}`}
+                    style={[styles.heroImageContainer, { width: slideWidth }]}
+                  >
+                    <Image
+                      source={resolveImageSource(imageSource)}
+                      style={styles.heroImage}
+                    />
+                  </View>
+                ))}
+              </ScrollView>
+
               {product.tag ? (
                 <View style={styles.tagChip}>
                   <Text style={styles.tagText}>{product.tag}</Text>
+                </View>
+              ) : null}
+
+              {galleryImages.length > 1 ? (
+                <View style={styles.paginationDots}>
+                  {galleryImages.map((_, index) => (
+                    <View
+                      key={`${product.id}-dot-${index}`}
+                      style={[styles.dot, index === activeSlide && styles.dotActive]}
+                    />
+                  ))}
                 </View>
               ) : null}
             </View>
@@ -206,7 +267,7 @@ const styles = StyleSheet.create({
   },
   heroImage: {
     width: "100%",
-     height: "100%",
+    height: "100%",
     resizeMode: "contain",
   },
   tagChip: {
@@ -217,6 +278,30 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingHorizontal: 12,
     paddingVertical: 6,
+  },
+  paginationDots: {
+    position: "absolute",
+    bottom: 14,
+    alignSelf: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "rgba(0,0,0,0.18)",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#e5e5ea",
+    opacity: 0.6,
+  },
+  dotActive: {
+    width: 14,
+    backgroundColor: "#fff",
+    opacity: 1,
   },
   tagText: {
     color: "#fff",

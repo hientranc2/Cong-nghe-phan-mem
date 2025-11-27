@@ -22,10 +22,31 @@ function ProductDetailPage({
   const timeLabel = texts.timeLabel ?? "Thời gian chuẩn bị";
   const categoryLabel = texts.categoryLabel ?? "Danh mục";
   const viewCategoryLabel = texts.viewCategory ?? "Xem danh mục";
+  const galleryLabel = texts.galleryLabel ?? "Thư viện hình ảnh";
   const addToCartLabel =
     texts.addToCart ?? menuLabels.addToCart ?? "Thêm vào giỏ hàng";
   const caloriesUnit = menuLabels.caloriesUnit ?? "kcal";
   const prepTimeSuffix = menuLabels.prepTimeSuffix ?? "phút chế biến";
+
+  const fallbackGalleryByCategory = {
+    "cat-pizza":
+      "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?auto=format&fit=crop&w=1200&q=80",
+    "cat-burger":
+      "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=1200&q=80",
+    "cat-fried":
+      "https://images.unsplash.com/photo-1625944525833-6343a7b33c0b?auto=format&fit=crop&w=1200&q=80",
+    "cat-drink":
+      "https://images.unsplash.com/photo-1497534446932-c925b458314e?auto=format&fit=crop&w=1200&q=80",
+  };
+
+  const galleryImages = item.gallery?.length
+    ? item.gallery
+    : [item.img, fallbackGalleryByCategory[category?.id]].filter(Boolean);
+
+  const normalizedGallery =
+    galleryImages.length >= 2
+      ? galleryImages
+      : [...galleryImages, galleryImages[0]];
 
   const handleCategoryClick = () => {
     if (category?.slug) {
@@ -53,7 +74,17 @@ function ProductDetailPage({
 
       <section className="product-hero">
         <div className="product-hero__media">
-          <img src={item.img} alt={item.name} />
+          <div className="product-gallery" role="list" aria-label={galleryLabel}>
+            {normalizedGallery.map((src, index) => (
+              <div className="product-gallery__item" role="listitem" key={src + index}>
+                <img
+                  src={src}
+                  alt={`${item.name} - ${galleryLabel.toLowerCase()} ${index + 1}`}
+                  loading="lazy"
+                />
+              </div>
+            ))}
+          </div>
           {item.tag && <span className="menu-card__tag">{item.tag}</span>}
         </div>
         <div className="product-hero__content">
