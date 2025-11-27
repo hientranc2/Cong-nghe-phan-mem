@@ -1,13 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 
-import { fetchCollection } from "../../utils/api";
+import { deleteOrder, fetchCollection, updateOrder } from "../../utils/api";
 
 const normalizeOrders = (orders = []) => {
   return orders.map((order, index) => {
@@ -57,6 +59,14 @@ const AdminDashboardScreen = ({ user, onBack }) => {
   const [restaurants, setRestaurants] = useState([]);
   const [users, setUsers] = useState([]);
   const [activeTab, setActiveTab] = useState("overview");
+  const [editingOrderId, setEditingOrderId] = useState(null);
+  const [orderForm, setOrderForm] = useState({
+    id: "",
+    customer: "",
+    restaurant: "",
+    status: "Đang xử lý",
+    total: "",
+  });
 
   const refreshData = useCallback(() => {
     let active = true;
@@ -72,7 +82,9 @@ const AdminDashboardScreen = ({ user, onBack }) => {
 
         if (!active) return;
 
-        setOrders(normalizeOrders(Array.isArray(orderResponse) ? orderResponse : []));
+        setOrders(
+          normalizeOrders(Array.isArray(orderResponse) ? orderResponse : [])
+        );
         setRestaurants(
           Array.isArray(restaurantResponse) ? restaurantResponse : []
         );
@@ -110,6 +122,81 @@ const AdminDashboardScreen = ({ user, onBack }) => {
   );
 
   const revenue = useMemo(() => calculateRevenue(orders), [orders]);
+
+  const handleEditOrder = (order) => {
+    setEditingOrderId(order.id);
+    setOrderForm({
+      id: order.id,
+      customer: order.customer ?? "",
+      restaurant: order.restaurant ?? "",
+      status: order.status ?? "Đang xử lý",
+      total: order.total ? String(order.total) : "",
+    });
+  };
+
+  const resetOrderForm = () => {
+    setEditingOrderId(null);
+    setOrderForm({
+      id: "",
+      customer: "",
+      restaurant: "",
+      status: "Đang xử lý",
+      total: "",
+    });
+  };
+
+  const handleSaveOrder = async () => {
+    if (!orderForm.id) {
+      Alert.alert("Chưa chọn đơn", "Vui lòng chọn đơn cần chỉnh sửa.");
+      return;
+    }
+
+    const payload = {
+      ...orderForm,
+      total: Math.max(Number(orderForm.total) || 0, 0),
+    };
+
+    try {
+      await updateOrder(orderForm.id, payload);
+    } catch (error) {
+      console.warn("Không thể cập nhật đơn hàng", error);
+    }
+
+    setOrders((prev) =>
+      prev.map((order) =>
+        order.id === payload.id
+          ? { ...order, ...payload, total: payload.total }
+          : order
+      )
+    );
+
+    resetOrderForm();
+    refreshData();
+  };
+
+  const handleDeleteOrder = (orderId) => {
+    Alert.alert("Xóa đơn hàng", "Bạn có chắc muốn xóa đơn này?", [
+      { text: "Hủy", style: "cancel" },
+      {
+        text: "Xóa",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteOrder(orderId);
+          } catch (error) {
+            console.warn("Không thể xóa đơn hàng", error);
+          }
+
+          setOrders((prev) => prev.filter((order) => order.id !== orderId));
+          if (editingOrderId === orderId) {
+            resetOrderForm();
+          }
+
+          refreshData();
+        },
+      },
+    ]);
+  };
 
   const customerAccounts = useMemo(
     () =>
@@ -195,6 +282,67 @@ const AdminDashboardScreen = ({ user, onBack }) => {
       {activeTab === "orders" && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Đơn hàng mới nhất</Text>
+          {editingOrderId && (
+            <View style={[styles.section, styles.formCard]}>
+              <Text style={styles.formTitle}>Chỉnh sửa đơn {orderForm.id}</Text>
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Khách hàng</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Tên khách"
+                  value={orderForm.customer}
+                  onChangeText={(text) =>
+                    setOrderForm((prev) => ({ ...prev, customer: text }))
+                  }
+                />
+              </View>
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Nhà hàng</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Nhà hàng"
+                  value={orderForm.restaurant}
+                  onChangeText={(text) =>
+                    setOrderForm((prev) => ({ ...prev, restaurant: text }))
+                  }
+                />
+              </View>
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Trạng thái</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Đang xử lý"
+                  value={orderForm.status}
+                  onChangeText={(text) =>
+                    setOrderForm((prev) => ({ ...prev, status: text }))
+                  }
+                />
+              </View>
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Tổng tiền (đ)</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="69000"
+                  keyboardType="numeric"
+                  value={orderForm.total}
+                  onChangeText={(text) =>
+                    setOrderForm((prev) => ({ ...prev, total: text }))
+                  }
+                />
+              </View>
+              <View style={styles.formActions}>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.ghostButton]}
+                  onPress={resetOrderForm}
+                >
+                  <Text style={[styles.actionButtonLabel, styles.ghostLabel]}>Huỷ</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionButton} onPress={handleSaveOrder}>
+                  <Text style={styles.actionButtonLabel}>Lưu thay đổi</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
           {orders.length === 0 ? (
             <Text style={styles.emptyText}>Chưa có đơn hàng.</Text>
           ) : (
@@ -212,6 +360,14 @@ const AdminDashboardScreen = ({ user, onBack }) => {
                 <Text style={styles.itemValue}>
                   {new Intl.NumberFormat("vi-VN").format(order.total)} đ
                 </Text>
+                <View style={styles.inlineActions}>
+                  <TouchableOpacity onPress={() => handleEditOrder(order)}>
+                    <Text style={styles.link}>Sửa</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleDeleteOrder(order.id)}>
+                    <Text style={[styles.link, styles.dangerLink]}>Xóa</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             ))
           )}
@@ -436,6 +592,72 @@ const styles = StyleSheet.create({
     borderColor: "#fdba74",
   },
   secondaryTagLabel: {
+    color: "#c2410c",
+  },
+  inlineActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+    marginTop: 6,
+  },
+  link: {
+    color: "#f97316",
+    fontWeight: "700",
+  },
+  dangerLink: {
+    color: "#dc2626",
+  },
+  formCard: {
+    backgroundColor: "#fff7ed",
+    borderWidth: 1,
+    borderColor: "#fed7aa",
+    borderRadius: 14,
+    padding: 14,
+    gap: 12,
+    marginBottom: 12,
+  },
+  formTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#7c2d12",
+  },
+  formField: {
+    gap: 6,
+  },
+  formLabel: {
+    color: "#92400e",
+    fontWeight: "600",
+  },
+  input: {
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#fed7aa",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: "#7c2d12",
+  },
+  formActions: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  actionButton: {
+    flex: 1,
+    paddingVertical: 12,
+    backgroundColor: "#f97316",
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  ghostButton: {
+    backgroundColor: "#fff1e6",
+    borderWidth: 1,
+    borderColor: "#fdba74",
+  },
+  actionButtonLabel: {
+    color: "#ffffff",
+    fontWeight: "700",
+  },
+  ghostLabel: {
     color: "#c2410c",
   },
 });
