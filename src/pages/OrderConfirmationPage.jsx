@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import MapPreview from "../components/MapPreview.jsx";
 import "./OrderConfirmationPage.css";
 
 function OrderConfirmationPage({
@@ -136,6 +137,7 @@ function OrderConfirmationPage({
       : typeof activeOrder.progress === "number"
         ? activeOrder.progress
         : 0.32;
+  const mapAddress = receipt?.customer?.address ?? formState.address;
   const customerInfo = receipt?.customer ?? null;
   const safeCustomer = customerInfo
     ? {
@@ -161,48 +163,50 @@ function OrderConfirmationPage({
       </header>
 
       <div className="order-confirmation-layout">
-        <section className="order-confirmation-details" aria-labelledby="order-details-heading">
-          <h3 id="order-details-heading">{summaryTitle}</h3>
-          <ul className="order-items">
-            {items.map((item) => (
-              <li key={item.id}>
-                <div className="order-item__info">
-                  <span className="order-item__name">{item.name}</span>
-                  <span className="order-item__quantity">x{item.quantity}</span>
-                </div>
-                <span className="order-item__total">
-                  {formatPrice(item.price * item.quantity)}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <dl className="order-summary">
-            <div className="order-summary__row">
-              <dt>{subtotalLabel}</dt>
-              <dd>{formatPrice(subtotal)}</dd>
-            </div>
-            <div className="order-summary__row">
-              <dt>{shippingLabel}</dt>
-              <dd>{shipping > 0 ? formatPrice(shipping) : "Miễn phí"}</dd>
-            </div>
-            <div className="order-summary__row order-summary__row--total">
-              <dt>{totalLabel}</dt>
-              <dd>{formatPrice(total)}</dd>
-            </div>
-          </dl>
-          {note && (
-            <div className="order-extra">
-              <strong>{noteLabel}:</strong>
-              <p>{note}</p>
-            </div>
-          )}
-          {deliveryDescription && (
-            <div className="order-extra">
-              <strong>{deliveryLabel}:</strong>
-              <p>{deliveryDescription}</p>
-            </div>
-          )}
-        </section>
+        <div className="order-confirmation-column">
+          <section className="order-confirmation-details" aria-labelledby="order-details-heading">
+            <h3 id="order-details-heading">{summaryTitle}</h3>
+            <ul className="order-items">
+              {items.map((item) => (
+                <li key={item.id}>
+                  <div className="order-item__info">
+                    <span className="order-item__name">{item.name}</span>
+                    <span className="order-item__quantity">x{item.quantity}</span>
+                  </div>
+                  <span className="order-item__total">
+                    {formatPrice(item.price * item.quantity)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <dl className="order-summary">
+              <div className="order-summary__row">
+                <dt>{subtotalLabel}</dt>
+                <dd>{formatPrice(subtotal)}</dd>
+              </div>
+              <div className="order-summary__row">
+                <dt>{shippingLabel}</dt>
+                <dd>{shipping > 0 ? formatPrice(shipping) : "Miễn phí"}</dd>
+              </div>
+              <div className="order-summary__row order-summary__row--total">
+                <dt>{totalLabel}</dt>
+                <dd>{formatPrice(total)}</dd>
+              </div>
+            </dl>
+            {note && (
+              <div className="order-extra">
+                <strong>{noteLabel}:</strong>
+                <p>{note}</p>
+              </div>
+            )}
+            {deliveryDescription && (
+              <div className="order-extra">
+                <strong>{deliveryLabel}:</strong>
+                <p>{deliveryDescription}</p>
+              </div>
+            )}
+          </section>
+        </div>
 
         {receipt?.customer ? (
           <section className="order-confirmation-result" aria-live="polite">
@@ -346,6 +350,10 @@ function OrderConfirmationPage({
           </section>
         )}
       </div>
+
+      <section className="order-map-section" aria-label="Bản đồ giao hàng">
+        <MapPreview address={mapAddress} />
+      </section>
     </main>
   );
 }
