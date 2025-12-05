@@ -1,7 +1,9 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "./SimpleMap.css";
 
 const TILE_BASE_URL = "https://tile.openstreetmap.org";
+const GRID_SIZE = 3;
+const DEFAULT_CENTER = { lat: 10.776389, lng: 106.701111 };
 
 const tile2lon = (x, z) => (x / 2 ** z) * 360 - 180;
 const tile2lat = (y, z) => {
@@ -37,16 +39,23 @@ function SimpleMap({
   loading = false,
   className = "",
 }) {
-  const safeCenter = center ?? { lat: 10.776389, lng: 106.701111 };
+  const mapRef = useRef(null);
+  const safeCenter = center ?? DEFAULT_CENTER;
+  const [viewCenter, setViewCenter] = useState(safeCenter);
+  const [dragState, setDragState] = useState({ active: false });
+
+  useEffect(() => {
+    setViewCenter(safeCenter);
+  }, [safeCenter.lat, safeCenter.lng]);
+
   const projectedCenter = useMemo(
-    () => toTilePoint(safeCenter.lat, safeCenter.lng, zoom),
-    [safeCenter, zoom],
+    () => toTilePoint(viewCenter.lat, viewCenter.lng, zoom),
+    [viewCenter, zoom],
   );
-  const gridSize = 3;
   const startX = Math.floor(projectedCenter.x) - 1;
   const startY = Math.floor(projectedCenter.y) - 1;
-  const endX = startX + gridSize;
-  const endY = startY + gridSize;
+  const endX = startX + GRID_SIZE;
+  const endY = startY + GRID_SIZE;
 
   const bounds = useMemo(
     () => ({
@@ -90,8 +99,58 @@ function SimpleMap({
     .map((marker) => ({ ...marker, position: projectToPercent(marker) }))
     .filter((marker) => marker.position);
 
+  const handlePointerDown = (event) => {
+    if (!mapRef.current) return;
+
+    mapRef.current.setPointerCapture?.(event.pointerId);
+    setDragState({
+      active: true,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      startProjected: projectedCenter,
+    });
+  };
+
+  const handlePointerMove = (event) => {
+    if (!dragState.active || event.pointerId !== dragState.pointerId || !mapRef.current) return;
+
+    const bounds = mapRef.current.getBoundingClientRect();
+    const tileWidth = bounds.width / GRID_SIZE;
+    const tileHeight = bounds.height / GRID_SIZE;
+
+    const deltaTilesX = (event.clientX - dragState.startX) / tileWidth;
+    const deltaTilesY = (event.clientY - dragState.startY) / tileHeight;
+
+    const nextX = dragState.startProjected.x - deltaTilesX;
+    const nextY = clampTileY(dragState.startProjected.y - deltaTilesY, zoom);
+
+    setViewCenter({
+      lat: tile2lat(nextY, zoom),
+      lng: tile2lon(wrapTile(Math.round(nextX * 1000) / 1000, zoom), zoom),
+    });
+  };
+
+  const handlePointerEnd = (event) => {
+    if (dragState.pointerId && mapRef.current?.hasPointerCapture?.(dragState.pointerId)) {
+      mapRef.current.releasePointerCapture(dragState.pointerId);
+    }
+    if (dragState.active && (!event.pointerId || event.pointerId === dragState.pointerId)) {
+      setDragState({ active: false });
+    }
+  };
+
   return (
-    <div className={`simple-map ${className}`.trim()} style={{ minHeight: height }}>
+    <div
+      ref={mapRef}
+      className={`simple-map ${dragState.active ? "simple-map--dragging" : ""} ${className}`.trim()}
+      style={{ minHeight: height }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerEnd}
+      onPointerCancel={handlePointerEnd}
+      role="presentation"
+    >
       <div className="simple-map__tiles" aria-hidden="true">
         {tileImages.map((tile) => (
           <img key={tile.key} src={tile.url} alt="" className="simple-map__tile" loading="lazy" />
