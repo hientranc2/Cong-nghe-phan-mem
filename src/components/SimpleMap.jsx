@@ -36,6 +36,7 @@ function SimpleMap({
   path = [],
   zoom = 15,
   height = 320,
+  minHeight = 320,
   loading = false,
   className = "",
 }) {
@@ -144,7 +145,7 @@ function SimpleMap({
     <div
       ref={mapRef}
       className={`simple-map ${dragState.active ? "simple-map--dragging" : ""} ${className}`.trim()}
-      style={{ height, minHeight: height }}
+      style={{ height, minHeight }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerEnd}

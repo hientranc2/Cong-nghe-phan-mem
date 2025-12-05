@@ -68,7 +68,8 @@ function MapPreview({ address }) {
           markers={markers}
           path={path}
           loading={status === "loading"}
-          height={300}
+          height="100%"
+          minHeight={320}
         />
       </div>
       {error && <p className="order-map-card__error">{error}</p>}
