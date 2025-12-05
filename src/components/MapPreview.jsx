@@ -62,7 +62,16 @@ function MapPreview({ address }) {
           {status === "idle" && "Nhập địa chỉ để xem bản đồ"}
         </div>
       </div>
-      <SimpleMap center={mapCenter} markers={markers} path={path} loading={status === "loading"} height={300} />
+      <div className="order-map-card__map">
+        <SimpleMap
+          center={mapCenter}
+          markers={markers}
+          path={path}
+          loading={status === "loading"}
+          height="100%"
+          minHeight={320}
+        />
+      </div>
       {error && <p className="order-map-card__error">{error}</p>}
     </div>
   );
