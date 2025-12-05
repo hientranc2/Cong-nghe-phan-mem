@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import droneIcon from "../assets/drone-icon.svg";
+import SimpleMap from "./SimpleMap.jsx";
+import useGeocodedLocation from "../hooks/useGeocodedLocation.js";
 
 import "./DroneDeliveryTracker.css";
 
@@ -48,8 +49,8 @@ const parseDate = (value) => {
   return parsed;
 };
 
-const START_POINT = { x: 14, y: 74 };
-const END_POINT = { x: 86, y: 24 };
+const DEFAULT_ORIGIN_COORDS = { lat: 10.776492, lng: 106.700414 };
+const DEFAULT_DESTINATION_COORDS = { lat: 10.780733, lng: 106.700921 };
 
 function DroneDeliveryTracker({
   origin = "Nhà hàng ",
@@ -110,57 +111,65 @@ function DroneDeliveryTracker({
     return () => clearInterval(id);
   }, [estimatedMinutes, autoAdvance]);
 
-  const routeSamples = useMemo(() => {
-    const segments = 48;
-    return Array.from({ length: segments + 1 }, (_, index) => {
-      const ratio = index / segments;
-      const wobble = Math.sin(ratio * Math.PI * 1.35) * 5.5;
-      const curvature = Math.sin(ratio * Math.PI) * 22;
-      const x = START_POINT.x + (END_POINT.x - START_POINT.x) * ratio + wobble;
-      const y = START_POINT.y + (END_POINT.y - START_POINT.y) * ratio - curvature;
-      return { x, y };
-    });
-  }, []);
+  const originLocation = useGeocodedLocation(origin, DEFAULT_ORIGIN_COORDS);
+  const destinationLocation = useGeocodedLocation(destination, DEFAULT_DESTINATION_COORDS);
 
-  const positions = useMemo(() => {
-    const count = Math.max(safeRoute.length, 2);
-    return Array.from({ length: count }, (_, index) => {
-      const ratio = index / (count - 1);
-      const wobble = Math.sin(ratio * Math.PI * 1.2) * 4;
-      const curvature = Math.sin(ratio * Math.PI) * 20;
-      const x = START_POINT.x + (END_POINT.x - START_POINT.x) * ratio + wobble;
-      const y = START_POINT.y + (END_POINT.y - START_POINT.y) * ratio - curvature;
-      return { x, y };
-    });
-  }, [safeRoute.length]);
-
-  const pathD = useMemo(() => {
-    if (routeSamples.length === 0) {
-      return "";
+  const mapCenter = useMemo(() => {
+    if (originLocation.coords && destinationLocation.coords) {
+      return {
+        lat: (originLocation.coords.lat + destinationLocation.coords.lat) / 2,
+        lng: (originLocation.coords.lng + destinationLocation.coords.lng) / 2,
+      };
     }
+    return originLocation.coords ?? destinationLocation.coords ?? DEFAULT_ORIGIN_COORDS;
+  }, [originLocation.coords, destinationLocation.coords]);
 
-    const [first, ...rest] = routeSamples;
-    const commands = rest.map((point) => `L ${point.x} ${point.y}`);
-    return [`M ${first.x} ${first.y}`, ...commands].join(" ");
-  }, [routeSamples]);
-
-  const dronePosition = useMemo(() => {
-    if (routeSamples.length === 0) {
-      return { x: 50, y: 50 };
-    }
-
-    const safeProgress = clamp(progress, 0, 0.999);
-    const exact = safeProgress * (routeSamples.length - 1);
-    const index = Math.floor(exact);
-    const localProgress = exact - index;
-    const start = routeSamples[index];
-    const end = routeSamples[Math.min(routeSamples.length - 1, index + 1)];
-
+  const droneCoords = useMemo(() => {
+    const start = originLocation.coords ?? DEFAULT_ORIGIN_COORDS;
+    const end = destinationLocation.coords ?? DEFAULT_DESTINATION_COORDS;
+    const ratio = clamp(progress, 0, 1);
     return {
-      x: start.x + (end.x - start.x) * localProgress,
-      y: start.y + (end.y - start.y) * localProgress,
+      lat: start.lat + (end.lat - start.lat) * ratio,
+      lng: start.lng + (end.lng - start.lng) * ratio,
     };
-  }, [routeSamples, progress]);
+  }, [destinationLocation.coords, originLocation.coords, progress]);
+
+  const mapMarkers = useMemo(() => {
+    const markers = [];
+    if (originLocation.coords) {
+      markers.push({
+        id: "origin",
+        label: origin,
+        subLabel: "Điểm xuất phát",
+        type: "origin",
+        ...originLocation.coords,
+      });
+    }
+    if (destinationLocation.coords) {
+      markers.push({
+        id: "destination",
+        label: destination,
+        subLabel: "Điểm giao",
+        type: "destination",
+        ...destinationLocation.coords,
+      });
+    }
+    markers.push({
+      id: "drone",
+      label: "Drone đang bay",
+      subLabel: `${Math.round(progress * 100)}% lộ trình`,
+      type: "drone",
+      ...droneCoords,
+    });
+    return markers;
+  }, [destinationLocation.coords, droneCoords, origin, originLocation.coords, destination, progress]);
+
+  const pathPositions = useMemo(() => {
+    if (!originLocation.coords || !destinationLocation.coords) {
+      return [];
+    }
+    return [originLocation.coords, droneCoords, destinationLocation.coords];
+  }, [destinationLocation.coords, droneCoords, originLocation.coords]);
 
   const statuses = useMemo(() => {
     const denominator = Math.max(safeRoute.length - 1, 1);
@@ -193,58 +202,29 @@ function DroneDeliveryTracker({
   return (
     <section className="order-tracking" aria-label={title} id="tracking">
       <div className="tracking-map" role="presentation">
-        <svg viewBox="0 0 100 100" className="tracking-map__svg" preserveAspectRatio="xMidYMid meet">
-          <defs>
-            <linearGradient id="trackingPathGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="rgba(255, 90, 31, 0.75)" />
-              <stop offset="100%" stopColor="rgba(255, 196, 31, 0.9)" />
-            </linearGradient>
-            <radialGradient id="trackingPointGradient" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="rgba(255, 255, 255, 0.95)" />
-              <stop offset="100%" stopColor="rgba(255, 90, 31, 0.35)" />
-            </radialGradient>
-            <radialGradient id="trackingOriginGradient" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="rgba(255, 255, 255, 0.95)" />
-              <stop offset="100%" stopColor="rgba(31, 138, 112, 0.4)" />
-            </radialGradient>
-            <radialGradient id="trackingDestinationGradient" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="rgba(255, 255, 255, 0.95)" />
-              <stop offset="100%" stopColor="rgba(255, 90, 31, 0.5)" />
-            </radialGradient>
-          </defs>
-          {pathD && (
-            <path d={pathD} fill="none" stroke="url(#trackingPathGradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="tracking-map__route" />
-          )}
-          {positions.map((point, index) => (
-            <g key={safeRoute[index]?.id ?? index}>
-              <circle cx={point.x} cy={point.y} r={4.8} fill="url(#trackingPointGradient)" stroke="rgba(255, 90, 31, 0.65)" strokeWidth="0.8" />
-            </g>
-          ))}
-          <circle cx={START_POINT.x} cy={START_POINT.y} r={6} fill="url(#trackingOriginGradient)" stroke="rgba(31, 138, 112, 0.6)" strokeWidth="1" />
-          <circle cx={END_POINT.x} cy={END_POINT.y} r={6.4} fill="url(#trackingDestinationGradient)" stroke="rgba(255, 90, 31, 0.6)" strokeWidth="1" />
-        </svg>
-        <div
-          className="tracking-map__landmark tracking-map__landmark--origin"
-          style={{ left: `${START_POINT.x}%`, top: `${START_POINT.y}%` }}
-        >
-          <span aria-hidden="true">🍽️</span>
-          <span>{origin}</span>
+        <SimpleMap
+          center={mapCenter}
+          markers={mapMarkers}
+          path={pathPositions}
+          height={320}
+          loading={originLocation.status === "loading" || destinationLocation.status === "loading"}
+          className="tracking-map__leaflet"
+        />
+        <div className="tracking-map__status">
+          <div>
+            <strong>Kết nối bản đồ</strong>
+            <p>
+              {originLocation.status === "error" || destinationLocation.status === "error"
+                ? "Không thể định vị tự động. Đang dùng tọa độ mặc định của khu vực."
+                : "Drone hiển thị trên nền bản đồ trực tuyến giống Google Maps."}
+            </p>
+          </div>
+          <div className="tracking-map__status-pill">
+            {originLocation.status === "loading" || destinationLocation.status === "loading"
+              ? "Đang cập nhật vị trí"
+              : "Theo dõi trực tiếp"}
+          </div>
         </div>
-        <div
-          className="tracking-map__landmark tracking-map__landmark--destination"
-          style={{ left: `${END_POINT.x}%`, top: `${END_POINT.y}%` }}
-        >
-          <span aria-hidden="true">📍</span>
-          <span>{destination}</span>
-        </div>
-        <div
-          className="tracking-map__drone"
-          style={{ left: `${dronePosition.x}%`, top: `${dronePosition.y}%` }}
-        >
-                   <img src={droneIcon} alt="Drone giao hàng" />
-
-        </div>
-        <div className="tracking-map__pulse" style={{ left: `${dronePosition.x}%`, top: `${dronePosition.y}%` }} aria-hidden="true" />
       </div>
 
       <div className="tracking-info">
