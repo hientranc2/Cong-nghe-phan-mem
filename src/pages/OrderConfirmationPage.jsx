@@ -334,6 +334,7 @@ function OrderConfirmationPage({
                   </label>
                 ))}
               </fieldset>
+              <MapPreview address={formState.address} />
               <div className="order-form__actions">
                 <button
                   type="button"
