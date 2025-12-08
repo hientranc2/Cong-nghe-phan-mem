@@ -35,6 +35,48 @@
   pointer-events: none;
 }
 
+.simple-map__controls {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(31, 31, 31, 0.1);
+}
+
+.simple-map__controls button {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(31, 31, 31, 0.08);
+  background: linear-gradient(180deg, #fff, #f5f5f8);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #1f1f1f;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.simple-map__controls button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(31, 31, 31, 0.12);
+}
+
+.simple-map__controls button:active {
+  transform: translateY(0);
+  box-shadow: inset 0 2px 6px rgba(31, 31, 31, 0.08);
+}
+
+.simple-map__zoom-label {
+  font-weight: 700;
+  color: #1f1f1f;
+  padding: 0 8px;
+}
+
 .simple-map__marker {
   position: absolute;
   transform: translate(-50%, -100%);
@@ -121,5 +163,17 @@
 
   .simple-map__marker-label strong {
     font-size: 0.94rem;
+  }
+
+  .simple-map__controls {
+    right: 10px;
+    bottom: 10px;
+    gap: 4px;
+    padding: 5px;
+  }
+
+  .simple-map__controls button {
+    width: 32px;
+    height: 32px;
   }
 }
