@@ -39,6 +39,7 @@ function useGeocodedLocation(query, fallback = null) {
 
     let cancelled = false;
     const controller = new AbortController();
+    let timedOut = false;
 
     const cached = locationCache.get(normalizedQuery);
     if (cached) {
@@ -49,6 +50,11 @@ function useGeocodedLocation(query, fallback = null) {
 
     const debounce = setTimeout(() => {
       setState((prev) => ({ ...prev, status: "loading", error: "" }));
+
+      const timeoutId = setTimeout(() => {
+        timedOut = true;
+        controller.abort();
+      }, 6500);
 
       fetch(buildQueryUrl(normalizedQuery), {
         headers: {
@@ -78,12 +84,24 @@ function useGeocodedLocation(query, fallback = null) {
           }
         })
         .catch((error) => {
-          if (cancelled || error.name === "AbortError") return;
+          if (cancelled) return;
+          if (error.name === "AbortError") {
+            if (!timedOut) return;
+            setState({
+              coords: lastCoordsRef.current ?? normalizedFallback,
+              status: "error",
+              error: "Định vị quá thời gian. Đang dùng vị trí gần nhất để hiển thị bản đồ.",
+            });
+            return;
+          }
           setState({
             coords: lastCoordsRef.current ?? normalizedFallback,
             status: "error",
             error: "Không thể tải bản đồ. Vui lòng kiểm tra kết nối mạng.",
           });
+        })
+        .finally(() => {
+          clearTimeout(timeoutId);
         });
     }, 480);
 
