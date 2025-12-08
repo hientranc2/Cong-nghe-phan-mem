@@ -70,14 +70,20 @@ function SimpleMap({
   const endX = startX + GRID_SIZE;
   const endY = startY + GRID_SIZE;
 
+  const tileOffset = useMemo(() => {
+    const centerOffsetX = projectedCenter.x - (startX + GRID_SIZE / 2);
+    const centerOffsetY = projectedCenter.y - (startY + GRID_SIZE / 2);
+    return { x: centerOffsetX, y: centerOffsetY };
+  }, [projectedCenter.x, projectedCenter.y, startX, startY]);
+
   const bounds = useMemo(
     () => ({
-      west: tile2lon(startX, zoomLevel),
-      east: tile2lon(endX, zoomLevel),
-      north: tile2lat(startY, zoomLevel),
-      south: tile2lat(endY, zoomLevel),
+      west: tile2lon(startX + tileOffset.x, zoomLevel),
+      east: tile2lon(endX + tileOffset.x, zoomLevel),
+      north: tile2lat(startY + tileOffset.y, zoomLevel),
+      south: tile2lat(endY + tileOffset.y, zoomLevel),
     }),
-    [startX, startY, endX, endY, zoomLevel],
+    [endX, endY, startX, startY, tileOffset.x, tileOffset.y, zoomLevel],
   );
 
   const projectToPercent = (point) => {
@@ -168,7 +174,13 @@ function SimpleMap({
       onPointerCancel={handlePointerEnd}
       role="presentation"
     >
-      <div className="simple-map__tiles" aria-hidden="true">
+      <div
+        className="simple-map__tiles"
+        aria-hidden="true"
+        style={{
+          transform: `translate(${(-tileOffset.x * (100 / GRID_SIZE)).toFixed(4)}%, ${(-tileOffset.y * (100 / GRID_SIZE)).toFixed(4)}%)`,
+        }}
+      >
         {tileImages.map((tile) => (
           <img
             key={tile.key}
@@ -222,7 +234,12 @@ function SimpleMap({
         </div>
       )}
 
-      <div className="simple-map__controls" aria-label="Điều khiển thu phóng bản đồ">
+      <div
+        className="simple-map__controls"
+        aria-label="Điều khiển thu phóng bản đồ"
+        onPointerDown={(event) => event.stopPropagation()}
+        onPointerMove={(event) => event.stopPropagation()}
+      >
         <button type="button" onClick={() => handleZoomChange(1)} aria-label="Phóng to">
           +
         </button>
