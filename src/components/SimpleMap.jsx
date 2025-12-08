@@ -163,6 +163,12 @@ function SimpleMap({
     setZoomLevel((current) => clampZoom(current + delta));
   };
 
+  const handleWheel = (event) => {
+    event.preventDefault();
+    const delta = event.deltaY < 0 ? 1 : -1;
+    handleZoomChange(delta);
+  };
+
   return (
     <div
       ref={mapRef}
@@ -172,6 +178,7 @@ function SimpleMap({
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerEnd}
       onPointerCancel={handlePointerEnd}
+      onWheel={handleWheel}
       role="presentation"
     >
       <div
@@ -234,19 +241,8 @@ function SimpleMap({
         </div>
       )}
 
-      <div
-        className="simple-map__controls"
-        aria-label="Điều khiển thu phóng bản đồ"
-        onPointerDown={(event) => event.stopPropagation()}
-        onPointerMove={(event) => event.stopPropagation()}
-      >
-        <button type="button" onClick={() => handleZoomChange(1)} aria-label="Phóng to">
-          +
-        </button>
-        <button type="button" onClick={() => handleZoomChange(-1)} aria-label="Thu nhỏ">
-          −
-        </button>
-        <span className="simple-map__zoom-label">{`x${zoomLevel}`}</span>
+      <div className="simple-map__zoom-label" aria-live="polite">
+        {`x${zoomLevel}`}
       </div>
     </div>
   );
