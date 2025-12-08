@@ -56,16 +56,18 @@ function useGeocodedLocation(query, fallback = null) {
         controller.abort();
       }, 6500);
 
-      fetch(buildQueryUrl(normalizedQuery), {
-        headers: {
-          "Accept-Language": "vi",
-          "User-Agent": "FCO-Delivery-Demo/1.0",
-        },
-        signal: controller.signal,
-      })
-        .then((response) => response.json())
-        .then((results) => {
+      const fetchLocation = async () => {
+        try {
+          const response = await fetch(buildQueryUrl(normalizedQuery), {
+            headers: {
+              "Accept-Language": "vi",
+            },
+            signal: controller.signal,
+          });
+          const results = await response.json();
+
           if (cancelled) return;
+
           const [first] = results ?? [];
           const coords = normalizeCoords(first)
             ? { lat: Number(first.lat), lng: Number(first.lon ?? first.lng) }
@@ -82,8 +84,7 @@ function useGeocodedLocation(query, fallback = null) {
               error: "Không tìm thấy vị trí cho địa chỉ đã nhập.",
             });
           }
-        })
-        .catch((error) => {
+        } catch (error) {
           if (cancelled) return;
           if (error.name === "AbortError") {
             if (!timedOut) return;
@@ -99,10 +100,12 @@ function useGeocodedLocation(query, fallback = null) {
             status: "error",
             error: "Không thể tải bản đồ. Vui lòng kiểm tra kết nối mạng.",
           });
-        })
-        .finally(() => {
+        } finally {
           clearTimeout(timeoutId);
-        });
+        }
+      };
+
+      fetchLocation();
     }, 480);
 
     return () => {
