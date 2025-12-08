@@ -4,6 +4,11 @@ import "./SimpleMap.css";
 const TILE_BASE_URL = "https://tile.openstreetmap.org";
 const GRID_SIZE = 3;
 const DEFAULT_CENTER = { lat: 10.776389, lng: 106.701111 };
+const MIN_ZOOM = 3;
+const MAX_ZOOM = 18;
+
+const FALLBACK_TILE =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' fill='%23f4f4f6'/%3E%3Cpath d='M0 128h256M128 0v256' stroke='%23d4d4da' stroke-width='6'/%3E%3C/svg%3E";
 
 const tile2lon = (x, z) => (x / 2 ** z) * 360 - 180;
 const tile2lat = (y, z) => {
@@ -20,6 +25,8 @@ const clampTileY = (value, z) => {
   const max = 2 ** z - 1;
   return Math.min(Math.max(value, 0), max);
 };
+
+const clampZoom = (value) => Math.min(Math.max(value, MIN_ZOOM), MAX_ZOOM);
 
 const toTilePoint = (lat, lng, z) => {
   const latRad = (lat * Math.PI) / 180;
@@ -43,15 +50,20 @@ function SimpleMap({
   const mapRef = useRef(null);
   const safeCenter = center ?? DEFAULT_CENTER;
   const [viewCenter, setViewCenter] = useState(safeCenter);
+  const [zoomLevel, setZoomLevel] = useState(() => clampZoom(zoom));
   const [dragState, setDragState] = useState({ active: false });
 
   useEffect(() => {
     setViewCenter(safeCenter);
   }, [safeCenter.lat, safeCenter.lng]);
 
+  useEffect(() => {
+    setZoomLevel(clampZoom(zoom));
+  }, [zoom]);
+
   const projectedCenter = useMemo(
-    () => toTilePoint(viewCenter.lat, viewCenter.lng, zoom),
-    [viewCenter, zoom],
+    () => toTilePoint(viewCenter.lat, viewCenter.lng, zoomLevel),
+    [viewCenter, zoomLevel],
   );
   const startX = Math.floor(projectedCenter.x) - 1;
   const startY = Math.floor(projectedCenter.y) - 1;
@@ -60,12 +72,12 @@ function SimpleMap({
 
   const bounds = useMemo(
     () => ({
-      west: tile2lon(startX, zoom),
-      east: tile2lon(endX, zoom),
-      north: tile2lat(startY, zoom),
-      south: tile2lat(endY, zoom),
+      west: tile2lon(startX, zoomLevel),
+      east: tile2lon(endX, zoomLevel),
+      north: tile2lat(startY, zoomLevel),
+      south: tile2lat(endY, zoomLevel),
     }),
-    [startX, startY, endX, endY, zoom],
+    [startX, startY, endX, endY, zoomLevel],
   );
 
   const projectToPercent = (point) => {
@@ -79,16 +91,16 @@ function SimpleMap({
     const images = [];
     for (let y = startY; y < endY; y += 1) {
       for (let x = startX; x < endX; x += 1) {
-        const wrappedX = wrapTile(x, zoom);
-        const clampedY = clampTileY(y, zoom);
+        const wrappedX = wrapTile(x, zoomLevel);
+        const clampedY = clampTileY(y, zoomLevel);
         images.push({
           key: `${wrappedX}-${clampedY}`,
-          url: `${TILE_BASE_URL}/${zoom}/${wrappedX}/${clampedY}.png`,
+          url: `${TILE_BASE_URL}/${zoomLevel}/${wrappedX}/${clampedY}.png`,
         });
       }
     }
     return images;
-  }, [startX, startY, endX, endY, zoom]);
+  }, [startX, startY, endX, endY, zoomLevel]);
 
   const overlayPath = path
     .map((point) => projectToPercent(point))
@@ -124,11 +136,11 @@ function SimpleMap({
     const deltaTilesY = (event.clientY - dragState.startY) / tileHeight;
 
     const nextX = dragState.startProjected.x - deltaTilesX;
-    const nextY = clampTileY(dragState.startProjected.y - deltaTilesY, zoom);
+    const nextY = clampTileY(dragState.startProjected.y - deltaTilesY, zoomLevel);
 
     setViewCenter({
-      lat: tile2lat(nextY, zoom),
-      lng: tile2lon(wrapTile(Math.round(nextX * 1000) / 1000, zoom), zoom),
+      lat: tile2lat(nextY, zoomLevel),
+      lng: tile2lon(wrapTile(Math.round(nextX * 1000) / 1000, zoomLevel), zoomLevel),
     });
   };
 
@@ -139,6 +151,10 @@ function SimpleMap({
     if (dragState.active && (!event.pointerId || event.pointerId === dragState.pointerId)) {
       setDragState({ active: false });
     }
+  };
+
+  const handleZoomChange = (delta) => {
+    setZoomLevel((current) => clampZoom(current + delta));
   };
 
   return (
@@ -154,7 +170,16 @@ function SimpleMap({
     >
       <div className="simple-map__tiles" aria-hidden="true">
         {tileImages.map((tile) => (
-          <img key={tile.key} src={tile.url} alt="" className="simple-map__tile" loading="lazy" />
+          <img
+            key={tile.key}
+            src={tile.url}
+            alt=""
+            className="simple-map__tile"
+            loading="lazy"
+            onError={(event) => {
+              event.currentTarget.src = FALLBACK_TILE;
+            }}
+          />
         ))}
       </div>
 
@@ -196,6 +221,16 @@ function SimpleMap({
           <span>Đang tải bản đồ...</span>
         </div>
       )}
+
+      <div className="simple-map__controls" aria-label="Điều khiển thu phóng bản đồ">
+        <button type="button" onClick={() => handleZoomChange(1)} aria-label="Phóng to">
+          +
+        </button>
+        <button type="button" onClick={() => handleZoomChange(-1)} aria-label="Thu nhỏ">
+          −
+        </button>
+        <span className="simple-map__zoom-label">{`x${zoomLevel}`}</span>
+      </div>
     </div>
   );
 }
