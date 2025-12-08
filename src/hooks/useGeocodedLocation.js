@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const locationCache = new Map();
 
@@ -16,28 +16,34 @@ const buildQueryUrl = (query) =>
   `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`;
 
 function useGeocodedLocation(query, fallback = null) {
+  const normalizedQuery = (query ?? "").trim();
+  const normalizedFallback = normalizeCoords(fallback);
   const [state, setState] = useState(() => ({
-    coords: normalizeCoords(fallback),
+    coords: normalizedFallback,
     status: "idle",
     error: "",
   }));
+  const lastCoordsRef = useRef(normalizedFallback);
 
   useEffect(() => {
-    if (!query) {
+    if (!normalizedQuery) {
       setState((prev) => ({
         ...prev,
-        coords: normalizeCoords(fallback),
+        coords: normalizedFallback,
         status: "idle",
         error: "",
       }));
+      lastCoordsRef.current = normalizedFallback;
       return undefined;
     }
 
     let cancelled = false;
     const controller = new AbortController();
+    let timedOut = false;
 
-    const cached = locationCache.get(query);
+    const cached = locationCache.get(normalizedQuery);
     if (cached) {
+      lastCoordsRef.current = cached;
       setState({ coords: cached, status: "success", error: "" });
       return undefined;
     }
@@ -45,7 +51,12 @@ function useGeocodedLocation(query, fallback = null) {
     const debounce = setTimeout(() => {
       setState((prev) => ({ ...prev, status: "loading", error: "" }));
 
-      fetch(buildQueryUrl(query), {
+      const timeoutId = setTimeout(() => {
+        timedOut = true;
+        controller.abort();
+      }, 6500);
+
+      fetch(buildQueryUrl(normalizedQuery), {
         headers: {
           "Accept-Language": "vi",
           "User-Agent": "FCO-Delivery-Demo/1.0",
@@ -61,23 +72,36 @@ function useGeocodedLocation(query, fallback = null) {
             : null;
 
           if (coords) {
-            locationCache.set(query, coords);
+            locationCache.set(normalizedQuery, coords);
+            lastCoordsRef.current = coords;
             setState({ coords, status: "success", error: "" });
           } else {
             setState({
-              coords: normalizeCoords(fallback),
+              coords: lastCoordsRef.current ?? normalizedFallback,
               status: "error",
               error: "Không tìm thấy vị trí cho địa chỉ đã nhập.",
             });
           }
         })
         .catch((error) => {
-          if (cancelled || error.name === "AbortError") return;
+          if (cancelled) return;
+          if (error.name === "AbortError") {
+            if (!timedOut) return;
+            setState({
+              coords: lastCoordsRef.current ?? normalizedFallback,
+              status: "error",
+              error: "Định vị quá thời gian. Đang dùng vị trí gần nhất để hiển thị bản đồ.",
+            });
+            return;
+          }
           setState({
-            coords: normalizeCoords(fallback),
+            coords: lastCoordsRef.current ?? normalizedFallback,
             status: "error",
             error: "Không thể tải bản đồ. Vui lòng kiểm tra kết nối mạng.",
           });
+        })
+        .finally(() => {
+          clearTimeout(timeoutId);
         });
     }, 480);
 
@@ -86,7 +110,7 @@ function useGeocodedLocation(query, fallback = null) {
       clearTimeout(debounce);
       controller.abort();
     };
-  }, [query, fallback]);
+  }, [normalizedFallback, normalizedQuery]);
 
   return {
     ...state,
