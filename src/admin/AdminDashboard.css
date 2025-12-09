@@ -299,6 +299,90 @@ tbody tr:hover {
   color: #ffd0c7;
 }
 
+.status-ang-giao,
+.status-dang-giao {
+  background: rgba(88, 255, 154, 0.16);
+  border-color: rgba(88, 255, 154, 0.38);
+  color: #d9ffe5;
+}
+
+.status-dang-chuan-bi {
+  background: rgba(70, 204, 255, 0.12);
+  border-color: rgba(70, 204, 255, 0.34);
+  color: #b8dcff;
+}
+
+.status-hoan-tat {
+  background: rgba(146, 255, 194, 0.18);
+  border-color: rgba(146, 255, 194, 0.42);
+  color: #eafff3;
+}
+
+.status-tam-hoan {
+  background: rgba(255, 193, 94, 0.16);
+  border-color: rgba(255, 193, 94, 0.42);
+  color: #ffe9c2;
+}
+
+.order-row {
+  transition: background 180ms ease;
+  cursor: pointer;
+}
+
+.order-row--expanded {
+  background: rgba(70, 204, 255, 0.06);
+}
+
+.order-tracking-row td {
+  padding: 0 12px 18px;
+  background: rgba(6, 10, 18, 0.7);
+}
+
+.order-tracking-panel {
+  border: 1px solid rgba(70, 204, 255, 0.3);
+  border-radius: 18px;
+  padding: 18px;
+  background: rgba(6, 10, 18, 0.9);
+  box-shadow: 0 12px 38px rgba(0, 0, 0, 0.35);
+}
+
+.order-tracking-panel__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.order-tracking-panel__eyebrow {
+  letter-spacing: 0.08em;
+  color: rgba(184, 220, 255, 0.8);
+  margin: 0 0 6px;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}
+
+.order-tracking-panel__header h4 {
+  margin: 0 0 6px;
+}
+
+.order-tracking-panel__meta {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  color: rgba(226, 236, 255, 0.8);
+  font-size: 0.92rem;
+}
+
+.order-tracking-panel__meta .dot {
+  width: 6px;
+  height: 6px;
+  background: rgba(184, 220, 255, 0.7);
+  border-radius: 50%;
+  display: inline-flex;
+}
+
 .actions {
   display: flex;
   gap: 10px;

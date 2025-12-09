@@ -84,6 +84,7 @@ function DroneDeliveryTracker({
     "Drone đang trên đường giao hàng. Hãy giữ điện thoại bên bạn để nhận hàng nhanh nhất.",
   orderId = "--",
   confirmedAt = null,
+  onDeliveryComplete = null,
 }) {
   const {
     title = "Theo dõi hành trình drone",
@@ -107,6 +108,7 @@ function DroneDeliveryTracker({
     twoThird: false,
     arrival: false,
   });
+  const completionRef = useRef(initialProgress >= 0.99);
   const loadedProgressRef = useRef(0);
   const [trackPoints, setTrackPoints] = useState([]);
   const timestamp = useMemo(() => parseDate(lastUpdate), [lastUpdate]);
@@ -117,6 +119,7 @@ function DroneDeliveryTracker({
     if (!key) {
       setProgress(normalizedInitial);
       loadedProgressRef.current = normalizedInitial;
+      completionRef.current = normalizedInitial >= 0.99;
       return;
     }
     try {
@@ -126,6 +129,7 @@ function DroneDeliveryTracker({
         if (!Number.isNaN(parsed)) {
           setProgress(parsed);
           loadedProgressRef.current = parsed;
+          completionRef.current = parsed >= 0.99;
           return;
         }
       }
@@ -134,6 +138,7 @@ function DroneDeliveryTracker({
     }
     setProgress(normalizedInitial);
     loadedProgressRef.current = normalizedInitial;
+    completionRef.current = normalizedInitial >= 0.99;
   }, [orderId, initialProgress]);
 
   useEffect(() => {
@@ -157,6 +162,17 @@ function DroneDeliveryTracker({
 
     return () => clearInterval(id);
   }, [estimatedMinutes, autoAdvance]);
+
+  useEffect(() => {
+    if (completionRef.current || !onDeliveryComplete) return undefined;
+
+    if (positionProgress >= 0.995) {
+      completionRef.current = true;
+      onDeliveryComplete();
+    }
+
+    return undefined;
+  }, [positionProgress, onDeliveryComplete]);
 
   useEffect(() => {
     const key = buildProgressKey(orderId);
