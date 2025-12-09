@@ -1,4 +1,55 @@
-function AdminOrdersSection({ orders, onEdit, onDelete, emptyMessage, formatCurrency }) {
+import { Fragment, useMemo, useState } from "react";
+import DroneDeliveryTracker from "../../components/DroneDeliveryTracker.jsx";
+
+const inferProgressFromStatus = (status) => {
+  const normalized = String(status || "").toLowerCase();
+  if (normalized.includes("hoàn")) return 1;
+  if (normalized.includes("giao")) return 0.38;
+  if (normalized.includes("chuẩn")) return 0.08;
+  if (normalized.includes("hoãn")) return 0.16;
+  return 0.12;
+};
+
+const statusClassName = (status) => {
+  const slug = String(status || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return slug ? `status-${slug}` : "status-unknown";
+};
+
+function AdminOrdersSection({
+  orders,
+  onEdit,
+  onDelete,
+  emptyMessage,
+  formatCurrency,
+  onOrderDelivered,
+}) {
+  const [expandedOrderId, setExpandedOrderId] = useState(null);
+  const [progressMap, setProgressMap] = useState({});
+
+  const activeOrders = useMemo(
+    () => (orders.length === 0 ? orders : orders.map((order) => ({ ...order }))),
+    [orders]
+  );
+
+  const handleToggle = (order) => {
+    setExpandedOrderId((current) => (current === order.id ? null : order.id));
+    setProgressMap((current) =>
+      current[order.id]
+        ? current
+        : { ...current, [order.id]: inferProgressFromStatus(order.status) }
+    );
+  };
+
+  const handleMarkDelivered = (order) => {
+    setProgressMap((current) => ({ ...current, [order.id]: 1 }));
+    onOrderDelivered?.(order.id);
+  };
+
   return (
     <section className="collection" id="orders">
       <div className="collection-heading">
@@ -28,32 +79,86 @@ function AdminOrdersSection({ orders, onEdit, onDelete, emptyMessage, formatCurr
                 </td>
               </tr>
             ) : (
-              orders.map((order) => (
-                <tr key={order.id}>
-                  <td>{order.id}</td>
-                  <td>{order.customer}</td>
-                  <td>{order.destination}</td>
-                  <td>{order.droneId}</td>
-                  <td>{formatCurrency(order.total)}</td>
-                  <td>
-                    <span className={`status-pill status-${order.status}`}>
-                      {order.status}
-                    </span>
-                  </td>
-                  <td className="actions">
-                    <button type="button" onClick={() => onEdit?.(order)}>
-                      Sửa
-                    </button>
-                    <button
-                      type="button"
-                      className="danger"
-                      onClick={() => onDelete?.(order.id)}
+              activeOrders.map((order) => {
+                const isExpanded = expandedOrderId === order.id;
+                const initialProgress = progressMap[order.id] ?? inferProgressFromStatus(order.status);
+                return (
+                  <Fragment key={order.id}>
+                    <tr
+                      className={`order-row ${isExpanded ? "order-row--expanded" : ""}`}
+                      onClick={() => handleToggle(order)}
                     >
-                      Xóa
-                    </button>
-                  </td>
-                </tr>
-              ))
+                      <td>{order.id}</td>
+                      <td>{order.customer}</td>
+                      <td>{order.destination}</td>
+                      <td>{order.droneId}</td>
+                      <td>{formatCurrency(order.total)}</td>
+                      <td>
+                        <span className={`status-pill ${statusClassName(order.status)}`}>
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="actions">
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onEdit?.(order);
+                          }}
+                        >
+                          Sửa
+                        </button>
+                        <button
+                          type="button"
+                          className="danger"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onDelete?.(order.id);
+                          }}
+                        >
+                          Xóa
+                        </button>
+                      </td>
+                    </tr>
+                    {isExpanded && (
+                      <tr className="order-tracking-row">
+                        <td colSpan={7}>
+                          <div className="order-tracking-panel">
+                            <div className="order-tracking-panel__header">
+                              <div>
+                                <p className="order-tracking-panel__eyebrow">Theo dõi tiến độ</p>
+                                <h4>{order.destination}</h4>
+                                <p className="order-tracking-panel__meta">
+                                  Drone: {order.droneId} • Giá trị: {formatCurrency(order.total)}
+                                </p>
+                              </div>
+                              <div className="order-tracking-panel__meta">
+                                <span>Khách: {order.customer}</span>
+                                <span className="dot" />
+                                <span>Mã đơn: {order.id}</span>
+                              </div>
+                            </div>
+
+                            <DroneDeliveryTracker
+                              origin={order.origin || order.restaurantName || "Bếp trung tâm"}
+                              destination={order.destination}
+                              distanceKm={order.distanceKm || 4.6}
+                              estimatedMinutes={order.estimatedDeliveryMinutes || 22}
+                              lastUpdate={order.updatedAt || new Date()}
+                              initialProgress={initialProgress}
+                              autoAdvance={order.status?.toLowerCase() !== "hoàn tất"}
+                              statusMessage="Theo dõi hành trình vận chuyển và tự động cập nhật khi drone giao hàng."
+                              orderId={order.id}
+                              confirmedAt={order.confirmedAt}
+                              onDeliveryComplete={() => handleMarkDelivered(order)}
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })
             )}
           </tbody>
         </table>

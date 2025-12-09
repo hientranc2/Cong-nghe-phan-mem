@@ -418,6 +418,25 @@ function AdminDashboard({
     }
   };
 
+  const handleOrderDelivered = (orderId) => {
+    setOrders((current) => {
+      let updatedOrder;
+      const nextOrders = current.map((order) => {
+        if (order.id === orderId) {
+          updatedOrder = { ...order, status: "Hoàn tất" };
+          return updatedOrder;
+        }
+        return order;
+      });
+
+      if (updatedOrder && onUpdateOrder) {
+        onUpdateOrder(updatedOrder);
+      }
+
+      return nextOrders;
+    });
+  };
+
   const totalRevenue = useMemo(
     () => orders.reduce((sum, order) => sum + Number(order.total || 0), 0),
     [orders]
@@ -549,6 +568,7 @@ function AdminDashboard({
           onDelete={(id) => handleDelete("order", id)}
           emptyMessage={emptyMessage}
           formatCurrency={formatCurrency}
+          onOrderDelivered={handleOrderDelivered}
         />
       )}
       </main>
