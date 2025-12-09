@@ -34,9 +34,9 @@ function OrderTrackingPage({
         : 0.32;
 
   const customer = receipt?.customer ?? activeOrder.customer ?? null;
-  const destination = customer?.address ?? activeOrder.address ?? "—";
+  const destination = customer?.address ?? activeOrder.address ?? "Địa chỉ khách hàng";
   const confirmedAt = receipt?.confirmedAt ?? activeOrder.confirmedAt ?? null;
-  const orderId = receipt?.id ?? activeOrder.id ?? "—";
+  const orderId = receipt?.id ?? activeOrder.id ?? "--";
   const lastUpdate = receipt?.updatedAt ?? confirmedAt ?? new Date();
 
   const statusMessage =

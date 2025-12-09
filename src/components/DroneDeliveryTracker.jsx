@@ -9,25 +9,25 @@ const DEFAULT_ROUTE = [
     id: "kitchen",
     title: "Nhà hàng đang chuẩn bị",
     description: "Đơn của bạn đã được xác nhận và đang được đóng gói.",
-    icon: "🍳",
+    icon: "*",
   },
   {
     id: "hub",
     title: "Drone nhận hàng",
     description: "Máy bay không người lái xuất phát từ trung tâm điều phối.",
-    icon: "🚁",
+    icon: "*",
   },
   {
     id: "enroute",
     title: "Đang bay đến",
     description: "Drone đang bay tới khu vực của bạn.",
-    icon: "🛰️",
+    icon: "*",
   },
   {
     id: "landing",
     title: "Chuẩn bị hạ cánh",
     description: "Drone đang hạ độ cao và chuẩn bị giao hàng.",
-    icon: "📍",
+    icon: "*",
   },
 ];
 
@@ -53,7 +53,7 @@ const DEFAULT_ORIGIN_COORDS = { lat: 10.776492, lng: 106.700414 };
 const DEFAULT_DESTINATION_COORDS = { lat: 10.780733, lng: 106.700921 };
 
 function DroneDeliveryTracker({
-  origin = "Nhà hàng ",
+  origin = "Nhà hàng",
   destination = "Địa chỉ khách hàng",
   distanceKm = 4.2,
   estimatedMinutes = 18,
@@ -64,7 +64,7 @@ function DroneDeliveryTracker({
   autoAdvance = true,
   statusMessage =
     "Drone đang trên đường giao hàng. Hãy giữ điện thoại bên bạn để nhận hàng nhanh nhất.",
-  orderId = "—",
+  orderId = "--",
   confirmedAt = null,
 }) {
   const {
@@ -143,6 +143,8 @@ function DroneDeliveryTracker({
         subLabel: "Điểm xuất phát",
         type: "origin",
         ...originLocation.coords,
+        offsetX: -60,
+        offsetY: -32,
       });
     }
     if (destinationLocation.coords) {
@@ -152,6 +154,8 @@ function DroneDeliveryTracker({
         subLabel: "Điểm giao",
         type: "destination",
         ...destinationLocation.coords,
+        offsetX: 60,
+        offsetY: 36,
       });
     }
     markers.push({
@@ -160,6 +164,8 @@ function DroneDeliveryTracker({
       subLabel: `${Math.round(progress * 100)}% lộ trình`,
       type: "drone",
       ...droneCoords,
+      offsetX: 0,
+      offsetY: 12,
     });
     return markers;
   }, [destinationLocation.coords, droneCoords, origin, originLocation.coords, destination, progress]);
@@ -201,32 +207,6 @@ function DroneDeliveryTracker({
 
   return (
     <section className="order-tracking" aria-label={title} id="tracking">
-      <div className="tracking-map" role="presentation">
-        <SimpleMap
-          center={mapCenter}
-          markers={mapMarkers}
-          path={pathPositions}
-          height={320}
-          loading={originLocation.status === "loading" || destinationLocation.status === "loading"}
-          className="tracking-map__leaflet"
-        />
-        <div className="tracking-map__status">
-          <div>
-            <strong>Kết nối bản đồ</strong>
-            <p>
-              {originLocation.status === "error" || destinationLocation.status === "error"
-                ? "Không thể định vị tự động. Đang dùng tọa độ mặc định của khu vực."
-                : "Drone hiển thị trên nền bản đồ trực tuyến giống Google Maps."}
-            </p>
-          </div>
-          <div className="tracking-map__status-pill">
-            {originLocation.status === "loading" || destinationLocation.status === "loading"
-              ? "Đang cập nhật vị trí"
-              : "Theo dõi trực tiếp"}
-          </div>
-        </div>
-      </div>
-
       <div className="tracking-info">
         <header className="tracking-info__header">
           <h4>{title}</h4>
@@ -285,6 +265,33 @@ function DroneDeliveryTracker({
             </li>
           ))}
         </ul>
+      </div>
+
+      <div className="tracking-map" role="presentation">
+        <SimpleMap
+          center={mapCenter}
+          markers={mapMarkers}
+          path={pathPositions}
+          height="100%"
+          minHeight={320}
+          loading={originLocation.status === "loading" || destinationLocation.status === "loading"}
+          className="tracking-map__leaflet"
+        />
+        <div className="tracking-map__status">
+          <div>
+            <strong>Kết nối bản đồ</strong>
+            <p>
+              {originLocation.status === "error" || destinationLocation.status === "error"
+                ? "Không thể tải bản đồ trong lúc định vị. Đang dùng vị trí gần nhất."
+                : "Drone hiển thị trên bản đồ trực tuyến giống Google Maps."}
+            </p>
+          </div>
+          <div className="tracking-map__status-pill">
+            {originLocation.status === "loading" || destinationLocation.status === "loading"
+              ? "Đang cập nhật vị trí"
+              : "Theo dõi trực tiếp"}
+          </div>
+        </div>
       </div>
     </section>
   );

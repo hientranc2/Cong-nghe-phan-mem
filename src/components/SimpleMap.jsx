@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import "./SimpleMap.css";
 
 const TILE_BASE_URL = "https://tile.openstreetmap.org";
-const GRID_SIZE = 3;
+const GRID_SIZE = 5;
 const DEFAULT_CENTER = { lat: 10.776389, lng: 106.701111 };
 const MIN_ZOOM = 3;
 const MAX_ZOOM = 18;
@@ -46,12 +46,22 @@ function SimpleMap({
   minHeight = 320,
   loading = false,
   className = "",
+  disableWheelZoom = true,
 }) {
+  useEffect(() => {
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, []);
   const mapRef = useRef(null);
   const safeCenter = center ?? DEFAULT_CENTER;
   const [viewCenter, setViewCenter] = useState(safeCenter);
   const [zoomLevel, setZoomLevel] = useState(() => clampZoom(zoom));
   const [dragState, setDragState] = useState({ active: false });
+  const rafRef = useRef(null);
+  const pendingMoveRef = useRef(null);
 
   useEffect(() => {
     setViewCenter(safeCenter);
@@ -65,16 +75,16 @@ function SimpleMap({
     () => toTilePoint(viewCenter.lat, viewCenter.lng, zoomLevel),
     [viewCenter, zoomLevel],
   );
-  const startX = Math.floor(projectedCenter.x) - 1;
-  const startY = Math.floor(projectedCenter.y) - 1;
+  const startX = Math.floor(projectedCenter.x - GRID_SIZE / 2);
+  const startY = Math.floor(projectedCenter.y - GRID_SIZE / 2);
   const endX = startX + GRID_SIZE;
   const endY = startY + GRID_SIZE;
 
   const tileOffset = useMemo(() => {
-    const centerOffsetX = projectedCenter.x - (startX + GRID_SIZE / 2);
-    const centerOffsetY = projectedCenter.y - (startY + GRID_SIZE / 2);
-    return { x: centerOffsetX, y: centerOffsetY };
-  }, [projectedCenter.x, projectedCenter.y, startX, startY]);
+    const fracX = projectedCenter.x - Math.floor(projectedCenter.x);
+    const fracY = projectedCenter.y - Math.floor(projectedCenter.y);
+    return { x: fracX - 0.5, y: fracY - 0.5 };
+  }, [projectedCenter.x, projectedCenter.y]);
 
   const bounds = useMemo(
     () => ({
@@ -115,7 +125,12 @@ function SimpleMap({
     .join(" ");
 
   const markerElements = markers
-    .map((marker) => ({ ...marker, position: projectToPercent(marker) }))
+    .map((marker) => ({
+      ...marker,
+      position: projectToPercent(marker),
+      offsetX: Number(marker.offsetX) || 0,
+      offsetY: Number(marker.offsetY) || 0,
+    }))
     .filter((marker) => marker.position);
 
   const handlePointerDown = (event) => {
@@ -134,23 +149,39 @@ function SimpleMap({
   const handlePointerMove = (event) => {
     if (!dragState.active || event.pointerId !== dragState.pointerId || !mapRef.current) return;
 
-    const bounds = mapRef.current.getBoundingClientRect();
-    const tileWidth = bounds.width / GRID_SIZE;
-    const tileHeight = bounds.height / GRID_SIZE;
+    pendingMoveRef.current = { x: event.clientX, y: event.clientY };
+    if (rafRef.current) return;
 
-    const deltaTilesX = (event.clientX - dragState.startX) / tileWidth;
-    const deltaTilesY = (event.clientY - dragState.startY) / tileHeight;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      const move = pendingMoveRef.current;
+      pendingMoveRef.current = null;
+      if (!move || !mapRef.current) return;
 
-    const nextX = dragState.startProjected.x - deltaTilesX;
-    const nextY = clampTileY(dragState.startProjected.y - deltaTilesY, zoomLevel);
+      const bounds = mapRef.current.getBoundingClientRect();
+      const tileWidth = bounds.width / GRID_SIZE;
+      const tileHeight = bounds.height / GRID_SIZE;
 
-    setViewCenter({
-      lat: tile2lat(nextY, zoomLevel),
-      lng: tile2lon(wrapTile(Math.round(nextX * 1000) / 1000, zoomLevel), zoomLevel),
+      const deltaTilesX = (move.x - dragState.startX) / tileWidth;
+      const deltaTilesY = (move.y - dragState.startY) / tileHeight;
+
+      const nextX = dragState.startProjected.x - deltaTilesX;
+      const nextY = clampTileY(dragState.startProjected.y - deltaTilesY, zoomLevel);
+
+      setViewCenter({
+        lat: tile2lat(nextY, zoomLevel),
+        lng: tile2lon(wrapTile(Math.round(nextX * 1000) / 1000, zoomLevel), zoomLevel),
+      });
     });
   };
 
   const handlePointerEnd = (event) => {
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    pendingMoveRef.current = null;
+
     if (dragState.pointerId && mapRef.current?.hasPointerCapture?.(dragState.pointerId)) {
       mapRef.current.releasePointerCapture(dragState.pointerId);
     }
@@ -164,6 +195,7 @@ function SimpleMap({
   };
 
   const handleWheel = (event) => {
+    if (disableWheelZoom) return;
     event.preventDefault();
     const delta = event.deltaY < 0 ? 1 : -1;
     handleZoomChange(delta);
@@ -224,7 +256,11 @@ function SimpleMap({
         <div
           key={marker.id ?? marker.label}
           className={`simple-map__marker simple-map__marker--${marker.type ?? "default"}`}
-          style={{ left: `${marker.position.left}%`, top: `${marker.position.top}%` }}
+          style={{
+            left: `${marker.position.left}%`,
+            top: `${marker.position.top}%`,
+            transform: `translate(-50%, -100%) translate(${marker.offsetX}px, ${marker.offsetY}px)`,
+          }}
         >
           <div className="simple-map__marker-dot" aria-hidden="true" />
           <div className="simple-map__marker-label">

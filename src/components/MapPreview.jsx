@@ -12,6 +12,8 @@ const DEFAULT_CUSTOMER_HINT = {
   lng: 106.703333,
 };
 
+const MAP_HEIGHT = 420;
+
 function MapPreview({ address }) {
   const { coords, status, error } = useGeocodedLocation(address, DEFAULT_CUSTOMER_HINT);
 
@@ -51,8 +53,8 @@ function MapPreview({ address }) {
         <div>
           <h4>Bản đồ giao hàng trực tuyến</h4>
           <p>
-            Bản đồ cập nhật tự động theo địa chỉ bạn nhập. Drone sẽ bay theo tuyến đường ngắn nhất từ
-            quán đến vị trí của bạn.
+            Bản đồ cập nhật tự động theo địa chỉ bạn nhập. Drone sẽ bay theo tuyến đường ngắn nhất từ quán đến vị trí của
+            bạn.
           </p>
         </div>
         <div className={`order-map-card__status order-map-card__status--${status}`}>
@@ -68,8 +70,8 @@ function MapPreview({ address }) {
           markers={markers}
           path={path}
           loading={status === "loading"}
-          height="100%"
-          minHeight={320}
+          height={MAP_HEIGHT}
+          minHeight={MAP_HEIGHT}
         />
       </div>
       {error && <p className="order-map-card__error">{error}</p>}
