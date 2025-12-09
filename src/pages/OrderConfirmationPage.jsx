@@ -138,6 +138,12 @@ function OrderConfirmationPage({
         ? activeOrder.progress
         : 0.32;
   const mapAddress = receipt?.customer?.address ?? formState.address;
+  const restaurantName =
+    activeOrder.restaurantName ??
+    activeOrder.restaurant?.name ??
+    activeOrder.storeName ??
+    texts.restaurantFallback ??
+    "Nhà hàng FCO";
   const customerInfo = receipt?.customer ?? null;
   const safeCustomer = customerInfo
     ? {
@@ -208,7 +214,7 @@ function OrderConfirmationPage({
           </section>
 
           <section className="order-map-section" aria-label="Bản đồ giao hàng">
-            <MapPreview address={mapAddress} />
+            <MapPreview address={mapAddress} restaurantName={restaurantName} />
           </section>
         </div>
 

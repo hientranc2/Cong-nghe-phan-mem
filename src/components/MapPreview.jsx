@@ -14,13 +14,15 @@ const DEFAULT_CUSTOMER_HINT = {
 
 const MAP_HEIGHT = 420;
 
-function MapPreview({ address }) {
+function MapPreview({ address, restaurantName }) {
   const { coords, status, error } = useGeocodedLocation(address, DEFAULT_CUSTOMER_HINT);
+
+  const originLabel = restaurantName?.trim() || DEFAULT_RESTAURANT.label;
 
   const markers = [
     {
       id: "origin",
-      label: DEFAULT_RESTAURANT.label,
+      label: originLabel,
       subLabel: "Điểm lấy hàng",
       lat: DEFAULT_RESTAURANT.lat,
       lng: DEFAULT_RESTAURANT.lng,
