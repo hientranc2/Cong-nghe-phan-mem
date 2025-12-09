@@ -68,6 +68,8 @@ const haversineDistanceKm = (from, to) => {
   return R * c;
 };
 
+const buildProgressKey = (orderId) => (orderId ? `drone-progress:${orderId}` : null);
+
 function DroneDeliveryTracker({
   origin = "Nhà hàng",
   destination = "Địa chỉ khách hàng",
@@ -105,16 +107,34 @@ function DroneDeliveryTracker({
     twoThird: false,
     arrival: false,
   });
+  const loadedProgressRef = useRef(0);
   const [trackPoints, setTrackPoints] = useState([]);
   const timestamp = useMemo(() => parseDate(lastUpdate), [lastUpdate]);
 
   useEffect(() => {
-    setProgress(0);
-  }, []);
-
-  useEffect(() => {
-    setProgress((prev) => clamp(initialProgress ?? prev, 0, 0.98));
-  }, [initialProgress]);
+    const normalizedInitial = clamp(initialProgress ?? 0.01, 0.01, 0.05); // luôn khởi động kho?ng 1% ?? tr?nh nh?y cao
+    const key = buildProgressKey(orderId);
+    if (!key) {
+      setProgress(normalizedInitial);
+      loadedProgressRef.current = normalizedInitial;
+      return;
+    }
+    try {
+      const saved = localStorage.getItem(key);
+      if (saved !== null) {
+        const parsed = clamp(Number.parseFloat(saved), 0, 0.995);
+        if (!Number.isNaN(parsed)) {
+          setProgress(parsed);
+          loadedProgressRef.current = parsed;
+          return;
+        }
+      }
+    } catch {
+      // ignore storage failures
+    }
+    setProgress(normalizedInitial);
+    loadedProgressRef.current = normalizedInitial;
+  }, [orderId, initialProgress]);
 
   useEffect(() => {
     if (!autoAdvance) {
@@ -137,6 +157,17 @@ function DroneDeliveryTracker({
 
     return () => clearInterval(id);
   }, [estimatedMinutes, autoAdvance]);
+
+  useEffect(() => {
+    const key = buildProgressKey(orderId);
+    if (!key) return undefined;
+    try {
+      localStorage.setItem(key, progress.toFixed(4));
+    } catch {
+      // ignore storage write errors
+    }
+    return undefined;
+  }, [orderId, progress]);
 
   useEffect(() => {
     if (!toast) return undefined;
@@ -163,9 +194,17 @@ function DroneDeliveryTracker({
       originLocation.coords ??
       destinationLocation.coords ??
       DEFAULT_ORIGIN_COORDS;
-    setTrackPoints([startPoint]);
+    const points = [startPoint];
+    if (loadedProgressRef.current > 0 && originLocation.coords && destinationLocation.coords) {
+      const ratio = clamp(loadedProgressRef.current, 0, 1);
+      points.push({
+        lat: startPoint.lat + (destinationLocation.coords.lat - startPoint.lat) * ratio,
+        lng: startPoint.lng + (destinationLocation.coords.lng - startPoint.lng) * ratio,
+      });
+    }
+    setTrackPoints(points);
     milestonesRef.current = { oneThird: false, twoThird: false, arrival: false };
-  }, [originLocation.coords, destinationLocation.coords]);
+  }, [orderId, originLocation.coords, destinationLocation.coords]);
 
   const routeDistanceKm = useMemo(() => {
     const calculated = haversineDistanceKm(originLocation.coords, destinationLocation.coords);
@@ -187,7 +226,7 @@ function DroneDeliveryTracker({
   }, [routeDistanceKm, traveledDistanceKm]);
 
   // Hiển thị tiến độ theo quãng đường thực đã bay; vị trí vẫn chạy theo progress để drone di chuyển mượt.
-  const displayProgress = distanceProgress;
+  const displayProgress = Math.max(distanceProgress, progress, 0.01);
   const positionProgress = progress;
 
   const droneCoords = useMemo(() => {

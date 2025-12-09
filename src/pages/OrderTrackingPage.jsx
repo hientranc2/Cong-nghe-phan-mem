@@ -31,7 +31,7 @@ function OrderTrackingPage({
       ? activeOrder.deliveryProgress
       : typeof activeOrder.progress === "number"
         ? activeOrder.progress
-        : 0.32;
+        : 0.01;
 
   const customer = receipt?.customer ?? activeOrder.customer ?? null;
   const destination = customer?.address ?? activeOrder.address ?? "Địa chỉ khách hàng";
