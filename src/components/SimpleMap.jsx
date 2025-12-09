@@ -190,6 +190,13 @@ function SimpleMap({
     }
   };
 
+  const canZoomIn = zoomLevel < MAX_ZOOM;
+  const canZoomOut = zoomLevel > MIN_ZOOM;
+
+  const stopDragPropagation = (event) => {
+    event.stopPropagation();
+  };
+
   const handleZoomChange = (delta) => {
     setZoomLevel((current) => clampZoom(current + delta));
   };
@@ -277,8 +284,29 @@ function SimpleMap({
         </div>
       )}
 
-      <div className="simple-map__zoom-label" aria-live="polite">
-        {`x${zoomLevel}`}
+      <div className="simple-map__controls" aria-label="Điều khiển zoom">
+        <div className="simple-map__control-buttons" role="group" aria-label="Zoom map">
+          <button
+            type="button"
+            className="simple-map__zoom-btn"
+            onClick={() => handleZoomChange(1)}
+            disabled={!canZoomIn}
+            aria-label="Phóng to bản đồ"
+            onPointerDown={stopDragPropagation}
+          >
+            +
+          </button>
+          <button
+            type="button"
+            className="simple-map__zoom-btn"
+            onClick={() => handleZoomChange(-1)}
+            disabled={!canZoomOut}
+            aria-label="Thu nhỏ bản đồ"
+            onPointerDown={stopDragPropagation}
+          >
+            -
+          </button>
+        </div>
       </div>
     </div>
   );
