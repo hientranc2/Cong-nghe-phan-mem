@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import SimpleMap from "./SimpleMap.jsx";
 import useGeocodedLocation from "../hooks/useGeocodedLocation.js";
 
@@ -83,6 +83,12 @@ function DroneDeliveryTracker({
 
   const safeRoute = routePoints.length > 1 ? routePoints : DEFAULT_ROUTE;
   const [progress, setProgress] = useState(() => clamp(initialProgress, 0, 0.95));
+  const [toast, setToast] = useState(null);
+  const milestonesRef = useRef({
+    oneThird: false,
+    twoThird: false,
+    arrival: false,
+  });
   const timestamp = useMemo(() => parseDate(lastUpdate), [lastUpdate]);
 
   useEffect(() => {
@@ -110,6 +116,13 @@ function DroneDeliveryTracker({
 
     return () => clearInterval(id);
   }, [estimatedMinutes, autoAdvance]);
+
+  useEffect(() => {
+    if (!toast) return undefined;
+    const duration = toast.duration ?? 3800;
+    const id = setTimeout(() => setToast(null), duration);
+    return () => clearTimeout(id);
+  }, [toast?.key]);
 
   const originLocation = useGeocodedLocation(origin, DEFAULT_ORIGIN_COORDS);
   const destinationLocation = useGeocodedLocation(destination, DEFAULT_DESTINATION_COORDS);
@@ -205,13 +218,43 @@ function DroneDeliveryTracker({
     return parseDate(confirmedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   }, [confirmedAt]);
 
+  useEffect(() => {
+    const ratio = progress ?? 0;
+    const milestones = milestonesRef.current;
+
+    if (ratio >= 1 / 3 && !milestones.oneThird) {
+      milestones.oneThird = true;
+      setToast({ message: "Drone đã bay được 1/3 quãng đường", key: "oneThird" });
+    }
+
+    if (ratio >= 2 / 3 && !milestones.twoThird) {
+      milestones.twoThird = true;
+      setToast({ message: "Drone đã bay được 2/3 quãng đường", key: "twoThird" });
+    }
+
+    if (ratio >= 0.999 && !milestones.arrival) {
+      milestones.arrival = true;
+      setToast({
+        message: "Drone đã đến địa chỉ của bạn, vui lòng nhận hàng!",
+        key: "arrival",
+        duration: 5200,
+      });
+    }
+  }, [progress]);
+
   return (
-    <section className="order-tracking" aria-label={title} id="tracking">
-      <div className="tracking-info">
-        <header className="tracking-info__header">
-          <h4>{title}</h4>
-          <p>{description}</p>
-        </header>
+    <>
+      {toast && (
+        <div className="tracking-toast" role="status" aria-live="polite">
+          {toast.message}
+        </div>
+      )}
+      <section className="order-tracking" aria-label={title} id="tracking">
+        <div className="tracking-info">
+          <header className="tracking-info__header">
+            <h4>{title}</h4>
+            <p>{description}</p>
+          </header>
         <div className="tracking-status-card">
           <div className="tracking-status-card__meta">
             <div>
@@ -273,7 +316,7 @@ function DroneDeliveryTracker({
           markers={mapMarkers}
           path={pathPositions}
           height="100%"
-          minHeight={320}
+          minHeight={420}
           loading={originLocation.status === "loading" || destinationLocation.status === "loading"}
           className="tracking-map__leaflet"
         />
@@ -293,7 +336,8 @@ function DroneDeliveryTracker({
           </div>
         </div>
       </div>
-    </section>
+      </section>
+    </>
   );
 }
 
