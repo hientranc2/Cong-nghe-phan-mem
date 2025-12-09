@@ -52,6 +52,22 @@ const parseDate = (value) => {
 const DEFAULT_ORIGIN_COORDS = { lat: 10.776492, lng: 106.700414 };
 const DEFAULT_DESTINATION_COORDS = { lat: 10.780733, lng: 106.700921 };
 
+const haversineDistanceKm = (from, to) => {
+  if (!from || !to) return 0;
+  const R = 6371;
+  const toRad = (deg) => (deg * Math.PI) / 180;
+  const dLat = toRad(to.lat - from.lat);
+  const dLng = toRad(to.lng - from.lng);
+  const lat1 = toRad(from.lat);
+  const lat2 = toRad(to.lat);
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.sin(dLng / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1 - a)));
+  return R * c;
+};
+
 function DroneDeliveryTracker({
   origin = "Nhà hàng",
   destination = "Địa chỉ khách hàng",
@@ -89,7 +105,12 @@ function DroneDeliveryTracker({
     twoThird: false,
     arrival: false,
   });
+  const [trackPoints, setTrackPoints] = useState([]);
   const timestamp = useMemo(() => parseDate(lastUpdate), [lastUpdate]);
+
+  useEffect(() => {
+    setProgress(0);
+  }, []);
 
   useEffect(() => {
     setProgress((prev) => clamp(initialProgress ?? prev, 0, 0.98));
@@ -137,15 +158,59 @@ function DroneDeliveryTracker({
     return originLocation.coords ?? destinationLocation.coords ?? DEFAULT_ORIGIN_COORDS;
   }, [originLocation.coords, destinationLocation.coords]);
 
+  useEffect(() => {
+    const startPoint =
+      originLocation.coords ??
+      destinationLocation.coords ??
+      DEFAULT_ORIGIN_COORDS;
+    setTrackPoints([startPoint]);
+    milestonesRef.current = { oneThird: false, twoThird: false, arrival: false };
+  }, [originLocation.coords, destinationLocation.coords]);
+
+  const routeDistanceKm = useMemo(() => {
+    const calculated = haversineDistanceKm(originLocation.coords, destinationLocation.coords);
+    return calculated > 0 ? calculated : distanceKm;
+  }, [originLocation.coords, destinationLocation.coords, distanceKm]);
+
+  const traveledDistanceKm = useMemo(() => {
+    if (trackPoints.length < 2) return 0;
+    let total = 0;
+    for (let i = 1; i < trackPoints.length; i += 1) {
+      total += haversineDistanceKm(trackPoints[i - 1], trackPoints[i]);
+    }
+    return total;
+  }, [trackPoints]);
+
+  const distanceProgress = useMemo(() => {
+    if (!routeDistanceKm) return 0;
+    return clamp(traveledDistanceKm / routeDistanceKm, 0, 1);
+  }, [routeDistanceKm, traveledDistanceKm]);
+
+  // Hiển thị tiến độ theo quãng đường thực đã bay; vị trí vẫn chạy theo progress để drone di chuyển mượt.
+  const displayProgress = distanceProgress;
+  const positionProgress = progress;
+
   const droneCoords = useMemo(() => {
     const start = originLocation.coords ?? DEFAULT_ORIGIN_COORDS;
     const end = destinationLocation.coords ?? DEFAULT_DESTINATION_COORDS;
-    const ratio = clamp(progress, 0, 1);
+    const ratio = clamp(positionProgress, 0, 1);
     return {
       lat: start.lat + (end.lat - start.lat) * ratio,
       lng: start.lng + (end.lng - start.lng) * ratio,
     };
-  }, [destinationLocation.coords, originLocation.coords, progress]);
+  }, [destinationLocation.coords, originLocation.coords, positionProgress]);
+
+  useEffect(() => {
+    if (!droneCoords?.lat || !droneCoords?.lng) return;
+    setTrackPoints((prev) => {
+      if (!prev.length) return [droneCoords];
+      const last = prev[prev.length - 1];
+      const delta = haversineDistanceKm(last, droneCoords);
+      if (delta < 0.005) return prev; // ignore jitter < ~5m
+      const trimmed = prev.length > 600 ? prev.slice(-300) : prev;
+      return [...trimmed, droneCoords];
+    });
+  }, [droneCoords.lat, droneCoords.lng]);
 
   const mapMarkers = useMemo(() => {
     const markers = [];
@@ -174,21 +239,22 @@ function DroneDeliveryTracker({
     markers.push({
       id: "drone",
       label: "Drone đang bay",
-      subLabel: `${Math.round(progress * 100)}% lộ trình`,
+      subLabel: `${Math.round(displayProgress * 100)}% lộ trình`,
       type: "drone",
       ...droneCoords,
       offsetX: 0,
       offsetY: 12,
     });
     return markers;
-  }, [destinationLocation.coords, droneCoords, origin, originLocation.coords, destination, progress]);
+  }, [destinationLocation.coords, droneCoords, origin, originLocation.coords, destination, displayProgress]);
 
   const pathPositions = useMemo(() => {
+    if (trackPoints.length > 1) return trackPoints;
     if (!originLocation.coords || !destinationLocation.coords) {
       return [];
     }
     return [originLocation.coords, droneCoords, destinationLocation.coords];
-  }, [destinationLocation.coords, droneCoords, originLocation.coords]);
+  }, [destinationLocation.coords, droneCoords, originLocation.coords, trackPoints]);
 
   const statuses = useMemo(() => {
     const denominator = Math.max(safeRoute.length - 1, 1);
@@ -196,17 +262,29 @@ function DroneDeliveryTracker({
       const startThreshold = index / denominator;
       const nextThreshold = (index + 1) / denominator;
       let state = "upcoming";
-      if (progress >= nextThreshold - 0.001) {
+      if (displayProgress >= nextThreshold - 0.001) {
         state = "done";
-      } else if (progress >= startThreshold - 0.001) {
+      } else if (displayProgress >= startThreshold - 0.001) {
         state = "active";
       }
       return { ...point, state };
     });
-  }, [safeRoute, progress]);
+  }, [safeRoute, displayProgress]);
 
-  const formattedDistance = `${distanceKm.toFixed(1)} km`;
-  const formattedEta = `~${Math.round(estimatedMinutes)} ${minutesSuffix}`;
+  const baseSpeedKmPerMin =
+    routeDistanceKm > 0 && estimatedMinutes > 0
+      ? routeDistanceKm / estimatedMinutes
+      : null;
+
+  const dynamicEtaMinutes = useMemo(() => {
+    if (!baseSpeedKmPerMin) return estimatedMinutes;
+    const remaining = Math.max(routeDistanceKm - traveledDistanceKm, 0);
+    const eta = remaining / baseSpeedKmPerMin;
+    return Math.max(1, eta); // keep at least 1 minute for readability
+  }, [baseSpeedKmPerMin, estimatedMinutes, routeDistanceKm, traveledDistanceKm]);
+
+  const formattedDistance = `${routeDistanceKm.toFixed(2)} km`;
+  const formattedEta = `~${Math.round(dynamicEtaMinutes)} ${minutesSuffix}`;
   const formattedUpdatedAt = useMemo(
     () => timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     [timestamp],
@@ -219,7 +297,7 @@ function DroneDeliveryTracker({
   }, [confirmedAt]);
 
   useEffect(() => {
-    const ratio = progress ?? 0;
+    const ratio = distanceProgress ?? 0;
     const milestones = milestonesRef.current;
 
     if (ratio >= 1 / 3 && !milestones.oneThird) {
@@ -240,7 +318,7 @@ function DroneDeliveryTracker({
         duration: 5200,
       });
     }
-  }, [progress]);
+  }, [distanceProgress]);
 
   return (
     <>
@@ -277,6 +355,10 @@ function DroneDeliveryTracker({
           <div>
             <dt>{distanceLabel}</dt>
             <dd>{formattedDistance}</dd>
+          </div>
+          <div>
+            <dt>Đã bay</dt>
+            <dd>{`${traveledDistanceKm.toFixed(2)} km`}</dd>
           </div>
           <div>
             <dt>{etaLabel}</dt>
@@ -327,6 +409,9 @@ function DroneDeliveryTracker({
               {originLocation.status === "error" || destinationLocation.status === "error"
                 ? "Không thể tải bản đồ trong lúc định vị. Đang dùng vị trí gần nhất."
                 : "Drone hiển thị trên bản đồ trực tuyến giống Google Maps."}
+            </p>
+            <p className="tracking-map__distance">
+              {`Đã bay: ${traveledDistanceKm.toFixed(2)} km / ${routeDistanceKm.toFixed(2)} km`}
             </p>
           </div>
           <div className="tracking-map__status-pill">
