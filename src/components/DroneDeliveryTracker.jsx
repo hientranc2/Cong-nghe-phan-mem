@@ -112,7 +112,7 @@ function DroneDeliveryTracker({
   const timestamp = useMemo(() => parseDate(lastUpdate), [lastUpdate]);
 
   useEffect(() => {
-    const normalizedInitial = clamp(initialProgress ?? 0.01, 0.01, 0.05); // luôn khởi động kho?ng 1% ?? tr?nh nh?y cao
+    const normalizedInitial = clamp(initialProgress ?? 0.01, 0.01, 0.995); // keep min 1% for visibility but allow existing progress
     const key = buildProgressKey(orderId);
     if (!key) {
       setProgress(normalizedInitial);

@@ -1,5 +1,21 @@
+import { useMemo } from "react";
 import DroneDeliveryTracker from "../components/DroneDeliveryTracker.jsx";
 import "./OrderTrackingPage.css";
+
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+const readPersistedProgress = (orderId) => {
+  if (!orderId || typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(`drone-progress:${orderId}`);
+    if (raw === null) return null;
+    const parsed = Number.parseFloat(raw);
+    if (Number.isNaN(parsed)) return null;
+    return clamp(parsed, 0, 0.995);
+  } catch {
+    return null;
+  }
+};
 
 function OrderTrackingPage({
   receipt = null,
@@ -38,6 +54,8 @@ function OrderTrackingPage({
   const confirmedAt = receipt?.confirmedAt ?? activeOrder.confirmedAt ?? null;
   const orderId = receipt?.id ?? activeOrder.id ?? "--";
   const lastUpdate = receipt?.updatedAt ?? confirmedAt ?? new Date();
+  const persistedProgress = useMemo(() => readPersistedProgress(orderId), [orderId]);
+  const effectiveProgress = persistedProgress ?? deliveryProgress ?? 0.01;
 
   const statusMessage =
     texts.statusMessage ??
@@ -72,15 +90,15 @@ function OrderTrackingPage({
           <DroneDeliveryTracker
             origin={restaurantName}
             destination={destination}
-            distanceKm={distanceKm}
-            estimatedMinutes={estimatedDeliveryMinutes}
-            lastUpdate={lastUpdate}
-            initialProgress={deliveryProgress}
-            texts={trackingTexts}
-            statusMessage={statusMessage}
-            orderId={orderId}
-            confirmedAt={confirmedAt}
-          />
+          distanceKm={distanceKm}
+          estimatedMinutes={estimatedDeliveryMinutes}
+          lastUpdate={lastUpdate}
+          initialProgress={effectiveProgress}
+          texts={trackingTexts}
+          statusMessage={statusMessage}
+          orderId={orderId}
+          confirmedAt={confirmedAt}
+        />
         </section>
       </div>
     </main>
