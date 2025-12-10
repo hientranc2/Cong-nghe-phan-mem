@@ -120,6 +120,7 @@ const EMPTY_FORMS = {
     name: "",
     address: "",
     hotline: "",
+    isLocked: false,
   },
 };
 
@@ -373,7 +374,7 @@ function AdminDashboard({
     if (type === "restaurant") {
       if (mode === "create") {
         const id = values.id?.trim() || nextId("nh", restaurants);
-        const payload = { ...values, id };
+        const payload = { ...values, id, isLocked: false };
         if (onCreateRestaurant) {
           await onCreateRestaurant(payload);
         } else {
@@ -434,6 +435,21 @@ function AdminDashboard({
       }
 
       return nextOrders;
+    });
+  };
+
+  const handleToggleRestaurantLock = (restaurantId) => {
+    setRestaurants((current) => {
+      const target = current.find((restaurant) => restaurant.id === restaurantId);
+      if (!target) return current;
+
+      const updatedRestaurant = { ...target, isLocked: !target.isLocked };
+      const nextRestaurants = current.map((restaurant) =>
+        restaurant.id === restaurantId ? updatedRestaurant : restaurant
+      );
+
+      onUpdateRestaurant?.(updatedRestaurant);
+      return nextRestaurants;
     });
   };
 
@@ -556,6 +572,7 @@ function AdminDashboard({
           restaurants={filteredRestaurants}
           onCreate={() => handleOpenForm("restaurant", "create")}
           onEdit={(restaurant) => handleOpenForm("restaurant", "edit", restaurant)}
+          onToggleLock={handleToggleRestaurantLock}
           onDelete={(id) => handleDelete("restaurant", id)}
           emptyMessage={emptyMessage}
         />
