@@ -1092,6 +1092,50 @@ function App() {
     [adminOrders, deriveRestaurantFromItems]
   );
 
+  const hasProcessedOrders = useCallback(
+    (restaurant) => {
+      if (!restaurant) return false;
+
+      const processedStatuses = [
+        "da-xu-ly",
+        "da-xu-ly-",
+        "processed",
+        "hoan-tat",
+        "hoan-thanh",
+        "completed",
+        "complete",
+        "done",
+        "delivered",
+        "giao-thanh-cong",
+        "success",
+      ];
+
+      return adminOrders.some((order) => {
+        const derivedRestaurant = deriveRestaurantFromItems(order.items ?? []);
+
+        const orderRestaurantId = order.restaurantId ?? derivedRestaurant.restaurantId;
+        const orderRestaurantSlug =
+          order.restaurantSlug ?? derivedRestaurant.restaurantSlug;
+
+        const matchesRestaurant =
+          (orderRestaurantId && restaurant.id
+            ? orderRestaurantId === restaurant.id
+            : false) ||
+          (orderRestaurantSlug && restaurant.slug
+            ? orderRestaurantSlug === restaurant.slug
+            : false);
+
+        if (!matchesRestaurant) return false;
+
+        const normalizedStatus = normalizeStatus(order.status);
+        return processedStatuses.some((status) =>
+          normalizedStatus.includes(status)
+        );
+      });
+    },
+    [adminOrders, deriveRestaurantFromItems]
+  );
+
   const syncDeletedRestaurant = async (restaurantId) => {
     const targetRestaurant = restaurantList.find((entry) => entry.id === restaurantId);
 
@@ -1107,6 +1151,13 @@ function App() {
     if (hasBlockingOrders(targetRestaurant)) {
       window.alert(
         "Nhà hàng đang có đơn ở trạng thái chuẩn bị, đang xử lý hoặc đang giao. Vui lòng hoàn tất hoặc hủy các đơn này trước khi xóa."
+      );
+      return;
+    }
+
+    if (hasProcessedOrders(targetRestaurant)) {
+      window.alert(
+        "Nhà hàng vẫn còn đơn đã xử lý/hoàn tất. Vui lòng lưu trữ hoặc xóa các đơn liên quan trước khi xóa nhà hàng."
       );
       return;
     }
