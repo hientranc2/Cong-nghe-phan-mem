@@ -1017,7 +1017,100 @@ function App() {
     }
   };
 
+  const hasRestaurantMenuItems = useCallback(
+    (restaurant) => {
+      const ownedMenuIds = new Set(restaurant?.menuItemIds ?? []);
+
+      return menuItemList.some((item) => {
+        if (!item) return false;
+
+        const matchesId =
+          item.restaurantId && restaurant?.id
+            ? item.restaurantId === restaurant.id
+            : false;
+
+        const matchesSlug =
+          item.restaurantSlug && restaurant?.slug
+            ? item.restaurantSlug === restaurant.slug
+            : false;
+
+        const matchesListedId = ownedMenuIds.has(item.id);
+
+        return matchesId || matchesSlug || matchesListedId;
+      });
+    },
+    [menuItemList]
+  );
+
+  const normalizeStatus = (status) =>
+    String(status || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+  const hasBlockingOrders = useCallback(
+    (restaurant) => {
+      if (!restaurant) return false;
+
+      const restrictedStatuses = [
+        "dang-chuan-bi",
+        "chuan-bi",
+        "dang-xu-ly",
+        "xu-ly",
+        "dang-giao",
+        "dang-van-chuyen",
+        "dang-giao-hang",
+        "preparing",
+        "processing",
+        "delivering",
+      ];
+
+      return adminOrders.some((order) => {
+        const derivedRestaurant = deriveRestaurantFromItems(order.items ?? []);
+
+        const orderRestaurantId = order.restaurantId ?? derivedRestaurant.restaurantId;
+        const orderRestaurantSlug = order.restaurantSlug ?? derivedRestaurant.restaurantSlug;
+
+        const matchesRestaurant =
+          (orderRestaurantId && restaurant.id
+            ? orderRestaurantId === restaurant.id
+            : false) ||
+          (orderRestaurantSlug && restaurant.slug
+            ? orderRestaurantSlug === restaurant.slug
+            : false);
+
+        if (!matchesRestaurant) return false;
+
+        const normalizedStatus = normalizeStatus(order.status);
+        return restrictedStatuses.some((status) =>
+          normalizedStatus.includes(status)
+        );
+      });
+    },
+    [adminOrders, deriveRestaurantFromItems]
+  );
+
   const syncDeletedRestaurant = async (restaurantId) => {
+    const targetRestaurant = restaurantList.find((entry) => entry.id === restaurantId);
+
+    if (!targetRestaurant) return;
+
+    if (hasRestaurantMenuItems(targetRestaurant)) {
+      window.alert(
+        "Không thể xóa nhà hàng khi vẫn còn món ăn thuộc nhà hàng này. Vui lòng xóa hoặc chuyển món sang nhà hàng khác trước."
+      );
+      return;
+    }
+
+    if (hasBlockingOrders(targetRestaurant)) {
+      window.alert(
+        "Nhà hàng đang có đơn ở trạng thái chuẩn bị, đang xử lý hoặc đang giao. Vui lòng hoàn tất hoặc hủy các đơn này trước khi xóa."
+      );
+      return;
+    }
+
     setRestaurantList((prev) => prev.filter((entry) => entry.id !== restaurantId));
 
     if (!restaurantId) return;
