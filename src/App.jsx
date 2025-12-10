@@ -629,6 +629,51 @@ function App() {
     return restaurantList[0] ?? null;
   }, [currentUser, restaurantById, restaurantBySlug, restaurantList]);
 
+  const deriveRestaurantFromItems = useCallback(
+    (items = []) => {
+      const normalizedItems = Array.isArray(items)
+        ? items
+        : typeof items === "object" && items !== null
+          ? Object.values(items)
+          : [];
+
+      const restaurantIds = normalizedItems
+        .map((item) => item?.restaurantId ?? menuRestaurantIndex.get(item?.id)?.id)
+        .filter(Boolean);
+
+      if (restaurantIds.length === 0) {
+        return { restaurantId: null, restaurantName: null, restaurantSlug: null };
+      }
+
+      const firstId = restaurantIds[0];
+      const isConsistent = restaurantIds.every((id) => id === firstId);
+
+      if (!isConsistent) {
+        return { restaurantId: null, restaurantName: null, restaurantSlug: null };
+      }
+
+      const restaurant = restaurantById.get(firstId) ?? null;
+      const fallbackItem = normalizedItems.find(
+        (item) => (item?.restaurantId ?? null) === firstId
+      );
+
+      const restaurantAddress =
+        restaurant?.address ??
+        restaurant?.city ??
+        fallbackItem?.restaurantAddress ??
+        fallbackItem?.restaurantCity ??
+        null;
+
+      return {
+        restaurantId: firstId,
+        restaurantSlug: restaurant?.slug ?? fallbackItem?.restaurantSlug ?? null,
+        restaurantName: restaurant?.name ?? fallbackItem?.restaurantName ?? null,
+        restaurantAddress,
+      };
+    },
+    [menuRestaurantIndex, restaurantById]
+  );
+
   const customerOrders = useMemo(() => {
     if (!currentUser || currentUser.role !== "customer") {
       return [];
@@ -779,51 +824,6 @@ function App() {
     content.orderConfirmation ?? content.auth?.orderConfirmation ?? {};
   const orderHistoryTexts = content.orderHistory ?? {};
   const restaurantTexts = content.restaurant ?? {};
-
-  const deriveRestaurantFromItems = useCallback(
-    (items = []) => {
-      const normalizedItems = Array.isArray(items)
-        ? items
-        : typeof items === "object" && items !== null
-          ? Object.values(items)
-          : [];
-
-      const restaurantIds = normalizedItems
-        .map((item) => item?.restaurantId ?? menuRestaurantIndex.get(item?.id)?.id)
-        .filter(Boolean);
-
-      if (restaurantIds.length === 0) {
-        return { restaurantId: null, restaurantName: null, restaurantSlug: null };
-      }
-
-      const firstId = restaurantIds[0];
-      const isConsistent = restaurantIds.every((id) => id === firstId);
-
-      if (!isConsistent) {
-        return { restaurantId: null, restaurantName: null, restaurantSlug: null };
-      }
-
-      const restaurant = restaurantById.get(firstId) ?? null;
-      const fallbackItem = normalizedItems.find(
-        (item) => (item?.restaurantId ?? null) === firstId
-      );
-
-      const restaurantAddress =
-        restaurant?.address ??
-        restaurant?.city ??
-        fallbackItem?.restaurantAddress ??
-        fallbackItem?.restaurantCity ??
-        null;
-
-      return {
-        restaurantId: firstId,
-        restaurantSlug: restaurant?.slug ?? fallbackItem?.restaurantSlug ?? null,
-        restaurantName: restaurant?.name ?? fallbackItem?.restaurantName ?? null,
-        restaurantAddress,
-      };
-    },
-    [menuRestaurantIndex, restaurantById]
-  );
 
   const customerProfiles = useMemo(
     () =>
