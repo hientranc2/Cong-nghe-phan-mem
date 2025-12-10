@@ -136,6 +136,7 @@
   flex-direction: column;
   gap: 8px;
   font-weight: 600;
+  color: var(--text);
 }
 
 .order-form input,
@@ -144,8 +145,17 @@
   border-radius: 18px;
   padding: 14px 18px;
   font-size: 1rem;
+  color: var(--text);
+  font-weight: 600;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   background: #fff;
+}
+
+.order-form input::placeholder,
+.order-form textarea::placeholder {
+  color: #6a6a6a;
+  opacity: 1;
+  font-weight: 500;
 }
 
 .order-form input:focus,
@@ -167,6 +177,7 @@
 .order-payment legend {
   font-weight: 700;
   margin-bottom: 8px;
+  color: var(--text);
 }
 
 .order-payment__option {
@@ -176,6 +187,7 @@
   background: rgba(255, 90, 31, 0.06);
   border-radius: 18px;
   padding: 10px 14px;
+  color: var(--text);
 }
 
 .order-form__error {

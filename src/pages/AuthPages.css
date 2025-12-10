@@ -86,8 +86,18 @@
   border-radius: 18px;
   padding: 14px 18px;
   font-size: 1rem;
+  color: var(--text);
+  font-weight: 600;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   background: #fff;
+}
+
+.auth-form input::placeholder,
+.auth-form select::placeholder,
+.auth-form textarea::placeholder {
+  color: #6a6a6a;
+  opacity: 1;
+  font-weight: 500;
 }
 
 .auth-form input:focus,
