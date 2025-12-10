@@ -62,6 +62,7 @@ const withRestaurantDefaults = (restaurant, fallbackImage = heroBackground) => {
     id: resolvedId,
     slug: resolvedSlug,
     address: resolvedAddress,
+    isLocked: Boolean(restaurant?.isLocked),
   };
 };
 
@@ -345,6 +346,19 @@ function App() {
     [restaurantList]
   );
 
+  const restaurantLocks = useMemo(() => {
+    const byId = new Map();
+    const bySlug = new Map();
+
+    restaurantList.forEach(({ id, slug, isLocked }) => {
+      const locked = Boolean(isLocked);
+      if (id) byId.set(id, locked);
+      if (slug) bySlug.set(slug, locked);
+    });
+
+    return { byId, bySlug };
+  }, [restaurantList]);
+
   const restaurantById = useMemo(
     () => new Map(restaurantList.map((restaurant) => [restaurant.id, restaurant])),
     [restaurantList]
@@ -557,26 +571,42 @@ function App() {
 
   const translatedMenuItems = useMemo(
     () =>
-      translateMenuItems(menuItemList, language).map((item) => {
-        const mappedRestaurant = menuRestaurantIndex.get(item.id);
-        const restaurantId = item.restaurantId ?? mappedRestaurant?.id ?? null;
-        const restaurantSlug =
-          item.restaurantSlug ?? mappedRestaurant?.slug ?? null;
-        const restaurantName =
-          item.restaurantName ?? mappedRestaurant?.name ?? null;
+      translateMenuItems(menuItemList, language)
+        .map((item) => {
+          const mappedRestaurant = menuRestaurantIndex.get(item.id);
+          const restaurantId = item.restaurantId ?? mappedRestaurant?.id ?? null;
+          const restaurantSlug =
+            item.restaurantSlug ?? mappedRestaurant?.slug ?? null;
+          const restaurantName =
+            item.restaurantName ?? mappedRestaurant?.name ?? null;
 
-        return {
-          ...item,
-          restaurantId,
-          restaurantSlug,
-          restaurantName,
-        };
-      }),
-    [language, menuItemList, menuRestaurantIndex]
+          return {
+            ...item,
+            restaurantId,
+            restaurantSlug,
+            restaurantName,
+          };
+        })
+        .filter((item) => {
+          if (item.restaurantId && restaurantLocks.byId.get(item.restaurantId)) {
+            return false;
+          }
+
+          if (item.restaurantSlug && restaurantLocks.bySlug.get(item.restaurantSlug)) {
+            return false;
+          }
+
+          return true;
+        }),
+    [language, menuItemList, menuRestaurantIndex, restaurantLocks]
   );
 
   const translatedRestaurants = useMemo(
-    () => translateRestaurants(restaurantList, language),
+    () =>
+      translateRestaurants(
+        restaurantList.filter((restaurant) => !restaurant.isLocked),
+        language
+      ),
     [restaurantList, language]
   );
 
