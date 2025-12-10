@@ -1,4 +1,11 @@
-function AdminRestaurantsSection({ restaurants, onCreate, onEdit, onDelete, emptyMessage }) {
+function AdminRestaurantsSection({
+  restaurants,
+  onCreate,
+  onEdit,
+  onDelete,
+  onToggleLock,
+  emptyMessage,
+}) {
   return (
     <section className="collection" id="restaurants">
       <div className="collection-heading">
@@ -18,13 +25,14 @@ function AdminRestaurantsSection({ restaurants, onCreate, onEdit, onDelete, empt
               <th>Tên</th>
               <th>Địa chỉ</th>
               <th>Hotline</th>
+              <th>Trạng thái</th>
               <th />
             </tr>
           </thead>
           <tbody>
             {restaurants.length === 0 ? (
               <tr>
-                <td colSpan={5}>
+                <td colSpan={6}>
                   <div className="empty">{emptyMessage}</div>
                 </td>
               </tr>
@@ -35,9 +43,21 @@ function AdminRestaurantsSection({ restaurants, onCreate, onEdit, onDelete, empt
                   <td>{restaurant.name}</td>
                   <td>{restaurant.address}</td>
                   <td>{restaurant.hotline || "-"}</td>
+                  <td>
+                    <span
+                      className={`status-pill ${
+                        restaurant.isLocked ? "status-inactive" : "status-active"
+                      }`}
+                    >
+                      {restaurant.isLocked ? "Đã khóa" : "Đang hiển thị"}
+                    </span>
+                  </td>
                   <td className="actions">
                     <button type="button" onClick={() => onEdit?.(restaurant)}>
                       Sửa
+                    </button>
+                    <button type="button" onClick={() => onToggleLock?.(restaurant.id)}>
+                      {restaurant.isLocked ? "Mở khóa" : "Khóa"}
                     </button>
                     <button
                       type="button"
