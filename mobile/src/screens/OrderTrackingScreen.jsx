@@ -553,6 +553,7 @@ const OrderTrackingScreen = ({ order, onBack, onGoHome }) => {
                 coordinate={originCoord}
                 title="Diem xuat phat"
                 description={originLabel}
+                pinColor="#16a34a"
               />
               <Marker
                 coordinate={destinationCoord}
@@ -571,6 +572,12 @@ const OrderTrackingScreen = ({ order, onBack, onGoHome }) => {
                 {isGeocoding
                   ? "Dang dinh vi theo dia chi"
                   : `${Math.round(displayProgress * 100)}% lo trinh`}
+              </Text>
+            </View>
+            <View style={[styles.mapCallout, styles.calloutOrigin]}>
+              <Text style={styles.calloutTitle}>Diem xuat phat</Text>
+              <Text style={styles.calloutMeta} numberOfLines={1}>
+                {originLabel}
               </Text>
             </View>
             <View style={[styles.mapCallout, styles.calloutDestination]}>
@@ -793,6 +800,12 @@ const styles = StyleSheet.create({
     right: undefined,
     top: undefined,
     bottom: 12,
+  },
+  calloutOrigin: {
+    left: 12,
+    right: undefined,
+    top: 12,
+    bottom: undefined,
   },
   calloutTitle: {
     fontSize: 13,

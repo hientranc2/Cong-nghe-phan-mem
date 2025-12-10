@@ -995,7 +995,7 @@
     },
     {
       "id": "ORD-20251211-1765387748721",
-      "status": "Hoàn tất",
+      "status": "Tạm hoãn",
       "total": 92000,
       "itemsCount": 1,
       "source": "mobile",
@@ -1005,12 +1005,7 @@
       "paymentMethod": "Thanh toán khi nhận hàng",
       "paymentDescription": "Thanh toán tiền mặt hoặc quẹt thẻ khi giao món",
       "subtotal": 92000,
-      "customer": {
-        "id": "user-1764186919459",
-        "name": "Terry Trần",
-        "phone": "0909004747",
-        "email": "terry@gmail.com"
-      },
+      "customer": "Terry Trần",
       "address": "273 lý thường kiệt quận 10 thành phố hồ chí minh",
       "items": [
         {
@@ -1019,7 +1014,9 @@
           "price": 92000,
           "quantity": 1
         }
-      ]
+      ],
+      "destination": "273 lý thường kiệt quận 10 thành phố hồ chí minh",
+      "droneId": "dr-01"
     }
   ]
 }
