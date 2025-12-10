@@ -67,6 +67,19 @@ function OrderTrackingPage({
     activeOrder.storeName ??
     texts.restaurantFallback ??
     "Nhà hàng";
+  const restaurantAddress =
+    activeOrder.restaurantAddress ??
+    activeOrder.restaurant?.address ??
+    activeOrder.restaurantCity ??
+    activeOrder.restaurant?.city ??
+    activeOrder.city ??
+    null;
+  const restaurantOriginLabel = restaurantAddress
+    ? `${restaurantName} • ${restaurantAddress}`
+    : restaurantName;
+  const restaurantOriginQuery = restaurantAddress
+    ? `${restaurantName}, ${restaurantAddress}`
+    : restaurantName;
 
   return (
     <main className="order-tracking-page" aria-labelledby="order-tracking-heading">
@@ -88,7 +101,8 @@ function OrderTrackingPage({
       <div className="order-tracking-layout">
         <section className="order-tracking-map-panel">
           <DroneDeliveryTracker
-            origin={restaurantName}
+            origin={restaurantOriginLabel}
+            originQuery={restaurantOriginQuery}
             destination={destination}
           distanceKm={distanceKm}
           estimatedMinutes={estimatedDeliveryMinutes}

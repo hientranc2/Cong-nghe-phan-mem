@@ -72,7 +72,9 @@ const buildProgressKey = (orderId) => (orderId ? `drone-progress:${orderId}` : n
 
 function DroneDeliveryTracker({
   origin = "Nhà hàng",
+  originQuery,
   destination = "Địa chỉ khách hàng",
+  destinationQuery,
   distanceKm = 4.2,
   estimatedMinutes = 18,
   lastUpdate = new Date(),
@@ -193,8 +195,11 @@ function DroneDeliveryTracker({
     return () => clearTimeout(id);
   }, [toast?.key]);
 
-  const originLocation = useGeocodedLocation(origin, DEFAULT_ORIGIN_COORDS);
-  const destinationLocation = useGeocodedLocation(destination, DEFAULT_DESTINATION_COORDS);
+  const originSearch = originQuery ?? origin;
+  const destinationSearch = destinationQuery ?? destination;
+
+  const originLocation = useGeocodedLocation(originSearch, DEFAULT_ORIGIN_COORDS);
+  const destinationLocation = useGeocodedLocation(destinationSearch, DEFAULT_DESTINATION_COORDS);
 
   const mapCenter = useMemo(() => {
     if (originLocation.coords && destinationLocation.coords) {
