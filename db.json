@@ -964,59 +964,28 @@
       "restaurantSlug": "lala"
     }
   ],
-  "orders": [
+  "orders": [],
+  "drones": [
     {
-      "id": "ORD-20251211-1765387361825",
-      "status": "Hoàn tất",
-      "total": 46000,
-      "itemsCount": 1,
-      "source": "mobile",
-      "userId": "user-1764186919459",
-      "createdAt": "2025-12-10T17:22:41.825Z",
-      "estimatedDelivery": "2025-12-10T18:07:41.825Z",
-      "paymentMethod": "Thanh toán khi nhận hàng",
-      "paymentDescription": "Thanh toán tiền mặt hoặc quẹt thẻ khi giao món",
-      "subtotal": 46000,
-      "customer": {
-        "id": "user-1764186919459",
-        "name": "Terry Trần",
-        "phone": "0909004747",
-        "email": "terry@gmail.com"
-      },
-      "address": "273 lý thường kiệt",
-      "items": [
-        {
-          "id": "fco-berry-soda",
-          "name": "Berry Soda Signature",
-          "price": 46000,
-          "quantity": 1
-        }
-      ]
+      "id": "dr-01",
+      "name": "Aquila X1",
+      "status": "Dang hoat dong",
+      "battery": 82,
+      "lastMission": "Giao ca phe quan 1"
     },
     {
-      "id": "ORD-20251211-1765387748721",
-      "status": "Tạm hoãn",
-      "total": 92000,
-      "itemsCount": 1,
-      "source": "mobile",
-      "userId": "user-1764186919459",
-      "createdAt": "2025-12-10T17:29:08.721Z",
-      "estimatedDelivery": "2025-12-10T18:14:08.721Z",
-      "paymentMethod": "Thanh toán khi nhận hàng",
-      "paymentDescription": "Thanh toán tiền mặt hoặc quẹt thẻ khi giao món",
-      "subtotal": 92000,
-      "customer": "Terry Trần",
-      "address": "273 lý thường kiệt quận 10 thành phố hồ chí minh",
-      "items": [
-        {
-          "id": "fco-taco-fiesta",
-          "name": "Taco Fiesta Mexico",
-          "price": 92000,
-          "quantity": 1
-        }
-      ],
-      "destination": "273 lý thường kiệt quận 10 thành phố hồ chí minh",
-      "droneId": "dr-01"
+      "id": "dr-02",
+      "name": "Falcon V2",
+      "status": "Dang bao tri",
+      "battery": 45,
+      "lastMission": "Dang kiem tra cam bien"
+    },
+    {
+      "id": "dr-03",
+      "name": "Orion S",
+      "status": "San sang",
+      "battery": 98,
+      "lastMission": "Cho nhiem vu"
     }
   ]
 }

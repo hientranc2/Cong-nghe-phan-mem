@@ -325,6 +325,32 @@ tbody tr:hover {
   color: #92400e;
 }
 
+.status-danger {
+  background: #fee2e2;
+  border-color: #fecdd3;
+  color: #b91c1c;
+}
+
+.pill-button {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  background: rgba(67, 56, 202, 0.08);
+  color: #312e81;
+}
+
+.pill-button.danger {
+  background: #fee2e2;
+  border-color: #fecdd3;
+  color: #b91c1c;
+}
+
+.pill-button:hover {
+  opacity: 0.92;
+}
+
 .order-row {
   transition: background 180ms ease;
   cursor: pointer;
@@ -549,6 +575,68 @@ textarea {
 
 .drawer-footer button.primary:hover {
   background: rgba(88, 255, 154, 0.3);
+}
+
+.shortage-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 15, 30, 0.72);
+  backdrop-filter: blur(6px);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  z-index: 24;
+}
+
+.shortage-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 20px 22px;
+  max-width: 460px;
+  width: min(92vw, 460px);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 22px 58px rgba(15, 23, 42, 0.18);
+  display: grid;
+  gap: 8px;
+}
+
+.shortage-card h4 {
+  margin: 0;
+  font-size: 1.12rem;
+  letter-spacing: -0.01em;
+}
+
+.shortage-card p {
+  margin: 0;
+  color: #475569;
+  line-height: 1.5;
+}
+
+.shortage-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.shortage-actions button {
+  background: rgba(70, 204, 255, 0.14);
+  border: 1px solid rgba(70, 204, 255, 0.32);
+  padding: 10px 16px;
+  border-radius: 12px;
+  color: inherit;
+  cursor: pointer;
+}
+
+.shortage-actions .primary {
+  background: linear-gradient(120deg, #4338ca, #6366f1);
+  color: #f8fafc;
+  border: none;
+  box-shadow: 0 10px 24px rgba(67, 56, 202, 0.28);
+}
+
+.shortage-actions .primary:hover {
+  filter: brightness(0.98);
 }
 
 .empty {

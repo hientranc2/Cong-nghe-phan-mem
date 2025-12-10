@@ -13,25 +13,26 @@ const DEFAULT_DRONES = [
   {
     id: "dr-01",
     name: "Aquila X1",
-    status: "Đang hoạt động",
+    status: "Dang hoat dong",
     battery: 82,
-    lastMission: "Giao cà phê quận 1",
+    lastMission: "Giao ca phe quan 1",
   },
   {
     id: "dr-02",
     name: "Falcon V2",
-    status: "Đang bảo trì",
+    status: "Dang bao tri",
     battery: 45,
-    lastMission: "Đang kiểm tra cảm biến",
+    lastMission: "Dang kiem tra cam bien",
   },
   {
     id: "dr-03",
     name: "Orion S",
-    status: "Sẵn sàng",
+    status: "San sang",
     battery: 98,
-    lastMission: "Chờ nhiệm vụ",
+    lastMission: "Cho nhiem vu",
   },
 ];
+
 
 const DEFAULT_CUSTOMERS = [
   {
@@ -57,7 +58,6 @@ const DEFAULT_CUSTOMERS = [
     name: "Lê Thu Hà",
     email: "thuha@example.com",
     phone: "0977 222 333",
-    tier: "Tiêu chuẩn",
     active: false,
     joinedAt: "2024-04-28",
   },
@@ -103,7 +103,6 @@ const EMPTY_FORMS = {
     name: "",
     email: "",
     phone: "",
-    tier: "Tiêu chuẩn",
     active: true,
     joinedAt: "",
   },
@@ -125,16 +124,21 @@ const EMPTY_FORMS = {
 };
 
 const STATUS_OPTIONS = {
-  drone: ["Sẵn sàng", "Đang hoạt động", "Đang bảo trì", "Tạm dừng"],
-  order: ["Đang chuẩn bị", "Đang giao", "Hoàn tất", "Tạm hoãn"],
+  drone: ["San sang", "Dang hoat dong", "Dang bao tri", "Tam dung", "Can sac"],
+  order: ["Dang chuan bi", "Dang giao", "Hoan tat", "Tam hoan"],
 };
 
-const CUSTOMER_TIERS = ["Tiêu chuẩn", "Bạc", "Vàng", "Kim cương"];
+const CUSTOMER_TIERS = ["Tieu chuan", "Bac", "Vang", "Kim cuong"];
+const MIN_BATTERY_FOR_MISSION = 15; // %
+const BATTERY_DRAIN_PER_ORDER = 15; // %
+const normalizeStatusText = (value) =>
+  (value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
 
 const selectDefaultDroneId = (drones = []) =>
-  drones.find((drone) => drone.status !== "Đang bảo trì")?.id ||
+  drones.find((drone) => drone.status && !normalizeStatusText(drone.status).includes("bao tri"))?.id ||
   drones[0]?.id ||
-  "Chưa phân công";
+  "Chua phan cong";
 
 const formatCurrency = (value) =>
   new Intl.NumberFormat("vi-VN", {
@@ -157,8 +161,22 @@ const nextId = (prefix, existing) => {
   return `${prefix}-${String(numeric + 1).padStart(2, "0")}`;
 };
 
+const isActiveOrderStatus = (status) => {
+  const text = normalizeStatusText(status);
+  const inactive = ["hoan tat", "hoan thanh", "done", "da giao", "huy", "cancel", "tam hoan"];
+  const active = ["dang giao", "dang chuan", "chuan bi", "dang xu ly", "dang hoat dong"];
+  if (inactive.some((kw) => text.includes(kw))) return false;
+  if (active.some((kw) => text.includes(kw))) return true;
+  return text.length > 0 && !inactive.some((kw) => text.includes(kw));
+};
+
 const normalizeAdminOrder = (order, index, drones) => {
-  const fallbackDroneId = order?.droneId || order?.driver || selectDefaultDroneId(drones);
+
+  const fallbackDroneId =
+    order?.droneId ||
+    order?.driver ||
+    (drones.length ? drones[index % drones.length]?.id : null) ||
+    selectDefaultDroneId(drones);
   const totalValue =
     Number(order?.total) ||
     Number(order?.subtotal) ||
@@ -187,11 +205,15 @@ function AdminDashboard({
   orders: remoteOrders = [],
   restaurants: remoteRestaurants = [],
   customers: remoteCustomers = [],
+  drones: remoteDrones = [],
   onUpdateOrder,
   onDeleteOrder,
   onCreateRestaurant,
   onUpdateRestaurant,
   onDeleteRestaurant,
+  onCreateDrone,
+  onUpdateDrone,
+  onDeleteDrone,
 }) {
   const [drones, setDrones] = useState(DEFAULT_DRONES);
   const [customers, setCustomers] = useState(
@@ -204,12 +226,91 @@ function AdminDashboard({
   const [activeForm, setActiveForm] = useState(null);
   const [activeSection, setActiveSection] = useState("overview");
   const [search, setSearch] = useState("");
+  const [lastDroneIndex, setLastDroneIndex] = useState(-1);
+  const [droneShortage, setDroneShortage] = useState(null);
 
   useEffect(() => {
     if (Array.isArray(remoteOrders)) {
-      setOrders(remoteOrders);
+      setOrders(remoteOrders.map((order, index) => normalizeAdminOrder(order, index, drones)));
     }
-  }, [remoteOrders]);
+  }, [remoteOrders, drones]);
+
+  useEffect(() => {
+    if (Array.isArray(remoteDrones) && remoteDrones.length > 0) {
+      setDrones(remoteDrones);
+    }
+  }, [remoteDrones]);
+
+  const findAvailableDrone = (
+    preferredId = null,
+    excludedOrderId = null,
+    busyOverride = null
+  ) => {
+    const busyIds = new Set(
+      Array.isArray(busyOverride) ? busyOverride : getBusyDroneIds(excludedOrderId)
+    );
+    const isUsable = (drone) => {
+      if (!drone) return false;
+      const statusText = normalizeStatusText(drone.status);
+      const isBusy = busyIds.has(drone.id);
+      const blocked =
+        statusText.includes("bao tri") ||
+        statusText.includes("tam dung") ||
+        statusText.includes("can sac");
+      return !isBusy && !blocked && drone.battery >= MIN_BATTERY_FOR_MISSION;
+    };
+
+    const preferred =
+      preferredId && drones.find((drone) => drone.id === preferredId);
+    if (isUsable(preferred)) return preferred;
+
+    if (!drones.length) return null;
+
+    for (let i = 1; i <= drones.length; i += 1) {
+      const idx = (lastDroneIndex + i) % drones.length;
+      if (isUsable(drones[idx])) {
+        setLastDroneIndex(idx);
+        return drones[idx];
+      }
+    }
+
+    return null;
+  };
+
+  const allocateDroneForOrder = (
+    requestedId = null,
+    currentOrderId = null,
+    missionLabel = "Vua nhan don moi"
+  ) => {
+    const chosen = findAvailableDrone(requestedId, currentOrderId);
+    if (!chosen) {
+      setDroneShortage({
+        title: "Khong du drone kha dung",
+        message:
+          "Het drone kha dung. Vui long them drone moi hoac sac drone (pin >= 15%) truoc khi giao don.",
+      });
+      return null;
+    }
+
+    const nextBattery = Math.max(0, chosen.battery - BATTERY_DRAIN_PER_ORDER);
+    const nextStatus =
+      nextBattery < MIN_BATTERY_FOR_MISSION ? "Can sac" : "Dang hoat dong";
+
+    setDrones((prev) =>
+      prev.map((drone) =>
+        drone.id === chosen.id
+          ? {
+              ...drone,
+              battery: nextBattery,
+              status: nextStatus,
+              lastMission: missionLabel,
+            }
+          : drone
+      )
+    );
+
+    return chosen.id;
+  };
 
   useEffect(() => {
     if (remoteRestaurants.length > 0) {
@@ -227,81 +328,153 @@ function AdminDashboard({
     }
   }, [remoteCustomers]);
 
+  const activeOrderAssignments = useMemo(
+    () =>
+      orders
+        .filter((order) => order.droneId && isActiveOrderStatus(order.status))
+        .map((order) => ({ orderId: order.id, droneId: order.droneId })),
+    [orders]
+  );
+
+  const activeOrderDroneIds = useMemo(
+    () => activeOrderAssignments.map((item) => item.droneId),
+    [activeOrderAssignments]
+  );
+
+  const getBusyDroneIds = (excludedOrderId = null) => {
+    if (!excludedOrderId) return activeOrderDroneIds;
+    return activeOrderAssignments
+      .filter((item) => item.orderId !== excludedOrderId)
+      .map((item) => item.droneId);
+  };
+
+  useEffect(() => {
+    let shortageDetected = false;
+    setOrders((current) => {
+      let changed = false;
+      const busy = new Set();
+
+      const nextOrders = current.map((order) => {
+        if (!isActiveOrderStatus(order.status)) return order;
+
+        const assignedDrone = drones.find((drone) => drone.id === order.droneId);
+        const statusText = normalizeStatusText(assignedDrone?.status);
+        const blocked =
+          !assignedDrone ||
+          statusText.includes("bao tri") ||
+          statusText.includes("tam dung") ||
+          statusText.includes("can sac") ||
+          assignedDrone.battery < MIN_BATTERY_FOR_MISSION ||
+          busy.has(order.droneId);
+
+        if (!blocked) {
+          busy.add(order.droneId);
+          return order;
+        }
+
+        const replacement = findAvailableDrone(
+          order.droneId,
+          order.id,
+          Array.from(busy)
+        );
+        if (!replacement) {
+          shortageDetected = true;
+          changed = changed || Boolean(order.droneId);
+          return { ...order, droneId: "" };
+        }
+
+        busy.add(replacement.id);
+        changed = true;
+        return { ...order, droneId: replacement.id };
+      });
+
+      return changed ? nextOrders : current;
+    });
+
+    if (shortageDetected) {
+      setDroneShortage({
+        title: "Khong du drone kha dung",
+        message:
+          "Khong du drone san sang de giao het cac don. Hay them drone moi hoac sac, bao tri drone hien co.",
+      });
+    }
+  }, [orders, drones]);
+
+  useEffect(() => {
+    const hasActiveOrderWithoutDrone = orders.some(
+      (order) => isActiveOrderStatus(order.status) && !order.droneId
+    );
+    if (hasActiveOrderWithoutDrone) {
+      setDroneShortage({
+        title: "Chua co drone de giao don",
+        message:
+          "Don dang hoat dong nhung chua co drone. Vui long them drone moi truoc khi giao.",
+      });
+    }
+  }, [orders, drones]);
+
   const filteredDrones = useMemo(() => {
     if (!search.trim()) return drones;
     const term = search.toLowerCase();
     return drones.filter(
       (drone) =>
-        drone.name.toLowerCase().includes(term) ||
-        drone.status.toLowerCase().includes(term) ||
-        drone.id.toLowerCase().includes(term)
+        (drone.name || "").toLowerCase().includes(term) ||
+        (drone.status || "").toLowerCase().includes(term) ||
+        (drone.id || "").toLowerCase().includes(term)
     );
   }, [search, drones]);
 
   const filteredCustomers = useMemo(() => {
     if (!search.trim()) return customers;
     const term = search.toLowerCase();
-    const normalizedTerm = term.replace(/\s+/g, "");
-    const numericTerm = normalizedTerm.replace(/\D+/g, "");
-
-    return customers.filter((customer) => {
-      const nameMatch = customer.name.toLowerCase().includes(term);
-      const emailMatch = customer.email.toLowerCase().includes(term);
-      const tierMatch = customer.tier.toLowerCase().includes(term);
-      const phoneValue = (customer.phone || "").toLowerCase();
-      const normalizedPhone = phoneValue.replace(/\s+/g, "");
-      const numericPhone = phoneValue.replace(/\D+/g, "");
-
-      const phoneMatch =
-        normalizedPhone.includes(normalizedTerm) ||
-        (!!numericTerm && numericPhone.includes(numericTerm));
-
-      return nameMatch || emailMatch || tierMatch || phoneMatch;
-    });
-  }, [search, customers]);
-
-  const normalizedOrders = useMemo(
-    () => orders.map((order, index) => normalizeAdminOrder(order, index, drones)),
-    [orders, drones]
-  );
-
-  const filteredOrders = useMemo(() => {
-    if (!search.trim()) return normalizedOrders;
-    const term = search.toLowerCase();
-    return normalizedOrders.filter(
-      (order) =>
-        order.id.toLowerCase().includes(term) ||
-        order.customer.toLowerCase().includes(term) ||
-        order.destination.toLowerCase().includes(term) ||
-        order.status.toLowerCase().includes(term)
+    return customers.filter(
+      (customer) =>
+        (customer.name || "").toLowerCase().includes(term) ||
+        (customer.email || "").toLowerCase().includes(term) ||
+        (customer.phone || "").toLowerCase().includes(term)
     );
-  }, [search, normalizedOrders]);
+  }, [search, customers]);
 
   const filteredRestaurants = useMemo(() => {
     if (!search.trim()) return restaurants;
     const term = search.toLowerCase();
     return restaurants.filter(
       (restaurant) =>
-        restaurant.id.toLowerCase().includes(term) ||
-        restaurant.name.toLowerCase().includes(term) ||
-        restaurant.address.toLowerCase().includes(term) ||
-        (restaurant.hotline || "").toLowerCase().includes(term)
+        (restaurant.name || "").toLowerCase().includes(term) ||
+        (restaurant.address || "").toLowerCase().includes(term)
     );
   }, [search, restaurants]);
 
-  const handleOpenForm = (type, mode, payload = null) => {
-    if (type === "order" && mode === "create") {
-      return;
-    }
+  const filteredOrders = useMemo(() => {
+    if (!search.trim()) return orders;
+    const term = search.toLowerCase();
+    return orders.filter(
+      (order) =>
+        (order.id || "").toLowerCase().includes(term) ||
+        (order.customer || "").toLowerCase().includes(term) ||
+        (order.destination || "").toLowerCase().includes(term)
+    );
+  }, [search, orders]);
 
+
+  const handleOpenForm = (type, mode = "create", payload = {}) => {
+    if (!type) return;
+    const defaults = EMPTY_FORMS[type] || {};
     setActiveForm({
       type,
       mode,
-      values: payload ? { ...payload } : { ...EMPTY_FORMS[type] },
+      values: { ...defaults, ...payload },
     });
   };
 
   const handleCloseForm = () => setActiveForm(null);
+
+  const handleDismissShortage = () => setDroneShortage(null);
+
+  const handleAddDroneFromShortage = () => {
+    handleOpenForm("drone", "create");
+    setDroneShortage(null);
+  };
 
   const handleChangeForm = (field, value) => {
     setActiveForm((current) =>
@@ -324,15 +497,31 @@ function AdminDashboard({
     const { type, mode, values } = activeForm;
 
     if (type === "drone") {
+      const payload = {
+        ...values,
+        id: values.id?.trim() || nextId("dr", drones),
+        battery: Number(values.battery ?? 0),
+      };
+
       if (mode === "create") {
-        const id = values.id?.trim() || nextId("dr", drones);
-        setDrones([...drones, { ...values, id }]);
+        setDrones([...drones, payload]);
+        const saved = onCreateDrone ? await onCreateDrone(payload) : null;
+        if (saved?.id && saved.id !== payload.id) {
+          setDrones((prev) =>
+            prev.map((drone) =>
+              drone.id === payload.id ? { ...drone, ...saved } : drone
+            )
+          );
+        }
       } else {
         setDrones(
           drones.map((drone) =>
-            drone.id === values.id ? { ...drone, ...values } : drone
+            drone.id === values.id ? { ...drone, ...payload } : drone
           )
         );
+        if (onUpdateDrone) {
+          await onUpdateDrone(payload);
+        }
       }
     }
 
@@ -353,8 +542,19 @@ function AdminDashboard({
     }
 
     if (type === "order") {
-      const ensuredDroneId = values.droneId || selectDefaultDroneId(drones);
-      const payload = { ...values, droneId: ensuredDroneId };
+      const shouldAssignDrone = isActiveOrderStatus(values.status);
+      const missionLabel = values.destination
+        ? `Giao ${values.destination}`
+        : "Vua nhan don moi";
+      const ensuredDroneId = shouldAssignDrone
+        ? allocateDroneForOrder(values.droneId, values.id, missionLabel)
+        : values.droneId;
+
+      if (shouldAssignDrone && !ensuredDroneId) {
+        return;
+      }
+
+      const payload = { ...values, droneId: ensuredDroneId || values.droneId || "" };
 
       if (mode === "create") {
         const id = payload.id?.trim() || nextId("od", orders);
@@ -399,9 +599,12 @@ function AdminDashboard({
     handleCloseForm();
   };
 
-  const handleDelete = (type, id) => {
+  const handleDelete = async (type, id) => {
     if (type === "drone") {
       setDrones(drones.filter((drone) => drone.id !== id));
+      if (onDeleteDrone) {
+        await onDeleteDrone(id);
+      }
     }
     if (type === "customer") {
       setCustomers(customers.filter((customer) => customer.id !== id));
@@ -420,22 +623,37 @@ function AdminDashboard({
   };
 
   const handleOrderDelivered = (orderId) => {
+    let completedOrder;
     setOrders((current) => {
-      let updatedOrder;
       const nextOrders = current.map((order) => {
         if (order.id === orderId) {
-          updatedOrder = { ...order, status: "Hoàn tất" };
-          return updatedOrder;
+          completedOrder = { ...order, status: "Hoan tat" };
+          return completedOrder;
         }
         return order;
       });
 
-      if (updatedOrder && onUpdateOrder) {
-        onUpdateOrder(updatedOrder);
+      if (completedOrder && onUpdateOrder) {
+        onUpdateOrder(completedOrder);
       }
 
       return nextOrders;
     });
+
+    if (completedOrder?.droneId) {
+      setDrones((prev) =>
+        prev.map((drone) => {
+          if (drone.id !== completedOrder.droneId) return drone;
+          const nextStatus =
+            drone.battery >= MIN_BATTERY_FOR_MISSION ? "San sang" : "Can sac";
+          return {
+            ...drone,
+            status: nextStatus,
+            lastMission: `Hoan tat don ${orderId}`,
+          };
+        })
+      );
+    }
   };
 
   const handleToggleRestaurantLock = (restaurantId) => {
@@ -586,6 +804,7 @@ function AdminDashboard({
           emptyMessage={emptyMessage}
           formatCurrency={formatCurrency}
           onOrderDelivered={handleOrderDelivered}
+          onAddDrone={() => handleOpenForm("drone", "create")}
         />
       )}
       </main>
@@ -599,8 +818,30 @@ function AdminDashboard({
         customerTiers={CUSTOMER_TIERS}
         statusOptions={STATUS_OPTIONS}
       />
+
+      {droneShortage && (
+        <div className="shortage-overlay" role="alertdialog" aria-modal="true">
+          <div className="shortage-card">
+            <h4>{droneShortage.title || "Khong du drone kha dung"}</h4>
+            <p>
+              {droneShortage.message ||
+                "Het drone kha dung. Vui long them drone moi hoac sac drone (pin >= 15%) truoc khi giao don."}
+            </p>
+            <div className="shortage-actions">
+              <button type="button" onClick={handleDismissShortage}>
+                Dong
+              </button>
+              <button type="button" className="primary" onClick={handleAddDroneFromShortage}>
+                Them drone
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 export default AdminDashboard;
+
+

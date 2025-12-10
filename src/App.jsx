@@ -27,11 +27,15 @@ import {
   deleteOrder,
   deleteRestaurant,
   fetchAllData,
+  fetchDrones,
   fetchOrders,
   fetchUsers,
   updateMenuItem,
   updateOrder,
   updateRestaurant,
+  createDrone,
+  updateDrone,
+  deleteDrone,
 } from "./api/client";
 
 
@@ -115,6 +119,12 @@ const DEFAULT_USERS = [
 
 const RESTAURANT_DEFAULT_PASSWORD = "fco123";
 
+const DEFAULT_ADMIN_DRONES = [
+  { id: "dr-01", name: "Aquila X1", status: "Dang hoat dong", battery: 82, lastMission: "Giao ca phe quan 1" },
+  { id: "dr-02", name: "Falcon V2", status: "Dang bao tri", battery: 45, lastMission: "Dang kiem tra cam bien" },
+  { id: "dr-03", name: "Orion S", status: "San sang", battery: 98, lastMission: "Cho nhiem vu" },
+];
+
 const normalizeEmail = (email = "") => email.trim().toLowerCase();
 const normalizePhone = (phone = "") => phone.replace(/\D/g, "");
 
@@ -143,6 +153,18 @@ const mergeUsersByEmail = (users = []) => {
   });
 
   return Array.from(byEmail.values());
+};
+
+const normalizeDrone = (drone = {}) => {
+  const id = String(drone.id || drone.code || `dr-${Date.now()}`);
+  const battery = Number(drone.battery ?? 100);
+  return {
+    id,
+    name: drone.name || `Drone ${id}`,
+    status: drone.status || "San sang",
+    battery: Number.isFinite(battery) ? battery : 100,
+    lastMission: drone.lastMission || "",
+  };
 };
 
 const nextRestaurantEmail = (existingUsers = []) => {
@@ -340,6 +362,7 @@ function App() {
   const [recentReceipt, setRecentReceipt] = useState(null);
   const [orderHistory, setOrderHistory] = useState([]);
   const [adminOrders, setAdminOrders] = useState([]);
+  const [adminDrones, setAdminDrones] = useState(DEFAULT_ADMIN_DRONES);
 
   const menuRestaurantIndex = useMemo(
     () => buildMenuRestaurantIndex(restaurantList),
@@ -500,6 +523,14 @@ function App() {
         if (Array.isArray(data.orders)) {
           setAdminOrders(data.orders);
           setOrderHistory(data.orders);
+        }
+
+        if (Array.isArray(data.drones)) {
+          const normalizedDrones =
+            data.drones.length > 0
+              ? data.drones.map((drone) => normalizeDrone(drone))
+              : DEFAULT_ADMIN_DRONES;
+          setAdminDrones(normalizedDrones);
         }
 
         if (Array.isArray(data.users) && data.users.length > 0) {
@@ -1214,6 +1245,72 @@ function App() {
     }
   };
 
+  const upsertDroneState = (drone) => {
+    if (!drone) return;
+    const normalized = normalizeDrone(drone);
+    setAdminDrones((prev) => {
+      const exists = prev.some((entry) => entry.id === normalized.id);
+      return exists
+        ? prev.map((entry) =>
+            entry.id === normalized.id ? { ...entry, ...normalized } : entry
+          )
+        : [...prev, normalized];
+    });
+  };
+
+  const syncCreatedDrone = async (drone) => {
+    if (!drone) return null;
+    const tempId = drone.id || `dr-${Date.now()}`;
+    const normalizedDraft = normalizeDrone({ ...drone, id: tempId });
+    upsertDroneState(normalizedDraft);
+
+    try {
+      const saved = await createDrone(normalizedDraft);
+      const normalizedSaved = saved ? normalizeDrone(saved) : normalizedDraft;
+      setAdminDrones((prev) =>
+        prev.map((entry) =>
+          entry.id === tempId ? { ...entry, ...normalizedSaved } : entry
+        )
+      );
+      return normalizedSaved;
+    } catch (error) {
+      console.error("Không thể tạo drone trên json-server", error);
+    }
+
+    return null;
+  };
+
+  const syncUpdatedDrone = async (drone) => {
+    if (!drone?.id) return null;
+
+    const normalized = normalizeDrone(drone);
+    upsertDroneState(normalized);
+
+    try {
+      const saved = await updateDrone(normalized.id, normalized);
+      if (saved) {
+        const normalizedSaved = normalizeDrone(saved);
+        upsertDroneState(normalizedSaved);
+        return normalizedSaved;
+      }
+    } catch (error) {
+      console.error("Không thể cập nhật drone trên json-server", error);
+    }
+
+    return null;
+  };
+
+  const syncDeletedDrone = async (droneId) => {
+    if (!droneId) return;
+    setAdminDrones((prev) => prev.filter((entry) => entry.id !== droneId));
+
+    try {
+      await deleteDrone(droneId);
+    } catch (error) {
+      console.error("Không thể xóa drone trên json-server", error);
+    }
+  };
+
   const upsertOrderState = (order) => {
     if (!order) return;
 
@@ -1878,7 +1975,20 @@ function App() {
       }
     };
 
+    const reloadDrones = async () => {
+      try {
+        const drones = await fetchDrones();
+        if (!active || !Array.isArray(drones)) return;
+        setAdminDrones(
+          drones.length > 0 ? drones.map((drone) => normalizeDrone(drone)) : DEFAULT_ADMIN_DRONES
+        );
+      } catch (error) {
+        console.error("Không thể tải danh sách drone", error);
+      }
+    };
+
     reloadOrders();
+    reloadDrones();
 
     return () => {
       active = false;
@@ -2191,11 +2301,15 @@ function App() {
         orders={adminOrders}
         restaurants={restaurantList}
         customers={customerProfiles}
+        drones={adminDrones}
         onUpdateOrder={syncUpdatedOrder}
         onDeleteOrder={syncDeletedOrder}
         onCreateRestaurant={syncCreatedRestaurant}
         onUpdateRestaurant={syncUpdatedRestaurant}
         onDeleteRestaurant={syncDeletedRestaurant}
+        onCreateDrone={syncCreatedDrone}
+        onUpdateDrone={syncUpdatedDrone}
+        onDeleteDrone={syncDeletedDrone}
       />
     );
   }

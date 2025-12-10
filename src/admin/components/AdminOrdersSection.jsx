@@ -27,6 +27,7 @@ function AdminOrdersSection({
   emptyMessage,
   formatCurrency,
   onOrderDelivered,
+  onAddDrone,
 }) {
   const [expandedOrderId, setExpandedOrderId] = useState(null);
   const [progressMap, setProgressMap] = useState({});
@@ -91,7 +92,22 @@ function AdminOrdersSection({
                       <td>{order.id}</td>
                       <td>{order.customer}</td>
                       <td>{order.destination}</td>
-                      <td>{order.droneId}</td>
+                      <td>
+                        {order.droneId ? (
+                          order.droneId
+                        ) : (
+                          <button
+                            type="button"
+                            className="pill-button danger"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onAddDrone?.();
+                            }}
+                          >
+                            Them drone
+                          </button>
+                        )}
+                      </td>
                       <td>{formatCurrency(order.total)}</td>
                       <td>
                         <span className={`status-pill ${statusClassName(order.status)}`}>

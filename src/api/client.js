@@ -20,15 +20,16 @@ export const fetchCollection = async (collection) => {
 };
 
 export const fetchAllData = async () => {
-  const [categories, menuItems, restaurants, orders, users] = await Promise.all([
+  const [categories, menuItems, restaurants, orders, users, drones] = await Promise.all([
     fetchCollection("categories"),
     fetchCollection("menuItems"),
     fetchCollection("restaurants"),
     fetchCollection("orders"),
     fetchCollection("users"),
+    fetchCollection("drones"),
   ]);
 
-  return { categories, menuItems, restaurants, orders, users };
+  return { categories, menuItems, restaurants, orders, users, drones };
 };
 
 const postJSON = async (collection, payload) => {
@@ -135,3 +136,33 @@ export const deleteRestaurant = async (id) => {
 export const fetchUsers = async () => fetchCollection("users");
 
 export const createUser = async (payload) => postJSON("users", payload);
+
+export const fetchDrones = async () => fetchCollection("drones");
+
+export const createDrone = async (payload) => postJSON("drones", payload);
+
+export const updateDrone = async (id, payload) => {
+  const url = `${API_BASE}/drones/${id}`;
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.status}`);
+  }
+
+  return parseJSON(response);
+};
+
+export const deleteDrone = async (id) => {
+  const url = `${API_BASE}/drones/${id}`;
+  const response = await fetch(url, { method: "DELETE" });
+
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.status}`);
+  }
+
+  return true;
+};

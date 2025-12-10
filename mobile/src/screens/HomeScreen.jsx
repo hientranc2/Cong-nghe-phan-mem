@@ -9,7 +9,7 @@ import MenuScreen from "./MenuScreen.jsx";
 import RestaurantsScreen from "./RestaurantsScreen.jsx";
 import MoreScreen from "./MoreScreen.jsx";
 import ProductDetailModal from "../components/product/ProductDetailModal.jsx";
-import CartSuccessModal from "../components/feedback/CartSuccessModal.jsx";
+import CartSuccessModal from "../components/feedback/CartSuccessModal";
 import { useCart } from "../context/CartContext.jsx";
 import OrdersScreen from "../features/orders/screens/OrdersScreen.jsx";
 
@@ -278,3 +278,4 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
+

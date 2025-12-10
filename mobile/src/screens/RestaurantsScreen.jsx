@@ -13,7 +13,7 @@ import {
 
 import { fetchCollection } from "../utils/api";
 import ProductDetailModal from "../components/product/ProductDetailModal.jsx";
-import CartSuccessModal from "../components/feedback/CartSuccessModal.jsx";
+import CartSuccessModal from "../components/feedback/CartSuccessModal";
 import { useCart } from "../context/CartContext.jsx";
 import { resolveImageSource } from "../utils/image";
 
@@ -839,3 +839,4 @@ const styles = StyleSheet.create({
 });
 
 export default RestaurantsScreen;
+
