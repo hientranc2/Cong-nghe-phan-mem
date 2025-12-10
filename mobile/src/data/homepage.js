@@ -1,7 +1,6 @@
 import burgerBlaze from "../assets/burger.jpg";
 import lavaCheesePizza from "../assets/pizzaphomai.jpg";
 import tacoFiesta from "../assets/tacos.jpg";
-import blaze from "../assets/blaze.jpg";
 export const heroBackground =
   "https://images.unsplash.com/photo-1550317138-10000687a72b?auto=format&fit=crop&w=1600&q=80";
 

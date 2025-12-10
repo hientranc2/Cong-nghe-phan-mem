@@ -14,6 +14,8 @@ import veggieMedley from "../assets/raucu.jpg";
 import tempuraShrimp from "../assets/tomchien.jpg";
 import peachTea from "../assets/tradao.jpg";
 import miso from "../assets/miso.jpg";
+import garancayblaze from "../assets/garancayblaze.jpg";
+import garancay from "../assets/garancay.jpg";
 
 export const menuCategories = [
   {
@@ -71,6 +73,7 @@ export const menuItems = [
       "Patty đậu gà, rau củ nướng và sốt miso ngọt mặn dành cho thực khách eat clean.",
     price: 72000,
     image: miso,
+    gallery: [garancayblaze],
   },
   {
     id: "fco-burger-double",
@@ -79,6 +82,7 @@ export const menuItems = [
     description: "Hai lớp bò smash, phô mai cheddar đôi và sốt tỏi nướng.",
     price: 89000,
     image: doubleCheese,
+    gallery: [garancay, burgerBlaze],
   },
   {
     id: "fco-pizza-lava",

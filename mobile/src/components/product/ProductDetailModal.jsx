@@ -8,28 +8,65 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
+  Dimensions,
 } from "react-native";
 
 import { resolveImageSource } from "../../utils/image";
 
 const formatCurrency = (value) => {
-  if (typeof value !== "number") {
-    return "--";
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return '--';
   }
 
   try {
-    return `${new Intl.NumberFormat("vi-VN").format(value)} đ`;
-  } catch (error) {
-    return `${value} đ`;
+    const formatted = new Intl.NumberFormat('vi-VN').format(value);
+    return formatted + ' đ';
+  } catch (err) {
+    return String(value) + ' đ';
   }
 };
 
+
+
 const ProductDetailModal = ({ product, visible, onClose, onAddToCart }) => {
   const [quantity, setQuantity] = useState(1);
+  const [activeImage, setActiveImage] = useState(0);
+
+  const imageSources = useMemo(() => {
+    const collected = [];
+    const addImage = (value) => {
+      if (!value) return;
+      if (!collected.includes(value)) {
+        collected.push(value);
+      }
+    };
+
+    addImage(product?.image);
+
+    if (Array.isArray(product?.gallery)) {
+      product.gallery.forEach(addImage);
+    }
+
+    if (Array.isArray(product?.images)) {
+      product.images.forEach(addImage);
+    }
+
+    if (product?.secondaryImage) {
+      addImage(product.secondaryImage);
+    }
+
+    // Nếu chưa có ảnh thứ hai, nhân bản ảnh đầu để người dùng vẫn có thể vuốt
+    if (collected.length === 1) {
+      collected.push(collected[0]);
+    }
+
+    return collected;
+  }, [product]);
 
   useEffect(() => {
     if (visible) {
       setQuantity(1);
+      setActiveImage(0);
     }
   }, [visible, product?.id]);
 
@@ -59,6 +96,8 @@ const ProductDetailModal = ({ product, visible, onClose, onAddToCart }) => {
     onAddToCart?.(product, quantity);
   };
 
+  const slideWidth = useMemo(() => Dimensions.get("window").width - 40, []);
+
   if (!product) {
     return null;
   }
@@ -85,12 +124,49 @@ const ProductDetailModal = ({ product, visible, onClose, onAddToCart }) => {
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.heroWrapper}>
-              <View style={styles.heroImageContainer}>
-                <Image
-                  source={resolveImageSource(product.image)}
-                  style={styles.heroImage}
-                />
-              </View>
+              <ScrollView
+                horizontal
+                pagingEnabled
+                decelerationRate="fast"
+                snapToAlignment="center"
+                snapToInterval={slideWidth}
+                showsHorizontalScrollIndicator={false}
+                style={[styles.heroCarousel, { width: slideWidth }]}
+                onMomentumScrollEnd={(event) => {
+                  const { contentOffset, layoutMeasurement } = event.nativeEvent;
+                  if (layoutMeasurement?.width) {
+                    const index = Math.round(contentOffset.x / layoutMeasurement.width);
+                    setActiveImage(index);
+                  }
+                }}
+              >
+                {(imageSources.length > 0 ? imageSources : [product.image]).map(
+                  (img, index) => (
+                    <View
+                      style={[styles.heroImageContainer, { width: slideWidth }]}
+                      key={index}
+                    >
+                      <Image
+                        source={resolveImageSource(img)}
+                        style={styles.heroImage}
+                      />
+                    </View>
+                  )
+                )}
+              </ScrollView>
+              {imageSources.length > 1 ? (
+                <View style={styles.dots}>
+                  {imageSources.map((_, index) => (
+                    <View
+                      key={index}
+                      style={[
+                        styles.dot,
+                        activeImage === index && styles.dotActive,
+                      ]}
+                    />
+                  ))}
+                </View>
+              ) : null}
               {product.tag ? (
                 <View style={styles.tagChip}>
                   <Text style={styles.tagText}>{product.tag}</Text>
@@ -197,8 +273,10 @@ const styles = StyleSheet.create({
     position: "relative",
     backgroundColor: "#fff6ed",
   },
-  heroImageContainer: {
+  heroCarousel: {
     width: "100%",
+  },
+  heroImageContainer: {
     aspectRatio: 1.2,
     alignItems: "center",
     justifyContent: "center",
@@ -206,8 +284,26 @@ const styles = StyleSheet.create({
   },
   heroImage: {
     width: "100%",
-     height: "100%",
+    height: "100%",
     resizeMode: "contain",
+  },
+  dots: {
+    position: "absolute",
+    bottom: 12,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 8,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "rgba(255, 255, 255, 0.55)",
+  },
+  dotActive: {
+    backgroundColor: "#ff5a1f",
   },
   tagChip: {
     position: "absolute",

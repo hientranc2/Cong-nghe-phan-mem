@@ -964,5 +964,62 @@
       "restaurantSlug": "lala"
     }
   ],
-  "orders": []
+  "orders": [
+    {
+      "id": "ORD-20251210-1765382451727",
+      "status": "Chờ xác nhận",
+      "total": 89000,
+      "itemsCount": 1,
+      "source": "mobile",
+      "userId": "user-1764186919459",
+      "createdAt": "2025-12-10T16:00:51.727Z",
+      "estimatedDelivery": "2025-12-10T16:45:51.727Z",
+      "paymentMethod": "Thanh toán khi nhận hàng",
+      "paymentDescription": "Thanh toán tiền mặt hoặc quẹt thẻ khi giao món",
+      "subtotal": 89000,
+      "customer": {
+        "id": "user-1764186919459",
+        "name": "Terry Trần",
+        "phone": "0909004747",
+        "email": "terry@gmail.com"
+      },
+      "address": "176 nguyễn thị thập",
+      "items": [
+        {
+          "id": "fco-taco-fiesta",
+          "name": "Taco Fiesta",
+          "price": 89000,
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "id": "ORD-20251210-1765382504588",
+      "status": "Chờ xác nhận",
+      "total": 69000,
+      "itemsCount": 1,
+      "source": "mobile",
+      "userId": "user-1764186919459",
+      "createdAt": "2025-12-10T16:01:44.588Z",
+      "estimatedDelivery": "2025-12-10T16:46:44.588Z",
+      "paymentMethod": "Thanh toán khi nhận hàng",
+      "paymentDescription": "Thanh toán tiền mặt hoặc quẹt thẻ khi giao món",
+      "subtotal": 69000,
+      "customer": {
+        "id": "user-1764186919459",
+        "name": "Terry Trần",
+        "phone": "0909004747",
+        "email": "terry@gmail.com"
+      },
+      "address": "275 an duong vuong",
+      "items": [
+        {
+          "id": "fco-burger-blaze",
+          "name": "Burger Blaze Bò Mỹ",
+          "price": 69000,
+          "quantity": 1
+        }
+      ]
+    }
+  ]
 }
