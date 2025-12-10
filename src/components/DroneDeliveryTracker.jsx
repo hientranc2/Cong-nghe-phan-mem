@@ -112,6 +112,7 @@ function DroneDeliveryTracker({
   const loadedProgressRef = useRef(0);
   const [trackPoints, setTrackPoints] = useState([]);
   const timestamp = useMemo(() => parseDate(lastUpdate), [lastUpdate]);
+  const positionProgress = progress;
 
   useEffect(() => {
     const normalizedInitial = clamp(initialProgress ?? 0.01, 0.01, 0.995); // keep min 1% for visibility but allow existing progress
@@ -243,7 +244,6 @@ function DroneDeliveryTracker({
 
   // Hiển thị tiến độ theo quãng đường thực đã bay; vị trí vẫn chạy theo progress để drone di chuyển mượt.
   const displayProgress = Math.max(distanceProgress, progress, 0.01);
-  const positionProgress = progress;
 
   const droneCoords = useMemo(() => {
     const start = originLocation.coords ?? DEFAULT_ORIGIN_COORDS;

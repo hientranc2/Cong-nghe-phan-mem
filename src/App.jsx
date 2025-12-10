@@ -719,7 +719,13 @@ function App() {
 
   const deriveRestaurantFromItems = useCallback(
     (items = []) => {
-      const restaurantIds = items
+       const normalizedItems = Array.isArray(items)
+        ? items
+        : typeof items === "object" && items !== null
+          ? Object.values(items)
+          : [];
+
+      const restaurantIds = normalizedItems
         .map((item) => item?.restaurantId ?? menuRestaurantIndex.get(item?.id)?.id)
         .filter(Boolean);
 
@@ -735,7 +741,7 @@ function App() {
       }
 
       const restaurant = restaurantById.get(firstId) ?? null;
-      const fallbackItem = items.find(
+      const fallbackItem = normalizedItems.find(
         (item) => (item?.restaurantId ?? null) === firstId
       );
 
@@ -1003,7 +1009,15 @@ function App() {
         ? prev.map((entry) => (entry.id === order.id ? { ...entry, ...order } : entry))
         : [order, ...prev];
     });
+  setPendingOrder((prev) => {
+      if (!prev || prev.id !== order.id) return prev;
+      return { ...prev, ...order };
+    });
 
+    setRecentReceipt((prev) => {
+      if (!prev || prev.id !== order.id) return prev;
+      return { ...prev, ...order };
+    });
     setOrderHistory((prev) => {
       if (!order?.id) return prev;
       const exists = prev.some((entry) => entry.id === order.id);
