@@ -1,34 +1,63 @@
-import React, { useEffect } from "react";
-import { Modal, StyleSheet, Text, View } from "react-native";
+import React, { useCallback, useEffect } from "react";
+import {
+  Modal,
+  StyleSheet,
+  Text,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 
 const AUTO_DISMISS_DURATION = 1600;
 
-const CartSuccessModal = ({ visible, productName, quantity, onDismiss }) => {
+const CartSuccessModal = ({
+  visible,
+  productName,
+  quantity,
+  onDismiss,
+  onClose,
+}) => {
+  const handleDismiss = useCallback(() => {
+    if (typeof onDismiss === "function") {
+      onDismiss();
+    } else if (typeof onClose === "function") {
+      onClose();
+    }
+  }, [onClose, onDismiss]);
+
   useEffect(() => {
     if (!visible) {
       return undefined;
     }
 
     const timeout = setTimeout(() => {
-      onDismiss?.();
+      handleDismiss();
     }, AUTO_DISMISS_DURATION);
 
     return () => clearTimeout(timeout);
-  }, [visible, onDismiss]);
+  }, [visible, handleDismiss]);
 
   return (
-    <Modal visible={visible} animationType="fade" transparent>
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          <View style={styles.iconWrapper}>
-            <Text style={styles.icon}>✔</Text>
-          </View>
-          <Text style={styles.title}>Đã thêm vào giỏ hàng</Text>
-          <Text style={styles.message}>
-            {quantity} x {productName ?? "Món ăn"}
-          </Text>
+    <Modal
+      visible={visible}
+      animationType="fade"
+      transparent
+      onRequestClose={handleDismiss}
+    >
+      <TouchableWithoutFeedback onPress={handleDismiss}>
+        <View style={styles.overlay}>
+          <TouchableWithoutFeedback>
+            <View style={styles.container}>
+              <View style={styles.iconWrapper}>
+                <Text style={styles.icon}>✓</Text>
+              </View>
+              <Text style={styles.title}>Đã thêm vào giỏ hàng</Text>
+              <Text style={styles.message}>
+                {quantity} x {productName ?? "Món ăn"}
+              </Text>
+            </View>
+          </TouchableWithoutFeedback>
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };

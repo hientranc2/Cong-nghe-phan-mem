@@ -966,57 +966,57 @@
   ],
   "orders": [
     {
-      "id": "ORD-20251210-1765382451727",
-      "status": "Chờ xác nhận",
-      "total": 89000,
+      "id": "ORD-20251211-1765387361825",
+      "status": "Hoàn tất",
+      "total": 46000,
       "itemsCount": 1,
       "source": "mobile",
       "userId": "user-1764186919459",
-      "createdAt": "2025-12-10T16:00:51.727Z",
-      "estimatedDelivery": "2025-12-10T16:45:51.727Z",
+      "createdAt": "2025-12-10T17:22:41.825Z",
+      "estimatedDelivery": "2025-12-10T18:07:41.825Z",
       "paymentMethod": "Thanh toán khi nhận hàng",
       "paymentDescription": "Thanh toán tiền mặt hoặc quẹt thẻ khi giao món",
-      "subtotal": 89000,
+      "subtotal": 46000,
       "customer": {
         "id": "user-1764186919459",
         "name": "Terry Trần",
         "phone": "0909004747",
         "email": "terry@gmail.com"
       },
-      "address": "176 nguyễn thị thập",
+      "address": "273 lý thường kiệt",
       "items": [
         {
-          "id": "fco-taco-fiesta",
-          "name": "Taco Fiesta",
-          "price": 89000,
+          "id": "fco-berry-soda",
+          "name": "Berry Soda Signature",
+          "price": 46000,
           "quantity": 1
         }
       ]
     },
     {
-      "id": "ORD-20251210-1765382504588",
-      "status": "Chờ xác nhận",
-      "total": 69000,
+      "id": "ORD-20251211-1765387748721",
+      "status": "Hoàn tất",
+      "total": 92000,
       "itemsCount": 1,
       "source": "mobile",
       "userId": "user-1764186919459",
-      "createdAt": "2025-12-10T16:01:44.588Z",
-      "estimatedDelivery": "2025-12-10T16:46:44.588Z",
+      "createdAt": "2025-12-10T17:29:08.721Z",
+      "estimatedDelivery": "2025-12-10T18:14:08.721Z",
       "paymentMethod": "Thanh toán khi nhận hàng",
       "paymentDescription": "Thanh toán tiền mặt hoặc quẹt thẻ khi giao món",
-      "subtotal": 69000,
+      "subtotal": 92000,
       "customer": {
         "id": "user-1764186919459",
         "name": "Terry Trần",
         "phone": "0909004747",
         "email": "terry@gmail.com"
       },
-      "address": "275 an duong vuong",
+      "address": "273 lý thường kiệt quận 10 thành phố hồ chí minh",
       "items": [
         {
-          "id": "fco-burger-blaze",
-          "name": "Burger Blaze Bò Mỹ",
-          "price": 69000,
+          "id": "fco-taco-fiesta",
+          "name": "Taco Fiesta Mexico",
+          "price": 92000,
           "quantity": 1
         }
       ]
