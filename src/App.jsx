@@ -646,14 +646,47 @@ function App() {
       return orderEmail === customerEmail;
     });
 
-    return filtered
+    const enriched = filtered.map((order) => {
+      const derivedRestaurant = deriveRestaurantFromItems(order.items ?? []);
+      const restaurantRecord =
+        (order.restaurantId && restaurantById.get(order.restaurantId)) ||
+        (derivedRestaurant.restaurantId &&
+          restaurantById.get(derivedRestaurant.restaurantId)) ||
+        null;
+
+      const restaurantId =
+        order.restaurantId ?? restaurantRecord?.id ?? derivedRestaurant.restaurantId;
+      const restaurantSlug =
+        order.restaurantSlug ??
+        restaurantRecord?.slug ??
+        derivedRestaurant.restaurantSlug;
+      const restaurantName =
+        order.restaurantName ??
+        restaurantRecord?.name ??
+        derivedRestaurant.restaurantName;
+      const restaurantAddress =
+        order.restaurantAddress ??
+        restaurantRecord?.address ??
+        restaurantRecord?.city ??
+        derivedRestaurant.restaurantAddress;
+
+      return {
+        ...order,
+        restaurantId,
+        restaurantSlug,
+        restaurantName,
+        restaurantAddress,
+      };
+    });
+
+    return enriched
       .slice()
       .sort((a, b) => {
         const aTime = new Date(a.confirmedAt ?? a.createdAt ?? 0).getTime();
         const bTime = new Date(b.confirmedAt ?? b.createdAt ?? 0).getTime();
         return bTime - aTime;
       });
-  }, [currentUser, orderHistory]);
+  }, [currentUser, orderHistory, deriveRestaurantFromItems, restaurantById]);
     const activeCustomerOrdersCount = useMemo(() => {
     if (customerOrders.length === 0) {
       return 0;
@@ -749,7 +782,7 @@ function App() {
 
   const deriveRestaurantFromItems = useCallback(
     (items = []) => {
-       const normalizedItems = Array.isArray(items)
+      const normalizedItems = Array.isArray(items)
         ? items
         : typeof items === "object" && items !== null
           ? Object.values(items)
@@ -775,10 +808,18 @@ function App() {
         (item) => (item?.restaurantId ?? null) === firstId
       );
 
+      const restaurantAddress =
+        restaurant?.address ??
+        restaurant?.city ??
+        fallbackItem?.restaurantAddress ??
+        fallbackItem?.restaurantCity ??
+        null;
+
       return {
         restaurantId: firstId,
         restaurantSlug: restaurant?.slug ?? fallbackItem?.restaurantSlug ?? null,
         restaurantName: restaurant?.name ?? fallbackItem?.restaurantName ?? null,
+        restaurantAddress,
       };
     },
     [menuRestaurantIndex, restaurantById]
