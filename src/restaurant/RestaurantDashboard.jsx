@@ -250,7 +250,6 @@ function RestaurantDashboard({
   onDeleteMenuItem,
   onCreateOrder,
   onUpdateOrder,
-  onDeleteOrder,
 }) {
   const categoryLabelById = useMemo(() => {
     const map = new Map();
@@ -396,7 +395,8 @@ function RestaurantDashboard({
       "Theo dõi trạng thái các đơn hàng gần đây tương tự bảng điều khiển admin.",
     empty: texts.orders?.empty ?? "Hiện chưa có đơn hàng nào.",
     addButton: texts.orders?.addButton ?? "Thêm đơn",
-    confirmDelete: texts.orders?.confirmDelete ?? "Bạn có chắc muốn xóa đơn hàng này?",
+    confirmCancel:
+      texts.orders?.confirmCancel ?? "Bạn có chắc muốn hủy đơn hàng này?",
     columns: {
       id: texts.orders?.columns?.id ?? "Mã đơn",
       customer: texts.orders?.columns?.customer ?? "Khách hàng",
@@ -407,7 +407,8 @@ function RestaurantDashboard({
     },
     actions: {
       edit: texts.orders?.actions?.edit ?? "Sửa",
-      delete: texts.orders?.actions?.delete ?? "Xóa",
+      accept: texts.orders?.actions?.accept ?? "Nhận đơn",
+      cancel: texts.orders?.actions?.cancel ?? "Hủy đơn", 
     },
     actionsLabel: texts.orders?.actionsLabel ?? "Hành động",
     form: {
@@ -731,19 +732,34 @@ function RestaurantDashboard({
     handleCancelOrderForm();
   };
 
-  const handleDeleteOrder = (order) => {
-    const message = ordersTexts.confirmDelete ?? "Bạn có chắc muốn xóa đơn hàng này?";
-    const shouldDelete = typeof window === "undefined" ? true : window.confirm(message);
-    if (!shouldDelete) {
+  const updateOrderStatus = (order, nextStatus) => {
+    setOrders((prevOrders) =>
+      prevOrders.map((item) =>
+        item.id === order.id ? { ...item, status: nextStatus } : item
+      )
+    );
+
+    onUpdateOrder?.({ ...order, status: nextStatus });
+
+    if (editingOrderId === order.id) {
+      setOrderForm((prev) => ({ ...prev, status: nextStatus }));
+    }
+  };
+
+  const handleAcceptOrder = (order) => {
+    updateOrderStatus(order, "Chuẩn bị");
+  };
+
+  const handleCancelOrder = (order) => {
+    const message =
+      ordersTexts.confirmCancel ?? "Bạn có chắc muốn hủy đơn hàng này?";
+    const shouldCancel =
+      typeof window === "undefined" ? true : window.confirm(message);
+    if (!shouldCancel) {
       return;
     }
 
-    setOrders((prevOrders) => prevOrders.filter((item) => item.id !== order.id));
-    onDeleteOrder?.(order.id);
-
-    if (editingOrderId === order.id) {
-      handleCancelOrderForm();
-    }
+    updateOrderStatus(order, "Đã hủy");
   };
 
   const statusBadgeClass = (status) => {
@@ -818,7 +834,8 @@ function RestaurantDashboard({
             onSubmit={handleSubmitOrder}
             onCancel={handleCancelOrderForm}
             onEditOrder={handleStartEditOrder}
-            onDeleteOrder={handleDeleteOrder}
+            onAcceptOrder={handleAcceptOrder}
+            onCancelOrder={handleCancelOrder}
             formatCurrency={formatCurrency}
             formatDateTime={formatDateTime}
             statusBadgeClass={statusBadgeClass}

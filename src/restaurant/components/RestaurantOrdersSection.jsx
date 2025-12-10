@@ -8,7 +8,8 @@ function RestaurantOrdersSection({
   onSubmit,
   onCancel,
   onEditOrder,
-  onDeleteOrder,
+  onAcceptOrder,
+  onCancelOrder,
   formatCurrency,
   formatDateTime,
   statusBadgeClass,
@@ -155,16 +156,42 @@ function RestaurantOrdersSection({
                   >
                     {texts.actions.edit}
                   </button>
-                  <button
-                    type="button"
-                    className="link-button link-button--danger"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      onDeleteOrder?.(order);
-                    }}
-                  >
-                    {texts.actions.delete}
-                  </button>
+                  {(() => {
+                    const normalizedStatus = String(order.status).toLowerCase();
+                    const canAccept = normalizedStatus === "chờ xác nhận";
+                    const canCancel =
+                      normalizedStatus !== "đã hoàn tất" &&
+                      normalizedStatus !== "đã hủy";
+
+                    return (
+                      <>
+                        {canAccept && (
+                          <button
+                            type="button"
+                            className="link-button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onAcceptOrder?.(order);
+                            }}
+                          >
+                            {texts.actions.accept}
+                          </button>
+                        )}
+                        {canCancel && (
+                          <button
+                            type="button"
+                            className="link-button link-button--danger"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onCancelOrder?.(order);
+                            }}
+                          >
+                            {texts.actions.cancel}
+                          </button>
+                        )}
+                      </>
+                    );
+                  })()}
                 </span>
               </div>
             ))}

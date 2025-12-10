@@ -20,10 +20,17 @@ const statusClassName = (status) => {
   return slug ? `status-${slug}` : "status-unknown";
 };
 
+const normalizeStatus = (value) =>
+  String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
 function AdminOrdersSection({
   orders,
   onEdit,
-  onDelete,
+  onAcceptOrder,
+  onCancelOrder,
   emptyMessage,
   formatCurrency,
   onOrderDelivered,
@@ -124,16 +131,40 @@ function AdminOrdersSection({
                         >
                           Sửa
                         </button>
-                        <button
-                          type="button"
-                          className="danger"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onDelete?.(order.id);
-                          }}
-                        >
-                          Xóa
-                        </button>
+                        {(() => {
+                          const normalizedStatus = normalizeStatus(order.status);
+                          const awaitingConfirmation = normalizedStatus.includes("cho xac nhan");
+                          const isCompleted = normalizedStatus.includes("hoan tat");
+                          const isCanceled = normalizedStatus.includes("huy");
+
+                          return (
+                            <>
+                              {awaitingConfirmation && (
+                                <button
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    onAcceptOrder?.(order.id);
+                                  }}
+                                >
+                                  Nhận đơn
+                                </button>
+                              )}
+                              {!isCompleted && !isCanceled && (
+                                <button
+                                  type="button"
+                                  className="danger"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    onCancelOrder?.(order.id);
+                                  }}
+                                >
+                                  Hủy đơn
+                                </button>
+                              )}
+                            </>
+                          );
+                        })()}
                       </td>
                     </tr>
                     {isExpanded && (

@@ -125,7 +125,7 @@ const EMPTY_FORMS = {
 
 const STATUS_OPTIONS = {
   drone: ["San sang", "Dang hoat dong", "Dang bao tri", "Tam dung", "Can sac"],
-  order: ["Dang chuan bi", "Dang giao", "Hoan tat", "Tam hoan"],
+  order: ["Cho xac nhan", "Dang chuan bi", "Dang giao", "Hoan tat", "Tam hoan", "Da huy"],
 };
 
 const CUSTOMER_TIERS = ["Tieu chuan", "Bac", "Vang", "Kim cuong"];
@@ -609,10 +609,7 @@ function AdminDashboard({
     if (type === "customer") {
       setCustomers(customers.filter((customer) => customer.id !== id));
     }
-    if (type === "order") {
-      setOrders(orders.filter((order) => order.id !== id));
-      onDeleteOrder?.(id);
-    }
+    
     if (type === "restaurant") {
       if (onDeleteRestaurant) {
         onDeleteRestaurant(id);
@@ -622,12 +619,28 @@ function AdminDashboard({
     }
   };
 
+  const updateOrderStatus = (orderId, nextStatus) => {
+    setOrders((current) => {
+      const targetOrder = current.find((order) => order.id === orderId);
+      if (!targetOrder) return current;
+
+      const updatedOrder = { ...targetOrder, status: nextStatus };
+      const nextOrders = current.map((order) =>
+        order.id === orderId ? updatedOrder : order
+      );
+
+      onUpdateOrder?.(updatedOrder);
+
+      return nextOrders;
+    });
+  };
+
   const handleOrderDelivered = (orderId) => {
     let completedOrder;
     setOrders((current) => {
       const nextOrders = current.map((order) => {
         if (order.id === orderId) {
-          completedOrder = { ...order, status: "Hoan tat" };
+          completedOrder = { ...order, status: "Hoàn tất" };
           return completedOrder;
         }
         return order;
@@ -655,6 +668,22 @@ function AdminDashboard({
       );
     }
   };
+
+  const handleAcceptOrder = (orderId) => {
+    updateOrderStatus(orderId, "Đang chuẩn bị");
+  };
+
+  const handleCancelOrder = (orderId) => {
+    const shouldCancel =
+      typeof window === "undefined"
+        ? true
+        : window.confirm("Bạn có chắc chắn muốn hủy đơn này?");
+
+    if (!shouldCancel) return;
+
+    updateOrderStatus(orderId, "Đã hủy");
+  };
+
 
   const handleToggleRestaurantLock = (restaurantId) => {
     setRestaurants((current) => {
@@ -800,7 +829,8 @@ function AdminDashboard({
         <AdminOrdersSection
           orders={filteredOrders}
           onEdit={(order) => handleOpenForm("order", "edit", order)}
-          onDelete={(id) => handleDelete("order", id)}
+          onAcceptOrder={handleAcceptOrder}
+          onCancelOrder={handleCancelOrder}
           emptyMessage={emptyMessage}
           formatCurrency={formatCurrency}
           onOrderDelivered={handleOrderDelivered}
