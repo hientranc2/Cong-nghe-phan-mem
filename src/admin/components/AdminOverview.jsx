@@ -1,3 +1,5 @@
+import RevenueByRestaurantChart from "./RevenueByRestaurantChart";
+
 function AdminOverview({
   metrics,
   overviewSummary,
@@ -5,6 +7,8 @@ function AdminOverview({
   restaurantRevenue,
   formatCurrency,
   formatDate,
+  restaurants,
+  orders,
 }) {
   const maxRevenue = restaurantRevenue?.length
     ? Math.max(...restaurantRevenue.map((entry) => entry.revenue))
