@@ -1267,6 +1267,7 @@
           "quantity": 1
         }
       ],
+<<<<<<< HEAD
       "subtotal": 69000,
       "shipping": 0,
       "total": 69000,
@@ -1286,6 +1287,122 @@
       },
       "confirmedAt": "2025-12-11T02:46:16.686Z",
       "ownerEmail": "terry@gmail.com"
+=======
+      "destination": "275 an dương vương",
+      "droneId": "dr-01",
+      "restaurantId": null,
+      "restaurantSlug": null,
+      "restaurantName": null
+    },
+    {
+      "id": "ORD-20251211-1765419690967",
+      "status": "Đang chuẩn bị",
+      "total": 119000,
+      "itemsCount": 1,
+      "source": "mobile",
+      "userId": "user-1765418965746",
+      "createdAt": "2025-12-11T02:21:30.967Z",
+      "estimatedDelivery": "2025-12-11T03:06:30.967Z",
+      "paymentMethod": "Thanh toán khi nhận hàng",
+      "paymentDescription": "Thanh toán tiền mặt hoặc quẹt thẻ khi giao món",
+      "subtotal": 119000,
+      "customer": "Hien Tran",
+      "address": "260 an dương vương quận 5 tphcm",
+      "items": [
+        {
+          "id": "fco-pizza-lava",
+          "name": "Pizza Phô Mai Lava",
+          "price": 119000,
+          "quantity": 1
+        }
+      ],
+      "destination": "260 an dương vương quận 5 tphcm",
+      "droneId": "dr-01",
+      "restaurantId": null,
+      "restaurantSlug": null,
+      "restaurantName": null
+    },
+    {
+      "id": "ORD-1765419876937",
+      "items": [
+        {
+          "id": "fco-chicken-crispy",
+          "categoryId": "cat-fried",
+          "name": "Gà Rán Cay Blaze",
+          "description": "Đùi gà tẩm bột cay, chiên áp suất giữ thịt mọng nước.",
+          "price": 78000,
+          "img": "src/assets/blaze.jpg",
+          "image": "src/assets/blaze.jpg",
+          "calories": 640,
+          "time": 12,
+          "tag": "Cay",
+          "isBestSeller": true,
+          "translations": {
+            "vi": {
+              "name": "Gà Rán Cay Blaze",
+              "description": "Đùi gà tẩm bột cay, chiên áp suất giữ thịt mọng nước.",
+              "tag": "Cay"
+            },
+            "en": {
+              "name": "Blaze Spicy Fried Chicken",
+              "description": "Crispy pressure-fried chicken legs coated in a spicy batter.",
+              "tag": "Spicy"
+            }
+          },
+          "restaurantId": "fco-fried-bar",
+          "restaurantSlug": "fried-bar",
+          "restaurantName": "Chicken Fried Bar",
+          "quantity": 1
+        }
+      ],
+      "subtotal": 78000,
+      "shipping": 0,
+      "total": 78000,
+      "note": "",
+      "deliveryOption": "today",
+      "restaurantId": "fco-fried-bar",
+      "restaurantSlug": "fried-bar",
+      "restaurantName": "Chicken Fried Bar",
+      "restaurantAddress": "Quận 3, TP. Hồ Chí Minh",
+      "createdAt": "2025-12-11T02:24:26.797Z",
+      "customer": {
+        "name": "Hien Tran",
+        "phone": "0768666687",
+        "email": "hien@gmail.com",
+        "address": "176 nguyễn thị thập",
+        "paymentMethod": "cash"
+      },
+      "confirmedAt": "2025-12-11T02:24:36.937Z",
+      "ownerEmail": "hien@gmail.com"
+    },
+    {
+      "id": "ORD-20251211-1765421206942",
+      "status": "Đang chuẩn bị",
+      "total": 78000,
+      "itemsCount": 1,
+      "source": "mobile",
+      "userId": "user-1765418965746",
+      "createdAt": "2025-12-11T02:46:46.942Z",
+      "estimatedDelivery": "2025-12-11T03:31:46.942Z",
+      "paymentMethod": "Thanh toán khi nhận hàng",
+      "paymentDescription": "Thanh toán tiền mặt hoặc quẹt thẻ khi giao món",
+      "subtotal": 78000,
+      "customer": {
+        "id": "user-1765418965746",
+        "name": "Hien Tran",
+        "phone": "0768666687",
+        "email": "hien@gmail.com"
+      },
+      "address": "267 an dương vương, Quận 5, TP.HCM",
+      "items": [
+        {
+          "id": "fco-chicken-crispy",
+          "name": "Gà Rán Cay Blaze",
+          "price": 78000,
+          "quantity": 1
+        }
+      ]
+>>>>>>> bdc7f0cf062784579655eac0fe222187c4a081b9
     }
   ],
   "drones": [
