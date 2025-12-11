@@ -791,6 +791,8 @@ function AdminDashboard({
             totalRevenue={totalRevenue}
             formatCurrency={formatCurrency}
             formatDate={formatDate}
+            restaurants={restaurants}
+            orders={orders}
           />
         )}
 

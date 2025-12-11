@@ -1,9 +1,13 @@
+import RevenueByRestaurantChart from "./RevenueByRestaurantChart";
+
 function AdminOverview({
   metrics,
   overviewSummary,
   totalRevenue,
   formatCurrency,
   formatDate,
+  restaurants,
+  orders,
 }) {
   return (
     <>
@@ -65,6 +69,11 @@ function AdminOverview({
           <p className="insight-secondary">Từ tất cả các đơn hàng đang xử lý.</p>
         </article>
       </section>
+      <RevenueByRestaurantChart
+        restaurants={restaurants}
+        orders={orders}
+        formatCurrency={formatCurrency}
+      />
     </>
   );
 }
