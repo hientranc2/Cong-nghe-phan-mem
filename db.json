@@ -962,6 +962,18 @@
       "role": "restaurant",
       "restaurantId": null,
       "restaurantSlug": "lala"
+    },
+    {
+      "id": "user-1765418965746",
+      "name": "Hien Tran",
+      "fullName": "Hien Tran",
+      "email": "hien@gmail.com",
+      "phone": "0768666687",
+      "password": "123123",
+      "role": "customer",
+      "tier": "Tiêu chuẩn",
+      "active": true,
+      "joinedAt": "2025-12-11"
     }
   ],
   "orders": [
@@ -1117,6 +1129,112 @@
       },
       "confirmedAt": "2025-12-11T01:33:29.010Z",
       "ownerEmail": "terry@gmail.com"
+    },
+    {
+      "id": "ORD-1765419047161",
+      "items": [
+        {
+          "id": "fco-burger-blaze",
+          "categoryId": "cat-burger",
+          "name": "Burger Blaze Bò Mỹ",
+          "description": "Bánh burger bò Mỹ nướng than, sốt phô mai cheddar và bacon giòn.",
+          "price": 69000,
+          "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=900&q=80",
+          "image": "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=900&q=80",
+          "calories": 520,
+          "time": 12,
+          "tag": "Best Seller",
+          "isBestSeller": true,
+          "translations": {
+            "vi": {
+              "name": "Burger Blaze Bò Mỹ",
+              "description": "Bánh burger bò Mỹ nướng than, sốt phô mai cheddar và bacon giòn.",
+              "tag": "Best Seller"
+            },
+            "en": {
+              "name": "Blaze Angus Burger",
+              "description": "Char-grilled American beef burger with cheddar cheese sauce and crispy bacon.",
+              "tag": "Best Seller"
+            }
+          },
+          "restaurantId": "fco-burger-artisan",
+          "restaurantSlug": "burger-artisan",
+          "restaurantName": "Burger Artisan House",
+          "quantity": 1
+        }
+      ],
+      "subtotal": 69000,
+      "shipping": 0,
+      "total": 69000,
+      "note": "",
+      "deliveryOption": "today",
+      "restaurantId": "fco-burger-artisan",
+      "restaurantSlug": "burger-artisan",
+      "restaurantName": "Burger Artisan House",
+      "restaurantAddress": "Quận 1, TP. Hồ Chí Minh",
+      "createdAt": "2025-12-11T02:10:35.248Z",
+      "customer": "Hien Tran",
+      "confirmedAt": "2025-12-11T02:10:47.161Z",
+      "ownerEmail": "hien@gmail.com",
+      "destination": "41 truong phuoc phan",
+      "droneId": "dr-01",
+      "status": "Hoàn tất"
+    },
+    {
+      "id": "ORD-20251211-1765419178603",
+      "status": "Hoàn tất",
+      "total": 119000,
+      "itemsCount": 1,
+      "source": "mobile",
+      "userId": "user-1765418965746",
+      "createdAt": "2025-12-11T02:12:58.603Z",
+      "estimatedDelivery": "2025-12-11T02:57:58.603Z",
+      "paymentMethod": "Thanh toán khi nhận hàng",
+      "paymentDescription": "Thanh toán tiền mặt hoặc quẹt thẻ khi giao món",
+      "subtotal": 119000,
+      "customer": "Hien Tran",
+      "address": "275 an dương vương",
+      "items": [
+        {
+          "id": "fco-pizza-lava",
+          "name": "Pizza Phô Mai Lava",
+          "price": 119000,
+          "quantity": 1
+        }
+      ],
+      "destination": "275 an dương vương",
+      "droneId": "dr-01",
+      "restaurantId": null,
+      "restaurantSlug": null,
+      "restaurantName": null
+    },
+    {
+      "id": "ORD-20251211-1765419690967",
+      "status": "Đang chuẩn bị",
+      "total": 119000,
+      "itemsCount": 1,
+      "source": "mobile",
+      "userId": "user-1765418965746",
+      "createdAt": "2025-12-11T02:21:30.967Z",
+      "estimatedDelivery": "2025-12-11T03:06:30.967Z",
+      "paymentMethod": "Thanh toán khi nhận hàng",
+      "paymentDescription": "Thanh toán tiền mặt hoặc quẹt thẻ khi giao món",
+      "subtotal": 119000,
+      "customer": "Hien Tran",
+      "address": "260 an dương vương quận 5 tphcm",
+      "items": [
+        {
+          "id": "fco-pizza-lava",
+          "name": "Pizza Phô Mai Lava",
+          "price": 119000,
+          "quantity": 1
+        }
+      ],
+      "destination": "260 an dương vương quận 5 tphcm",
+      "droneId": "dr-01",
+      "restaurantId": null,
+      "restaurantSlug": null,
+      "restaurantName": null
     }
   ],
   "drones": [
@@ -1140,6 +1258,13 @@
       "status": "San sang",
       "battery": 98,
       "lastMission": "Cho nhiem vu"
+    },
+    {
+      "id": "dr-04",
+      "name": "Hi",
+      "status": "Sẵn sàng",
+      "battery": 100,
+      "lastMission": ""
     }
   ]
 }

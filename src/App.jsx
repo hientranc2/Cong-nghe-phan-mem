@@ -38,6 +38,17 @@ import {
   deleteDrone,
 } from "./api/client";
 
+const normalizeStatusText = (value) =>
+  String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+const isCancelledOrder = (order) => {
+  const text = normalizeStatusText(order?.status);
+  return text.includes("huy") || text.includes("cancel") || Boolean(order?.cancelledAt);
+};
+
 
 const heroBackground =
   "https://images.unsplash.com/photo-1550317138-10000687a72b?auto=format&fit=crop&w=1600&q=80";
@@ -2113,6 +2124,18 @@ function App() {
   const handleTrackOrderFromHistory = (orderId) => {
     const order = customerOrders.find((entry) => entry.id === orderId);
     if (!order) {
+      return;
+    }
+
+    if (isCancelledOrder(order)) {
+      if (typeof window !== "undefined") {
+        window.alert("Đơn đã hủy, không thể theo dõi hành trình đơn này.");
+        try {
+          window.localStorage.removeItem(`drone-progress:${orderId}`);
+        } catch {
+          // ignore storage permission errors
+        }
+      }
       return;
     }
 
