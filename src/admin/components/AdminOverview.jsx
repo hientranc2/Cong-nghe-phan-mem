@@ -2,9 +2,14 @@ function AdminOverview({
   metrics,
   overviewSummary,
   totalRevenue,
+  restaurantRevenue,
   formatCurrency,
   formatDate,
 }) {
+  const maxRevenue = restaurantRevenue?.length
+    ? Math.max(...restaurantRevenue.map((entry) => entry.revenue))
+    : 0;
+
   return (
     <>
       <section className="metrics-grid">
@@ -64,6 +69,52 @@ function AdminOverview({
           <p className="insight-primary">{formatCurrency(totalRevenue)}</p>
           <p className="insight-secondary">Từ tất cả các đơn hàng đang xử lý.</p>
         </article>
+      </section>
+      <section className="revenue-card">
+        <div className="revenue-card__header">
+          <div>
+            <p className="revenue-card__eyebrow">Hiệu suất nhà hàng</p>
+            <h3>Doanh thu theo nhà hàng</h3>
+          </div>
+          <p className="revenue-card__hint">
+            Dữ liệu được tổng hợp từ số đơn và giá trị đơn hàng thực tế.
+          </p>
+        </div>
+        {restaurantRevenue?.length ? (
+          <div className="revenue-chart" role="list">
+            {restaurantRevenue.map((restaurant) => {
+              const percent = maxRevenue
+                ? Math.round((restaurant.revenue / maxRevenue) * 100)
+                : 0;
+              return (
+                <div
+                  key={restaurant.id || restaurant.slug || restaurant.name}
+                  className="revenue-bar"
+                  role="listitem"
+                  aria-label={`${restaurant.name}: ${restaurant.orderCount} đơn, doanh thu ${formatCurrency(
+                    restaurant.revenue
+                  )}`}
+                >
+                  <div className="revenue-bar__label">
+                    <span className="revenue-bar__name">{restaurant.name}</span>
+                    <span className="revenue-bar__orders">{restaurant.orderCount} đơn</span>
+                  </div>
+                  <div className="revenue-bar__track" aria-hidden="true">
+                    <div
+                      className="revenue-bar__fill"
+                      style={{ width: `${percent}%` }}
+                    />
+                  </div>
+                  <div className="revenue-bar__value">
+                    {formatCurrency(restaurant.revenue)}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="insight-empty">Chưa có dữ liệu doanh thu.</p>
+        )}
       </section>
     </>
   );
