@@ -33,10 +33,22 @@ import {
   updateMenuItem,
   updateOrder,
   updateRestaurant,
+  updateUser,
   createDrone,
   updateDrone,
   deleteDrone,
 } from "./api/client";
+
+const normalizeStatusText = (value) =>
+  String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+const isCancelledOrder = (order) => {
+  const text = normalizeStatusText(order?.status);
+  return text.includes("huy") || text.includes("cancel") || Boolean(order?.cancelledAt);
+};
 
 
 const heroBackground =
@@ -877,6 +889,35 @@ function App() {
         }),
     [users]
   );
+
+  const toggleCustomerLock = useCallback(async (customerId) => {
+    if (!customerId) return;
+
+    let nextActive = null;
+
+    setUsers((prev) =>
+      prev.map((user) => {
+        if (user.id === customerId) {
+          const updatedActive = !(user.active ?? true);
+          nextActive = updatedActive;
+          return { ...user, active: updatedActive };
+        }
+
+        return user;
+      })
+    );
+
+    if (nextActive === null) return;
+
+    try {
+      await updateUser(customerId, { active: nextActive });
+    } catch (error) {
+      console.error(
+        "Không thể cập nhật trạng thái khóa của khách hàng trên server",
+        error
+      );
+    }
+  }, []);
 
   const updateRestaurantMenuItems = useCallback(
     (restaurantRef, newItemId, removedItemId = null) => {
@@ -1811,6 +1852,13 @@ function App() {
       };
     }
 
+    if (matchedUser.active === false) {
+      return {
+        success: false,
+        message: "Tài khoản đã bị khóa. Vui lòng liên hệ hỗ trợ để mở khóa.",
+      };
+    }
+
     const { password: _password, ...safeUser } = matchedUser;
     const normalizedUser = mapUserProfile(safeUser);
     setCurrentUser(normalizedUser);
@@ -2116,6 +2164,18 @@ function App() {
       return;
     }
 
+    if (isCancelledOrder(order)) {
+      if (typeof window !== "undefined") {
+        window.alert("Đơn đã hủy, không thể theo dõi hành trình đơn này.");
+        try {
+          window.localStorage.removeItem(`drone-progress:${orderId}`);
+        } catch {
+          // ignore storage permission errors
+        }
+      }
+      return;
+    }
+
     const clonedOrder = {
       ...order,
       items: (order.items ?? []).map((item) => ({ ...item })),
@@ -2304,6 +2364,7 @@ function App() {
         drones={adminDrones}
         onUpdateOrder={syncUpdatedOrder}
         onDeleteOrder={syncDeletedOrder}
+        onToggleCustomerLock={toggleCustomerLock}
         onCreateRestaurant={syncCreatedRestaurant}
         onUpdateRestaurant={syncUpdatedRestaurant}
         onDeleteRestaurant={syncDeletedRestaurant}

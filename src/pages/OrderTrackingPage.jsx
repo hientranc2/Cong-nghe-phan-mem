@@ -1,8 +1,14 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import DroneDeliveryTracker from "../components/DroneDeliveryTracker.jsx";
 import "./OrderTrackingPage.css";
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+const normalizeStatusText = (value) =>
+  String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 
 const readPersistedProgress = (orderId) => {
   if (!orderId || typeof window === "undefined") return null;
@@ -54,12 +60,18 @@ function OrderTrackingPage({
   const confirmedAt = receipt?.confirmedAt ?? activeOrder.confirmedAt ?? null;
   const orderId = receipt?.id ?? activeOrder.id ?? "--";
   const lastUpdate = receipt?.updatedAt ?? confirmedAt ?? new Date();
+  const statusText = normalizeStatusText(activeOrder.status);
+  const isCancelled =
+    statusText.includes("huy") || statusText.includes("cancel") || Boolean(activeOrder.cancelledAt);
   const persistedProgress = useMemo(() => readPersistedProgress(orderId), [orderId]);
-  const effectiveProgress = persistedProgress ?? deliveryProgress ?? 0.01;
+  const effectiveProgress = isCancelled ? 0 : persistedProgress ?? deliveryProgress ?? 0.01;
 
   const statusMessage =
     texts.statusMessage ??
     "Drone đang trên đường giao hàng. Hãy giữ điện thoại bên bạn để nhận hàng nhanh nhất.";
+  const trackerStatusMessage = isCancelled
+    ? texts.cancelledStatusMessage ?? "Đơn đã hủy. Drone đã dừng hành trình."
+    : statusMessage;
 
   const restaurantName =
     activeOrder.restaurantName ??
@@ -80,6 +92,15 @@ function OrderTrackingPage({
   const restaurantOriginQuery = restaurantAddress
     ? `${restaurantName}, ${restaurantAddress}`
     : restaurantName;
+
+  useEffect(() => {
+    if (!isCancelled || typeof window === "undefined") return;
+    try {
+      window.localStorage.removeItem(`drone-progress:${orderId}`);
+    } catch {
+      // ignore storage errors in restricted environments
+    }
+  }, [isCancelled, orderId]);
 
   return (
     <main className="order-tracking-page" aria-labelledby="order-tracking-heading">
@@ -104,15 +125,16 @@ function OrderTrackingPage({
             origin={restaurantOriginLabel}
             originQuery={restaurantOriginQuery}
             destination={destination}
-          distanceKm={distanceKm}
-          estimatedMinutes={estimatedDeliveryMinutes}
-          lastUpdate={lastUpdate}
-          initialProgress={effectiveProgress}
-          texts={trackingTexts}
-          statusMessage={statusMessage}
-          orderId={orderId}
-          confirmedAt={confirmedAt}
-        />
+            distanceKm={distanceKm}
+            estimatedMinutes={estimatedDeliveryMinutes}
+            lastUpdate={lastUpdate}
+            initialProgress={effectiveProgress}
+            texts={trackingTexts}
+            statusMessage={trackerStatusMessage}
+            orderId={orderId}
+            confirmedAt={confirmedAt}
+            autoAdvance={!isCancelled}
+          />
         </section>
       </div>
     </main>
