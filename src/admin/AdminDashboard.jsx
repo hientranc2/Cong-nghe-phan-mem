@@ -241,6 +241,7 @@ function AdminDashboard({
   drones: remoteDrones = [],
   onUpdateOrder,
   onDeleteOrder,
+  onToggleCustomerLock,
   onCreateRestaurant,
   onUpdateRestaurant,
   onDeleteRestaurant,
@@ -648,11 +649,15 @@ function AdminDashboard({
   };
 
   const handleToggleCustomerLock = (id) => {
+    if (!id) return;
+
     setCustomers((prev) =>
       prev.map((customer) =>
         customer.id === id ? { ...customer, active: !customer.active } : customer
       )
     );
+
+    onToggleCustomerLock?.(id);
   };
 
   const updateOrderStatus = (orderId, nextStatus) => {

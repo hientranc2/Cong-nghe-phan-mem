@@ -33,6 +33,7 @@ import {
   updateMenuItem,
   updateOrder,
   updateRestaurant,
+  updateUser,
   createDrone,
   updateDrone,
   deleteDrone,
@@ -877,6 +878,35 @@ function App() {
         }),
     [users]
   );
+
+  const toggleCustomerLock = useCallback(async (customerId) => {
+    if (!customerId) return;
+
+    let nextActive = null;
+
+    setUsers((prev) =>
+      prev.map((user) => {
+        if (user.id === customerId) {
+          const updatedActive = !(user.active ?? true);
+          nextActive = updatedActive;
+          return { ...user, active: updatedActive };
+        }
+
+        return user;
+      })
+    );
+
+    if (nextActive === null) return;
+
+    try {
+      await updateUser(customerId, { active: nextActive });
+    } catch (error) {
+      console.error(
+        "Không thể cập nhật trạng thái khóa của khách hàng trên server",
+        error
+      );
+    }
+  }, []);
 
   const updateRestaurantMenuItems = useCallback(
     (restaurantRef, newItemId, removedItemId = null) => {
@@ -1811,6 +1841,13 @@ function App() {
       };
     }
 
+    if (matchedUser.active === false) {
+      return {
+        success: false,
+        message: "Tài khoản đã bị khóa. Vui lòng liên hệ hỗ trợ để mở khóa.",
+      };
+    }
+
     const { password: _password, ...safeUser } = matchedUser;
     const normalizedUser = mapUserProfile(safeUser);
     setCurrentUser(normalizedUser);
@@ -2304,6 +2341,7 @@ function App() {
         drones={adminDrones}
         onUpdateOrder={syncUpdatedOrder}
         onDeleteOrder={syncDeletedOrder}
+        onToggleCustomerLock={toggleCustomerLock}
         onCreateRestaurant={syncCreatedRestaurant}
         onUpdateRestaurant={syncUpdatedRestaurant}
         onDeleteRestaurant={syncDeletedRestaurant}
