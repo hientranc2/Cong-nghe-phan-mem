@@ -89,7 +89,7 @@ const CheckoutScreen = ({ onBack, user, onOrderPlaced }) => {
         now.getDate()
       ).padStart(2, "0")}-${now.getTime()}`,
       createdAt: now.toISOString(),
-      status: "Chờ xác nhận",
+      status: "\u0110ang chu\u1ea9n b\u1ecb",
       estimatedDelivery: estimatedDelivery.toISOString(),
       paymentMethod: paymentMethod?.label,
       paymentDescription: paymentMethod?.description,
@@ -486,3 +486,7 @@ const styles = StyleSheet.create({
 });
 
 export default CheckoutScreen;
+
+
+
+
