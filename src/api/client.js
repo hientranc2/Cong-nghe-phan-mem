@@ -137,6 +137,21 @@ export const fetchUsers = async () => fetchCollection("users");
 
 export const createUser = async (payload) => postJSON("users", payload);
 
+export const updateUser = async (id, payload) => {
+  const url = `${API_BASE}/users/${id}`;
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.status}`);
+  }
+
+  return parseJSON(response);
+};
+
 export const fetchDrones = async () => fetchCollection("drones");
 
 export const createDrone = async (payload) => postJSON("drones", payload);
