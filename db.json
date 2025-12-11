@@ -981,9 +981,11 @@
       "customer": "Terry Trần",
       "confirmedAt": "2025-12-11T00:15:21.333Z",
       "ownerEmail": "terry@gmail.com",
-      "status": "Đã hoàn tất",
+      "status": "Hoàn tất",
       "placedAt": "2025-12-11T07:15",
-      "address": "477 âu cơ"
+      "address": "477 âu cơ",
+      "destination": "477 âu cơ",
+      "droneId": "dr-01"
     },
     {
       "id": "ORD-1765412258375",
@@ -1001,9 +1003,11 @@
       "customer": "Terry Trần",
       "confirmedAt": "2025-12-11T00:17:38.375Z",
       "ownerEmail": "terry@gmail.com",
-      "status": "Đã hoàn tất",
+      "status": "Hoàn tất",
       "placedAt": "2025-12-11T07:17",
-      "address": "123  âu cơ"
+      "address": "123  âu cơ",
+      "destination": "123  âu cơ",
+      "droneId": "dr-02"
     },
     {
       "id": "ORD-1765413428359",
@@ -1021,9 +1025,214 @@
       "customer": "Terry Trần",
       "confirmedAt": "2025-12-11T00:37:08.359Z",
       "ownerEmail": "terry@gmail.com",
-      "status": "Đã hoàn tất",
+      "status": "Hoan tat",
       "placedAt": "2025-12-11T07:37",
-      "address": "477 lê ngã"
+      "address": "477 lê ngã",
+      "destination": "477 lê ngã",
+      "droneId": "dr-03"
+    },
+    {
+      "id": "ORD-1765416070760",
+      "items": [
+        {
+          "id": "fco-burger-blaze",
+          "categoryId": "cat-burger",
+          "name": "Burger Blaze Bò Mỹ",
+          "description": "Bánh burger bò Mỹ nướng than, sốt phô mai cheddar và bacon giòn.",
+          "price": 69000,
+          "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=900&q=80",
+          "image": "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=900&q=80",
+          "calories": 520,
+          "time": 12,
+          "tag": "Best Seller",
+          "isBestSeller": true,
+          "translations": {
+            "vi": {
+              "name": "Burger Blaze Bò Mỹ",
+              "description": "Bánh burger bò Mỹ nướng than, sốt phô mai cheddar và bacon giòn.",
+              "tag": "Best Seller"
+            },
+            "en": {
+              "name": "Blaze Angus Burger",
+              "description": "Char-grilled American beef burger with cheddar cheese sauce and crispy bacon.",
+              "tag": "Best Seller"
+            }
+          },
+          "restaurantId": "fco-burger-artisan",
+          "restaurantSlug": "burger-artisan",
+          "restaurantName": "Burger Artisan House",
+          "quantity": 1
+        }
+      ],
+      "subtotal": 69000,
+      "shipping": 0,
+      "total": 69000,
+      "note": "",
+      "deliveryOption": "today",
+      "restaurantId": "fco-burger-artisan",
+      "restaurantSlug": "burger-artisan",
+      "restaurantName": "Burger Artisan House",
+      "restaurantAddress": "Quận 1, TP. Hồ Chí Minh",
+      "createdAt": "2025-12-11T01:20:57.381Z",
+      "customer": "Terry Trần",
+      "confirmedAt": "2025-12-11T01:21:10.760Z",
+      "ownerEmail": "terry@gmail.com",
+      "destination": "123 tran binh trong",
+      "droneId": "dr-01",
+      "status": "Đã hủy"
+    },
+    {
+      "id": "ORD-1765416919167",
+      "items": [
+        {
+          "id": "fco-burger-blaze",
+          "categoryId": "cat-burger",
+          "name": "Burger Blaze Bò Mỹ",
+          "description": "Bánh burger bò Mỹ nướng than, sốt phô mai cheddar và bacon giòn.",
+          "price": 69000,
+          "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=900&q=80",
+          "image": "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=900&q=80",
+          "calories": 520,
+          "time": 12,
+          "tag": "Best Seller",
+          "isBestSeller": true,
+          "translations": {
+            "vi": {
+              "name": "Burger Blaze Bò Mỹ",
+              "description": "Bánh burger bò Mỹ nướng than, sốt phô mai cheddar và bacon giòn.",
+              "tag": "Best Seller"
+            },
+            "en": {
+              "name": "Blaze Angus Burger",
+              "description": "Char-grilled American beef burger with cheddar cheese sauce and crispy bacon.",
+              "tag": "Best Seller"
+            }
+          },
+          "restaurantId": "fco-burger-artisan",
+          "restaurantSlug": "burger-artisan",
+          "restaurantName": "Burger Artisan House",
+          "quantity": 1
+        }
+      ],
+      "subtotal": 69000,
+      "shipping": 0,
+      "total": 69000,
+      "note": "",
+      "deliveryOption": "today",
+      "restaurantId": "fco-burger-artisan",
+      "restaurantSlug": "burger-artisan",
+      "restaurantName": "Burger Artisan House",
+      "restaurantAddress": "Quận 1, TP. Hồ Chí Minh",
+      "createdAt": "2025-12-11T01:34:28.653Z",
+      "customer": "Terry Trần",
+      "confirmedAt": "2025-12-11T01:35:19.167Z",
+      "ownerEmail": "terry@gmail.com",
+      "destination": "123 an dương vương",
+      "droneId": "dr-01",
+      "status": "Hoan tat"
+    },
+    {
+      "id": "ORD-1765417117462",
+      "items": [
+        {
+          "id": "fco-burger-blaze",
+          "categoryId": "cat-burger",
+          "name": "Burger Blaze Bò Mỹ",
+          "description": "Bánh burger bò Mỹ nướng than, sốt phô mai cheddar và bacon giòn.",
+          "price": 69000,
+          "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=900&q=80",
+          "image": "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=900&q=80",
+          "calories": 520,
+          "time": 12,
+          "tag": "Best Seller",
+          "isBestSeller": true,
+          "translations": {
+            "vi": {
+              "name": "Burger Blaze Bò Mỹ",
+              "description": "Bánh burger bò Mỹ nướng than, sốt phô mai cheddar và bacon giòn.",
+              "tag": "Best Seller"
+            },
+            "en": {
+              "name": "Blaze Angus Burger",
+              "description": "Char-grilled American beef burger with cheddar cheese sauce and crispy bacon.",
+              "tag": "Best Seller"
+            }
+          },
+          "restaurantId": "fco-burger-artisan",
+          "restaurantSlug": "burger-artisan",
+          "restaurantName": "Burger Artisan House",
+          "quantity": 1
+        }
+      ],
+      "subtotal": 69000,
+      "shipping": 0,
+      "total": 69000,
+      "note": "",
+      "deliveryOption": "today",
+      "restaurantId": "fco-burger-artisan",
+      "restaurantSlug": "burger-artisan",
+      "restaurantName": "Burger Artisan House",
+      "restaurantAddress": "Quận 1, TP. Hồ Chí Minh",
+      "createdAt": "2025-12-11T01:38:24.854Z",
+      "customer": {
+        "name": "Terry Trần",
+        "phone": "0909004747",
+        "email": "terry@gmail.com",
+        "address": "111 âu cơ",
+        "paymentMethod": "cash"
+      },
+      "confirmedAt": "2025-12-11T01:38:37.462Z",
+      "ownerEmail": "terry@gmail.com"
+    },
+    {
+      "id": "ORD-1765417171305",
+      "items": [
+        {
+          "id": "fco-pizza-lava",
+          "categoryId": "cat-pizza",
+          "name": "Pizza Phô Mai Lava",
+          "description": "Đế mỏng kiểu Ý, phủ phô mai mozzarella lava và pepperoni cay.",
+          "price": 119000,
+          "img": "src/assets/pizzaphomai.jpg",
+          "image": "src/assets/pizzaphomai.jpg",
+          "time": 15,
+          "tag": "FCO Signature",
+          "isBestSeller": true,
+          "translations": {
+            "vi": {
+              "name": "Pizza Phô Mai Lava",
+              "description": "Đế mỏng kiểu Ý, phủ phô mai mozzarella lava và pepperoni cay.",
+              "tag": "FCO Signature"
+            },
+            "en": {
+              "name": "Molten Cheese Lava Pizza",
+              "description": "Thin-crust Italian dough topped with molten mozzarella lava and spicy pepperoni.",
+              "tag": "FCO Signature"
+            }
+          },
+          "calories": 450,
+          "restaurantId": "fco-pizza-lab",
+          "restaurantSlug": "pizza-lab",
+          "restaurantName": "Pizza Pazzi",
+          "quantity": 1
+        }
+      ],
+      "subtotal": 119000,
+      "shipping": 0,
+      "total": 119000,
+      "note": "",
+      "deliveryOption": "today",
+      "restaurantId": "fco-pizza-lab",
+      "restaurantSlug": "pizza-lab",
+      "restaurantName": "Pizza Pazzi",
+      "restaurantAddress": "Quận 1, TP. Hồ Chí Minh",
+      "createdAt": "2025-12-11T01:39:02.209Z",
+      "customer": "Terry Trần",
+      "confirmedAt": "2025-12-11T01:39:31.305Z",
+      "ownerEmail": "terry@gmail.com",
+      "destination": "835 trần hưng đạo",
+      "droneId": "dr-01",
+      "status": "Hoàn tất"
     }
   ],
   "drones": [
