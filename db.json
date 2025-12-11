@@ -964,7 +964,161 @@
       "restaurantSlug": "lala"
     }
   ],
-  "orders": [],
+  "orders": [
+    {
+      "id": "ORD-20251211-1765413874956",
+      "status": "Hoàn tất",
+      "total": 72000,
+      "itemsCount": 1,
+      "source": "mobile",
+      "userId": "user-1764186919459",
+      "createdAt": "2025-12-11T00:44:34.956Z",
+      "estimatedDelivery": "2025-12-11T01:29:34.956Z",
+      "paymentMethod": "Thanh toán khi nhận hàng",
+      "paymentDescription": "Thanh toán tiền mặt hoặc quẹt thẻ khi giao món",
+      "subtotal": 72000,
+      "customer": "Terry Trần",
+      "address": "123 Đường Ẩm Thực, Quận 1, TP.HCM",
+      "items": [
+        {
+          "id": "fco-burger-veggie",
+          "name": "Burger Rau Củ Sốt Miso",
+          "price": 72000,
+          "quantity": 1
+        }
+      ],
+      "destination": "123 Đường Ẩm Thực, Quận 1, TP.HCM",
+      "droneId": "dr-01"
+    },
+    {
+      "id": "ORD-20251211-1765413955535",
+      "status": "Đang chuẩn bị",
+      "total": 119000,
+      "itemsCount": 1,
+      "source": "mobile",
+      "userId": "user-1764186919459",
+      "createdAt": "2025-12-11T00:45:55.535Z",
+      "estimatedDelivery": "2025-12-11T01:30:55.535Z",
+      "paymentMethod": "Thanh toán khi nhận hàng",
+      "paymentDescription": "Thanh toán tiền mặt hoặc quẹt thẻ khi giao món",
+      "subtotal": 119000,
+      "customer": "Terry Trần",
+      "address": "123 Đường Ẩm Thực, Quận 1, TP.HCM",
+      "items": [
+        {
+          "id": "fco-pizza-lava",
+          "name": "Pizza Phô Mai Lava",
+          "price": 119000,
+          "quantity": 1
+        }
+      ],
+      "destination": "123 Đường Ẩm Thực, Quận 1, TP.HCM",
+      "droneId": "dr-03"
+    },
+    {
+      "id": "ORD-1765416791976",
+      "items": [
+        {
+          "id": "fco-burger-blaze",
+          "categoryId": "cat-burger",
+          "name": "Burger Blaze Bò Mỹ",
+          "description": "Bánh burger bò Mỹ nướng than, sốt phô mai cheddar và bacon giòn.",
+          "price": 69000,
+          "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=900&q=80",
+          "image": "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=900&q=80",
+          "calories": 520,
+          "time": 12,
+          "tag": "Best Seller",
+          "isBestSeller": true,
+          "translations": {
+            "vi": {
+              "name": "Burger Blaze Bò Mỹ",
+              "description": "Bánh burger bò Mỹ nướng than, sốt phô mai cheddar và bacon giòn.",
+              "tag": "Best Seller"
+            },
+            "en": {
+              "name": "Blaze Angus Burger",
+              "description": "Char-grilled American beef burger with cheddar cheese sauce and crispy bacon.",
+              "tag": "Best Seller"
+            }
+          },
+          "restaurantId": "fco-burger-artisan",
+          "restaurantSlug": "burger-artisan",
+          "restaurantName": "Burger Artisan House",
+          "quantity": 1
+        }
+      ],
+      "subtotal": 69000,
+      "shipping": 0,
+      "total": 69000,
+      "note": "",
+      "deliveryOption": "today",
+      "restaurantId": "fco-burger-artisan",
+      "restaurantSlug": "burger-artisan",
+      "restaurantName": "Burger Artisan House",
+      "restaurantAddress": "Quận 1, TP. Hồ Chí Minh",
+      "createdAt": "2025-12-11T01:32:58.320Z",
+      "customer": "Terry Trần",
+      "confirmedAt": "2025-12-11T01:33:11.976Z",
+      "ownerEmail": "terry@gmail.com",
+      "destination": "41 trương phước phan",
+      "droneId": "dr-01",
+      "status": "Đã hủy"
+    },
+    {
+      "id": "ORD-1765416809010",
+      "items": [
+        {
+          "id": "fco-chicken-crispy",
+          "categoryId": "cat-fried",
+          "name": "Gà Rán Cay Blaze",
+          "description": "Đùi gà tẩm bột cay, chiên áp suất giữ thịt mọng nước.",
+          "price": 78000,
+          "img": "src/assets/blaze.jpg",
+          "image": "src/assets/blaze.jpg",
+          "calories": 640,
+          "time": 12,
+          "tag": "Cay",
+          "isBestSeller": true,
+          "translations": {
+            "vi": {
+              "name": "Gà Rán Cay Blaze",
+              "description": "Đùi gà tẩm bột cay, chiên áp suất giữ thịt mọng nước.",
+              "tag": "Cay"
+            },
+            "en": {
+              "name": "Blaze Spicy Fried Chicken",
+              "description": "Crispy pressure-fried chicken legs coated in a spicy batter.",
+              "tag": "Spicy"
+            }
+          },
+          "restaurantId": "fco-fried-bar",
+          "restaurantSlug": "fried-bar",
+          "restaurantName": "Chicken Fried Bar",
+          "quantity": 1
+        }
+      ],
+      "subtotal": 78000,
+      "shipping": 0,
+      "total": 78000,
+      "note": "",
+      "deliveryOption": "today",
+      "restaurantId": "fco-fried-bar",
+      "restaurantSlug": "fried-bar",
+      "restaurantName": "Chicken Fried Bar",
+      "restaurantAddress": "Quận 3, TP. Hồ Chí Minh",
+      "createdAt": "2025-12-11T01:33:19.079Z",
+      "customer": {
+        "name": "Terry Trần",
+        "phone": "0909004747",
+        "email": "terry@gmail.com",
+        "address": "176 nguyễn thị thập",
+        "paymentMethod": "cash"
+      },
+      "confirmedAt": "2025-12-11T01:33:29.010Z",
+      "ownerEmail": "terry@gmail.com"
+    }
+  ],
   "drones": [
     {
       "id": "dr-01",
