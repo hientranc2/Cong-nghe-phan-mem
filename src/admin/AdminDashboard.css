@@ -576,6 +576,15 @@ tbody tr:hover {
   background: rgba(255, 88, 139, 0.24);
 }
 
+.actions .warning {
+  background: rgba(251, 146, 60, 0.16);
+  border-color: rgba(251, 146, 60, 0.4);
+}
+
+.actions .warning:hover {
+  background: rgba(251, 146, 60, 0.26);
+}
+
 .drawer-overlay {
   position: fixed;
   inset: 0;
