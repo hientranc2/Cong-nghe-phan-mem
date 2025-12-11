@@ -853,13 +853,14 @@ function AdminDashboard({
         {activeSection === "overview" && (
           <AdminOverview
             metrics={metrics}
-          overviewSummary={overviewSummary}
-          totalRevenue={totalRevenue}
-          restaurantRevenue={restaurantRevenue}
-          formatCurrency={formatCurrency}
-          formatDate={formatDate}
-        />
-      )}
+            overviewSummary={overviewSummary}
+            totalRevenue={totalRevenue}
+            formatCurrency={formatCurrency}
+            formatDate={formatDate}
+            restaurants={restaurants}
+            orders={orders}
+          />
+        )}
 
         {activeSection === "fleet" && (
           <AdminFleetSection

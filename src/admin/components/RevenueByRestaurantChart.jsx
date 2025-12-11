@@ -139,18 +139,20 @@ function RevenueByRestaurantChart({ restaurants, orders, formatCurrency }) {
       {filteredStats.length === 0 ? (
         <div className="revenue-card__empty">Không có dữ liệu phù hợp.</div>
       ) : (
-        <div className="revenue-chart">
+        <div className="revenue-chart" role="list">
           {filteredStats.map((item) => {
-            const height = maxRevenue > 0 ? (item.revenue / maxRevenue) * 260 : 0;
+            const height = maxRevenue > 0 ? (item.revenue / maxRevenue) * 100 : 0;
             return (
-              <div key={item.key} className="revenue-bar">
-                <div
-                  className="revenue-bar__fill"
-                  style={{ height: `${Math.max(12, height)}px` }}
-                >
-                  <span className="revenue-bar__value">
-                    {formatCurrency(item.revenue)}
-                  </span>
+              <div key={item.key} className="revenue-bar" role="listitem">
+                <div className="revenue-bar__track" aria-hidden>
+                  <div
+                    className="revenue-bar__fill"
+                    style={{ height: `${Math.max(12, height)}%` }}
+                  >
+                    <span className="revenue-bar__value">
+                      {formatCurrency(item.revenue)}
+                    </span>
+                  </div>
                 </div>
                 <div className="revenue-bar__label">{item.name}</div>
                 <div className="revenue-bar__meta">
