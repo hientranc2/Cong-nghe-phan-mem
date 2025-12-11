@@ -647,6 +647,14 @@ function AdminDashboard({
     }
   };
 
+  const handleToggleCustomerLock = (id) => {
+    setCustomers((prev) =>
+      prev.map((customer) =>
+        customer.id === id ? { ...customer, active: !customer.active } : customer
+      )
+    );
+  };
+
   const updateOrderStatus = (orderId, nextStatus) => {
     setOrders((current) => {
       const targetOrder = current.find((order) => order.id === orderId);
@@ -872,39 +880,40 @@ function AdminDashboard({
           />
         )}
 
-      {activeSection === "customers" && (
-        <AdminCustomersSection
-          customers={filteredCustomers}
-          onCreate={() => handleOpenForm("customer", "create")}
-          onEdit={(customer) => handleOpenForm("customer", "edit", customer)}
-          onDelete={(id) => handleDelete("customer", id)}
-          emptyMessage={emptyMessage}
-        />
-      )}
+        {activeSection === "customers" && (
+          <AdminCustomersSection
+            customers={filteredCustomers}
+            onCreate={() => handleOpenForm("customer", "create")}
+            onEdit={(customer) => handleOpenForm("customer", "edit", customer)}
+            onLock={handleToggleCustomerLock}
+            onDelete={(id) => handleDelete("customer", id)}
+            emptyMessage={emptyMessage}
+          />
+        )}
 
-      {activeSection === "restaurants" && (
-        <AdminRestaurantsSection
-          restaurants={filteredRestaurants}
-          onCreate={() => handleOpenForm("restaurant", "create")}
-          onEdit={(restaurant) => handleOpenForm("restaurant", "edit", restaurant)}
-          onToggleLock={handleToggleRestaurantLock}
-          onDelete={(id) => handleDelete("restaurant", id)}
-          emptyMessage={emptyMessage}
-        />
-      )}
+        {activeSection === "restaurants" && (
+          <AdminRestaurantsSection
+            restaurants={filteredRestaurants}
+            onCreate={() => handleOpenForm("restaurant", "create")}
+            onEdit={(restaurant) => handleOpenForm("restaurant", "edit", restaurant)}
+            onToggleLock={handleToggleRestaurantLock}
+            onDelete={(id) => handleDelete("restaurant", id)}
+            emptyMessage={emptyMessage}
+          />
+        )}
 
-      {activeSection === "orders" && (
-        <AdminOrdersSection
-          orders={filteredOrders}
-          onEdit={(order) => handleOpenForm("order", "edit", order)}
-          onAcceptOrder={handleAcceptOrder}
-          onCancelOrder={handleCancelOrder}
-          emptyMessage={emptyMessage}
-          formatCurrency={formatCurrency}
-          onOrderDelivered={handleOrderDelivered}
-          onAddDrone={() => handleOpenForm("drone", "create")}
-        />
-      )}
+        {activeSection === "orders" && (
+          <AdminOrdersSection
+            orders={filteredOrders}
+            onEdit={(order) => handleOpenForm("order", "edit", order)}
+            onAcceptOrder={handleAcceptOrder}
+            onCancelOrder={handleCancelOrder}
+            emptyMessage={emptyMessage}
+            formatCurrency={formatCurrency}
+            onOrderDelivered={handleOrderDelivered}
+            onAddDrone={() => handleOpenForm("drone", "create")}
+          />
+        )}
       </main>
 
       <AdminFormDrawer

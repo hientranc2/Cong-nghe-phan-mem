@@ -1,4 +1,11 @@
-function AdminCustomersSection({ customers, onCreate, onEdit, onDelete, emptyMessage }) {
+function AdminCustomersSection({
+  customers,
+  onCreate,
+  onEdit,
+  onDelete,
+  onLock,
+  emptyMessage,
+}) {
   return (
     <section className="collection" id="customers">
       <div className="collection-heading">
@@ -50,6 +57,13 @@ function AdminCustomersSection({ customers, onCreate, onEdit, onDelete, emptyMes
                   <td className="actions">
                     <button type="button" onClick={() => onEdit?.(customer)}>
                       Sửa
+                    </button>
+                    <button
+                      type="button"
+                      className={customer.active ? "warning" : undefined}
+                      onClick={() => onLock?.(customer.id)}
+                    >
+                      {customer.active ? "Khóa" : "Mở khóa"}
                     </button>
                     <button
                       type="button"
