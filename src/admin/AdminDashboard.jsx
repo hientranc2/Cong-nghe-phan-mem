@@ -131,6 +131,20 @@ const STATUS_OPTIONS = {
 const CUSTOMER_TIERS = ["Tieu chuan", "Bac", "Vang", "Kim cuong"];
 const MIN_BATTERY_FOR_MISSION = 15; // %
 const BATTERY_DRAIN_PER_ORDER = 15; // %
+
+const drainBatteryAfterMission = (drone, missionLabel) => {
+  const nextBattery = Math.max(0, drone.battery - BATTERY_DRAIN_PER_ORDER);
+  const nextStatus =
+    nextBattery < MIN_BATTERY_FOR_MISSION ? "Can sac" : "San sang";
+
+  return {
+    ...drone,
+    battery: nextBattery,
+    status: nextStatus,
+    lastMission: missionLabel,
+  };
+};
+
 const normalizeStatusText = (value) =>
   (value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
@@ -183,6 +197,22 @@ const normalizeAdminOrder = (order, index, drones) => {
     Number(order?.amount) ||
     0;
 
+  const restaurantId =
+    order?.restaurantId ||
+    order?.restaurant?.id ||
+    order?.restaurant?.restaurantId ||
+    null;
+  const restaurantSlug =
+    order?.restaurantSlug ||
+    order?.restaurant?.slug ||
+    order?.restaurant?.restaurantSlug ||
+    null;
+  const restaurantName =
+    order?.restaurantName ||
+    order?.restaurant?.name ||
+    order?.restaurant?.restaurantName ||
+    null;
+
   return {
     id: order?.id || order?.code || `od-${String(index + 1).padStart(2, "0")}`,
     customer:
@@ -198,6 +228,9 @@ const normalizeAdminOrder = (order, index, drones) => {
     droneId: fallbackDroneId,
     total: totalValue,
     status: order?.status || "Đang chuẩn bị",
+    restaurantId,
+    restaurantSlug,
+    restaurantName,
   };
 };
 
@@ -292,17 +325,12 @@ function AdminDashboard({
       return null;
     }
 
-    const nextBattery = Math.max(0, chosen.battery - BATTERY_DRAIN_PER_ORDER);
-    const nextStatus =
-      nextBattery < MIN_BATTERY_FOR_MISSION ? "Can sac" : "Dang hoat dong";
-
     setDrones((prev) =>
       prev.map((drone) =>
         drone.id === chosen.id
           ? {
               ...drone,
-              battery: nextBattery,
-              status: nextStatus,
+              status: "Dang hoat dong",
               lastMission: missionLabel,
             }
           : drone
@@ -655,16 +683,11 @@ function AdminDashboard({
 
     if (completedOrder?.droneId) {
       setDrones((prev) =>
-        prev.map((drone) => {
-          if (drone.id !== completedOrder.droneId) return drone;
-          const nextStatus =
-            drone.battery >= MIN_BATTERY_FOR_MISSION ? "San sang" : "Can sac";
-          return {
-            ...drone,
-            status: nextStatus,
-            lastMission: `Hoan tat don ${orderId}`,
-          };
-        })
+        prev.map((drone) =>
+          drone.id === completedOrder.droneId
+            ? drainBatteryAfterMission(drone, `Hoan tat don ${orderId}`)
+            : drone
+        )
       );
     }
   };
@@ -704,6 +727,49 @@ function AdminDashboard({
     () => orders.reduce((sum, order) => sum + Number(order.total || 0), 0),
     [orders]
   );
+
+  const restaurantRevenue = useMemo(() => {
+    if (!orders.length) return [];
+
+    const summary = new Map();
+
+    orders.forEach((order) => {
+      const revenue = Number(order.total || 0);
+      const linkedRestaurant = restaurants.find(
+        (restaurant) =>
+          (order.restaurantId && restaurant.id === order.restaurantId) ||
+          (order.restaurantSlug && restaurant.slug === order.restaurantSlug)
+      );
+
+      const label =
+        order.restaurantName ||
+        linkedRestaurant?.name ||
+        order.restaurantSlug ||
+        order.restaurantId ||
+        "Không rõ nhà hàng";
+
+      const key =
+        order.restaurantId || order.restaurantSlug || order.restaurantName || label;
+
+      const current = summary.get(key) || {
+        id: order.restaurantId || linkedRestaurant?.id || key,
+        slug: order.restaurantSlug || linkedRestaurant?.slug || null,
+        name: label,
+        orderCount: 0,
+        revenue: 0,
+      };
+
+      summary.set(key, {
+        ...current,
+        orderCount: current.orderCount + 1,
+        revenue: current.revenue + revenue,
+      });
+    });
+
+    return Array.from(summary.values()).sort(
+      (a, b) => b.revenue - a.revenue || b.orderCount - a.orderCount
+    );
+  }, [orders, restaurants]);
 
   const metrics = useMemo(
     () => [

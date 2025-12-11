@@ -4,11 +4,16 @@ function AdminOverview({
   metrics,
   overviewSummary,
   totalRevenue,
+  restaurantRevenue,
   formatCurrency,
   formatDate,
   restaurants,
   orders,
 }) {
+  const maxRevenue = restaurantRevenue?.length
+    ? Math.max(...restaurantRevenue.map((entry) => entry.revenue))
+    : 0;
+
   return (
     <>
       <section className="metrics-grid">
