@@ -16,7 +16,10 @@ if (!MONGO_URI) {
 
 const app = express();
 
-app.use(express.json());
+// Increase body size limit so base64 images from the restaurant dashboard
+// (capped ~0.8MB on the client) are accepted instead of being rejected by Express.
+app.use(express.json({ limit: "5mb" }));
+app.use(express.urlencoded({ extended: true, limit: "5mb" }));
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PATCH,DELETE,OPTIONS");

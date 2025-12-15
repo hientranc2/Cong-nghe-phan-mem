@@ -554,17 +554,26 @@ function RestaurantDashboard({
       return;
     }
 
-    const MAX_SIZE = 2 * 1024 * 1024;
+    const MAX_SIZE = 600 * 1024; // giới hạn 600KB để base64 không vượt giới hạn server
     if (file.size > MAX_SIZE) {
       if (typeof window !== "undefined" && typeof window.alert === "function") {
-        window.alert("Vui lòng chọn ảnh nhỏ hơn 2MB");
+        window.alert("Vui l�ng ch?n ?nh nh? hon 600KB d? luu du?c v�o server.");
       }
       return;
     }
 
+    const BASE64_LENGTH_LIMIT = 800000; // ~0.8MB chuỗi base64
     const reader = new FileReader();
     reader.onload = () => {
-      setDishForm((prev) => ({ ...prev, image: reader.result || "" }));
+      const dataUrl = reader.result || "";
+      if (dataUrl.length > BASE64_LENGTH_LIMIT) {
+        if (typeof window !== "undefined" && typeof window.alert === "function") {
+          window.alert("?nh sau khi m� h�a v?n qu� l?n, vui l�ng ch?n ?nh nh? hon.");
+        }
+        return;
+      }
+
+      setDishForm((prev) => ({ ...prev, image: dataUrl }));
     };
     reader.readAsDataURL(file);
   };
