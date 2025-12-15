@@ -136,6 +136,16 @@ const buildOrderViewModel = (rawOrder = {}) => {
     Array.isArray(rawOrder.actions) && rawOrder.actions.length > 0
       ? rawOrder.actions
       : DEFAULT_ORDER_ACTIONS;
+  const contactPhone =
+    rawOrder.contactPhone ??
+    rawOrder.customer?.phone ??
+    rawOrder.ownerPhone ??
+    rawOrder.phone;
+  const contactEmail =
+    rawOrder.contactEmail ??
+    rawOrder.customer?.email ??
+    rawOrder.ownerEmail ??
+    rawOrder.email;
 
   return {
     id,
@@ -150,9 +160,12 @@ const buildOrderViewModel = (rawOrder = {}) => {
       rawOrder.userId ??
       rawOrder.customer?.id ??
       rawOrder.customerId ??
-      rawOrder.user?.id,
-    contactPhone: rawOrder.customer?.phone,
-    contactEmail: rawOrder.customer?.email,
+      rawOrder.user?.id ??
+      rawOrder.ownerId ??
+      rawOrder.ownerEmail ??
+      rawOrder.email,
+    contactPhone,
+    contactEmail,
     details: {
       ...rawOrder,
       id,
@@ -162,6 +175,8 @@ const buildOrderViewModel = (rawOrder = {}) => {
       subtotal: typeof rawOrder.subtotal === "number" ? rawOrder.subtotal : 0,
       address: rawOrder.address ?? DEFAULT_ADDRESS,
       customer: rawOrder.customer ?? createDefaultCustomer(),
+      contactPhone,
+      contactEmail,
       items: Array.isArray(rawOrder.items) ? rawOrder.items : [],
     },
   };
@@ -186,9 +201,24 @@ const filterOrdersForUser = (allOrders, user) => {
       source.userId ??
       source.customer?.id ??
       source.customerId ??
-      source.user?.id;
-    const orderPhone = normalizePhone(order.contactPhone ?? source.customer?.phone);
-    const orderEmail = normalizeEmail(order.contactEmail ?? source.customer?.email);
+      source.user?.id ??
+      source.ownerId ??
+      source.ownerEmail ??
+      source.email;
+    const orderPhone = normalizePhone(
+      order.contactPhone ??
+        source.contactPhone ??
+        source.customer?.phone ??
+        source.ownerPhone ??
+        source.phone
+    );
+    const orderEmail = normalizeEmail(
+      order.contactEmail ??
+        source.contactEmail ??
+        source.customer?.email ??
+        source.ownerEmail ??
+        source.email
+    );
 
     const matchesId = Boolean(user.id && orderUserId && orderUserId === user.id);
     const matchesPhone = Boolean(targetPhone && orderPhone && targetPhone === orderPhone);

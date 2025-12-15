@@ -692,7 +692,7 @@ const AdminDashboardScreen = ({ user, onBack }) => {
           {orders.length === 0 ? (
             <Text style={styles.emptyText}>Chưa có đơn hàng.</Text>
           ) : (
-            orders.slice(0, 6).map((order) => (
+            orders.map((order) => (
               <View key={order.id} style={styles.listItem}>
                 <View style={styles.listTextGroup}>
                   <Text style={styles.itemTitle}>{order.id}</Text>
