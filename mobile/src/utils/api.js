@@ -1,7 +1,6 @@
 import { Platform } from "react-native";
 import Constants from "expo-constants";
 
-import localDataset from "../data/db.json";
 
 const resolveApiBase = () => {
   const envBaseUrl =
@@ -18,14 +17,13 @@ const resolveApiBase = () => {
   const host = hostUri.split(":")?.[0];
 
   if (host) {
-    return `http://${host}:3001`;
-  }
+    return `http://${host}:4000`;  }
 
   if (Platform.OS === "android") {
-    return "http://10.0.2.2:3001";
+    return "http://10.0.2.2:4000";
   }
 
-  return "http://localhost:3001";
+  return "http://localhost:4000";
 };
 
 const API_BASE = resolveApiBase();
@@ -39,27 +37,6 @@ const parseJSON = async (response) => {
   return response.json();
 };
 
-const fetchFallbackDataset = async () => {
-  const candidates = ["/dtb.json", "/db.json", "/db"];
-
-  for (const path of candidates) {
-    const response = await fetch(`${API_BASE}${path}`).catch(() => null);
-    if (!response || !response.ok) {
-      continue;
-    }
-
-    const data = await parseJSON(response);
-    if (data) {
-      return data;
-    }
-  }
-
-  if (localDataset && typeof localDataset === "object") {
-    return localDataset;
-  }
-
-  return null;
-};
 
 export const fetchCollection = async (collection) => {
   const primaryUrl = `${API_BASE}/${collection}`;
@@ -72,11 +49,7 @@ export const fetchCollection = async (collection) => {
     }
   }
 
-  const fallbackData = await fetchFallbackDataset();
-  if (fallbackData && Array.isArray(fallbackData[collection])) {
-    return fallbackData[collection];
-  }
-
+ 
   throw new Error(
     `API request failed${primaryResponse ? `: ${primaryResponse.status}` : ""}`
   );
