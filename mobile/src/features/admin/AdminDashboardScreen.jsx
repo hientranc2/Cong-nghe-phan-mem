@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -9,6 +10,7 @@ import {
   View,
 } from "react-native";
 
+import OrderTrackingScreen from "../../screens/OrderTrackingScreen.jsx";
 import {
   createRestaurant,
   createUser,
@@ -23,25 +25,48 @@ import {
 
 const normalizeOrders = (orders = []) => {
   return orders.map((order, index) => {
+    const base = order || {};
     const total =
-      Number(order?.totalAmount) ||
-      Number(order?.total) ||
-      Number(order?.subtotal) ||
+      Number(base?.totalAmount) ||
+      Number(base?.total) ||
+      Number(base?.subtotal) ||
       0;
 
-    const status = String(order?.status?.label ?? order?.status ?? "").trim();
+    const status = String(base?.status?.label ?? base?.status ?? "").trim();
+    const restaurantName =
+      base?.restaurantName ||
+      base?.restaurant?.name ||
+      base?.restaurant ||
+      base?.vendor ||
+      "FCO";
+    const address =
+      base?.address ||
+      base?.customer?.address ||
+      base?.deliveryAddress ||
+      base?.shippingAddress ||
+      base?.customerAddress ||
+      "";
 
     return {
-      id: order?.id || order?.code || `ORD-${index + 1}`,
+      ...base,
+      id: base?.id || base?.code || `ORD-${index + 1}`,
+      code: base?.code || base?.id || `ORD-${index + 1}`,
       customer:
-        order?.customer?.name ||
-        order?.customerName ||
-        order?.customer ||
-        "Khách lẻ",
+        base?.customer?.name ||
+        base?.customerName ||
+        base?.customer ||
+        "Khach le",
       total,
-      status: status || "Đang xử lý",
-      restaurant:
-        order?.restaurantName || order?.restaurant || order?.vendor || "FCO",
+      status: status || "Dang xu ly",
+      restaurant: restaurantName,
+      restaurantName,
+      restaurantAddress:
+        base?.restaurantAddress ||
+        base?.restaurant?.address ||
+        base?.restaurantCity ||
+        base?.city ||
+        "",
+      address,
     };
   });
 };
@@ -154,6 +179,7 @@ const AdminDashboardScreen = ({ user, onBack }) => {
     joinedAt: "",
   });
   const [isSavingCustomer, setIsSavingCustomer] = useState(false);
+  const [trackingOrder, setTrackingOrder] = useState(null);
 
   const refreshData = useCallback(() => {
     let active = true;
@@ -319,6 +345,15 @@ const AdminDashboardScreen = ({ user, onBack }) => {
         },
       },
     ]);
+  };
+
+  const handleTrackOrder = (order) => {
+    if (!order) return;
+    setTrackingOrder(order);
+  };
+
+  const handleCloseTracking = () => {
+    setTrackingOrder(null);
   };
 
   const handleStartCreateRestaurant = () => {
@@ -541,7 +576,8 @@ const AdminDashboardScreen = ({ user, onBack }) => {
   ];
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <View style={styles.page}>
+      <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.headerRow}>
         <TouchableOpacity style={styles.backButton} onPress={onBack}>
           <Text style={styles.backIcon}>←</Text>
@@ -703,15 +739,18 @@ const AdminDashboardScreen = ({ user, onBack }) => {
                 <View style={styles.tag}>
                   <Text style={styles.tagLabel}>{order.status}</Text>
                 </View>
-                <Text style={styles.itemValue}>
-                  {new Intl.NumberFormat("vi-VN").format(order.total)} đ
-                </Text>
-                <View style={styles.inlineActions}>
-                  <TouchableOpacity onPress={() => handleEditOrder(order)}>
-                    <Text style={styles.link}>Sửa</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => handleDeleteOrder(order.id)}>
-                    <Text style={[styles.link, styles.dangerLink]}>Xóa</Text>
+              <Text style={styles.itemValue}>
+                {new Intl.NumberFormat("vi-VN").format(order.total)} đ
+              </Text>
+              <View style={styles.inlineActions}>
+                <TouchableOpacity onPress={() => handleTrackOrder(order)}>
+                  <Text style={styles.link}>Theo dõi</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleEditOrder(order)}>
+                  <Text style={styles.link}>Sửa</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleDeleteOrder(order.id)}>
+                  <Text style={[styles.link, styles.dangerLink]}>Xóa</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -1064,11 +1103,29 @@ const AdminDashboardScreen = ({ user, onBack }) => {
           )}
         </View>
       )}
-    </ScrollView>
+      </ScrollView>
+
+      <Modal
+        visible={!!trackingOrder}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        onRequestClose={handleCloseTracking}
+      >
+        <OrderTrackingScreen
+          order={trackingOrder}
+          onBack={handleCloseTracking}
+          onGoHome={handleCloseTracking}
+        />
+      </Modal>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  page: {
+    flex: 1,
+    backgroundColor: "#fff8f2",
+  },
   container: {
     flexGrow: 1,
     paddingHorizontal: 20,
