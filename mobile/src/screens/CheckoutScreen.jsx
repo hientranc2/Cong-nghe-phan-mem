@@ -36,6 +36,38 @@ const formatCurrency = (value) => {
   }
 };
 
+const resolveRestaurantInfo = (items = []) => {
+  for (const item of items) {
+    const product = item?.product ?? {};
+    const restaurantId = product.restaurantId ?? product.restaurant?.id ?? null;
+    const restaurantSlug =
+      product.restaurantSlug ?? product.restaurant?.slug ?? null;
+    const restaurantName =
+      product.restaurantName ?? product.restaurant?.name ?? product.restaurant ?? null;
+    const restaurantAddress =
+      product.restaurantAddress ??
+      product.restaurant?.address ??
+      product.restaurant?.city ??
+      null;
+
+    if (restaurantId || restaurantSlug || restaurantName) {
+      return {
+        restaurantId: restaurantId || null,
+        restaurantSlug: restaurantSlug || null,
+        restaurantName: restaurantName || null,
+        restaurantAddress: restaurantAddress || null,
+      };
+    }
+  }
+
+  return {
+    restaurantId: null,
+    restaurantSlug: null,
+    restaurantName: null,
+    restaurantAddress: null,
+  };
+};
+
 const DEFAULT_PREVIEW_COORD = { latitude: 10.776492, longitude: 106.700414 };
 const NOMINATIM_BASE =
   "https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=vn&q=";
@@ -220,6 +252,15 @@ const CheckoutScreen = ({ onBack, user, onOrderPlaced }) => {
       source: "mobile",
       items: orderItems,
     };
+
+    const restaurantInfo = resolveRestaurantInfo(items);
+    if (
+      restaurantInfo.restaurantId ||
+      restaurantInfo.restaurantSlug ||
+      restaurantInfo.restaurantName
+    ) {
+      Object.assign(orderPayload, restaurantInfo);
+    }
 
     setFormSubmitted(false);
     clearCart();

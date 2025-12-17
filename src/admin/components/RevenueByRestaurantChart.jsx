@@ -7,6 +7,9 @@ const SORT_OPTIONS = [
   { value: "name-desc", label: "Tên Z → A" },
 ];
 
+const UNKNOWN_RESTAURANT_KEY = "__unknown_restaurant__";
+const UNKNOWN_RESTAURANT_LABEL = "Nhà hàng chưa xác định";
+
 const normalizeName = (value) => String(value ?? "").trim().toLowerCase();
 
 function normalizeRestaurantKey(
@@ -32,22 +35,23 @@ function normalizeRestaurantKey(
 
   return null;
 }
+
 function RevenueByRestaurantChart({ restaurants, orders, formatCurrency }) {
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("revenue-desc");
 
   const { restaurantIndex, restaurantNameIndex } = useMemo(() => {
-  const map = new Map();
-  const nameMap = new Map();
-  restaurants.forEach((restaurant) => {
-    if (restaurant.id) map.set(restaurant.id, restaurant);
-    if (restaurant.slug) map.set(restaurant.slug, restaurant);
-    if (restaurant.name) {
-      nameMap.set(normalizeName(restaurant.name), restaurant.id);
-    }
-  });
-  return { restaurantIndex: map, restaurantNameIndex: nameMap };
-}, [restaurants]);
+    const map = new Map();
+    const nameMap = new Map();
+    restaurants.forEach((restaurant) => {
+      if (restaurant.id) map.set(restaurant.id, restaurant);
+      if (restaurant.slug) map.set(restaurant.slug, restaurant);
+      if (restaurant.name) {
+        nameMap.set(normalizeName(restaurant.name), restaurant.id);
+      }
+    });
+    return { restaurantIndex: map, restaurantNameIndex: nameMap };
+  }, [restaurants]);
 
   const revenueStats = useMemo(() => {
     const totals = new Map();

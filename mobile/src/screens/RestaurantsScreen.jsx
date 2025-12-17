@@ -228,21 +228,23 @@ const RestaurantsScreen = () => {
 
     restaurants.forEach((restaurant) => {
       const knownMenuIds = new Set(restaurant.menuItemIds ?? []);
-      const items = menuItems.filter((item) => {
-        if (item.restaurantId && item.restaurantId === restaurant.id) {
-          return true;
-        }
+      const items = menuItems
+        .filter((item) => {
+          if (item.restaurantId && item.restaurantId === restaurant.id) {
+            return true;
+          }
 
-        if (
-          item.restaurantSlug &&
-          restaurant.slug &&
-          item.restaurantSlug === restaurant.slug
-        ) {
-          return true;
-        }
+          if (
+            item.restaurantSlug &&
+            restaurant.slug &&
+            item.restaurantSlug === restaurant.slug
+          ) {
+            return true;
+          }
 
-        return knownMenuIds.has(item.id);
-      });
+          return knownMenuIds.has(item.id);
+        })
+        .map((item) => augmentMenuItem(item, restaurant));
 
       map.set(restaurant.id, items);
     });
@@ -839,4 +841,3 @@ const styles = StyleSheet.create({
 });
 
 export default RestaurantsScreen;
-

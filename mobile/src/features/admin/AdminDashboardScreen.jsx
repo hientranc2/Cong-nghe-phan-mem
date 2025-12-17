@@ -30,6 +30,8 @@ const normalizeStatus = (value) =>
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/đ/g, "d");
 
+const normalizeName = (value) => String(value ?? "").trim().toLowerCase();
+
 const isActiveOrderStatus = (status) => {
   const normalized = normalizeStatus(status);
   return (
@@ -254,20 +256,62 @@ const AdminDashboardScreen = ({ user, onBack }) => {
 
   const revenueByRestaurant = useMemo(() => {
     const map = new Map();
+    const restaurantIndex = new Map();
+    const restaurantNameIndex = new Map();
+
+    restaurants.forEach((restaurant) => {
+      if (restaurant?.id) restaurantIndex.set(restaurant.id, restaurant);
+      if (restaurant?.slug) restaurantIndex.set(restaurant.slug, restaurant);
+      if (restaurant?.name) {
+        restaurantNameIndex.set(normalizeName(restaurant.name), restaurant.id);
+      }
+    });
 
     orders.forEach((order) => {
-      const name = order?.restaurantName || order?.restaurant || 'Nha hang';
-      const city = order?.restaurantAddress || order?.restaurantCity || order?.city || 'Dang cap nhat';
-      const total = Number(order?.total) || 0;
-      const existing = map.get(name) || { name, total: 0, count: 0, city };
-      existing.total += total;
+      const amount = Number(order?.total || 0);
+      if (!Number.isFinite(amount)) return;
+
+      const derived = findRestaurantFromOrderItems(order.items ?? []);
+
+      const directKey = order?.restaurantId || order?.restaurantSlug;
+      let matched = directKey ? restaurantIndex.get(directKey) : null;
+
+      if (!matched) {
+        const nameKey = normalizeName(order?.restaurantName || order?.restaurant);
+        const byNameId = nameKey ? restaurantNameIndex.get(nameKey) : null;
+        if (byNameId) {
+          matched = restaurantIndex.get(byNameId) || null;
+        }
+      }
+
+      if (!matched && derived.id) {
+        matched = restaurantIndex.get(derived.id) || null;
+      }
+
+      if (!matched) return;
+
+      const key = matched.id || matched.slug || normalizeName(matched.name);
+      if (!key) return;
+
+      const name =
+        matched.name || order?.restaurantName || order?.restaurant || "Nha hang";
+      const city =
+        matched.address ||
+        matched.city ||
+        order?.restaurantAddress ||
+        order?.restaurantCity ||
+        order?.city ||
+        "";
+
+      const existing = map.get(key) || { key, name, total: 0, count: 0, city };
+      existing.total += amount;
       existing.count += 1;
       existing.city = existing.city || city;
-      map.set(name, existing);
+      map.set(key, existing);
     });
 
     return Array.from(map.values()).sort((a, b) => b.total - a.total);
-  }, [orders]);
+  }, [orders, restaurants]);
 
   const statusOptions = [
     "Đang chờ",
