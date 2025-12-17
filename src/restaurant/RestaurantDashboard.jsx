@@ -747,14 +747,15 @@ function RestaurantDashboard({
     handleCancelOrderForm();
   };
 
-  const updateOrderStatus = (order, nextStatus) => {
+  const updateOrderStatus = (order, nextStatus, payload = null) => {
     setOrders((prevOrders) =>
       prevOrders.map((item) =>
         item.id === order.id ? { ...item, status: nextStatus } : item
       )
     );
 
-    onUpdateOrder?.({ ...order, status: nextStatus });
+    const updatePayload = payload ?? { id: order.id, status: nextStatus };
+    onUpdateOrder?.(updatePayload);
 
     if (editingOrderId === order.id) {
       setOrderForm((prev) => ({ ...prev, status: nextStatus }));
@@ -762,7 +763,12 @@ function RestaurantDashboard({
   };
 
   const handleAcceptOrder = (order) => {
-    updateOrderStatus(order, "Đang giao");
+    const acceptedAt = new Date().toISOString();
+    updateOrderStatus(order, "Đang giao", {
+      id: order.id,
+      status: "Đang giao",
+      confirmedAt: order.confirmedAt ?? acceptedAt,
+    });
   };
 
   const handleCancelOrder = (order) => {
@@ -774,7 +780,11 @@ function RestaurantDashboard({
       return;
     }
 
-    updateOrderStatus(order, "Đã hủy");
+    updateOrderStatus(order, "Đã hủy", {
+      id: order.id,
+      status: "Đã hủy",
+      cancelledAt: new Date().toISOString(),
+    });
   };
 
   const statusBadgeClass = (status) => {

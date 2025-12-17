@@ -708,11 +708,12 @@ const AdminDashboardScreen = ({ user, onBack }) => {
                   return (
                     <View key={`${item.name}-${index}`} style={styles.chartItem}>
                       <View style={styles.chartBarShell}>
-                        <View style={[styles.chartBar, { height: `${height}%` }]}>
-                          <Text style={styles.chartValue}>
+                        <View style={styles.chartValueBadge}>
+                          <Text style={styles.chartValueText}>
                             {new Intl.NumberFormat("vi-VN").format(item.total)} đ
                           </Text>
                         </View>
+                               <View style={[styles.chartBar, { height: `${height}%` }]} />
                       </View>
                       <Text style={styles.chartName} numberOfLines={1}>
                         {item.name}
@@ -1550,6 +1551,9 @@ const styles = StyleSheet.create({
     borderColor: "#fed7aa",
     justifyContent: "flex-end",
     padding: 10,
+      position: "relative",
+    overflow: "visible",
+    alignItems: "center",
   },
   chartBar: {
     width: "100%",
@@ -1564,15 +1568,23 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 4,
   },
-  chartValue: {
+   chartValueBadge: {
+    position: "absolute",
+    top: -10,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+        backgroundColor: "#7c2d12",
+    borderRadius: 10,
+     shadowColor: "#7c2d12",
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  chartValueText: {
     color: "#ffffff",
     fontWeight: "700",
     fontSize: 12,
-    backgroundColor: "#7c2d12",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 10,
-    overflow: "hidden",
   },
   chartName: {
     fontSize: 13,
