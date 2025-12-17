@@ -487,7 +487,7 @@ const OrderTrackingScreen = ({ order, onBack, onGoHome, onComplete }) => {
 
     if (ratio >= 0.995 && !milestones.arrival) {
       milestones.arrival = true;
-      Alert.alert("Drone ?? t?i", "Vui l?ng nh?n h?ng ngay khi drone h? c?nh.");
+      Alert.alert("Drone đã tới", "Vui lòng nhận hàng ngay khi drone hạ cánh.");
       if (!completionRef.current && typeof onComplete === "function") {
         completionRef.current = true;
         try {

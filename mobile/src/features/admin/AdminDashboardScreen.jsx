@@ -673,7 +673,7 @@ const AdminDashboardScreen = ({ user, onBack }) => {
             <View style={styles.card}>
               <Text style={styles.cardLabel}>Doanh thu</Text>
               <Text style={styles.cardValue}>
-                {new Intl.NumberFormat('vi-VN').format(revenue)} ?
+                {new Intl.NumberFormat('vi-VN').format(revenue)} đ
               </Text>
               <Text style={styles.cardHint}>Tu web & mobile</Text>
             </View>
@@ -718,7 +718,7 @@ const AdminDashboardScreen = ({ user, onBack }) => {
                         {item.name}
                       </Text>
                       <Text style={styles.chartMeta} numberOfLines={2}>
-                        {item.count} don ? {item.city}
+                        {item.count} don  {item.city}
                       </Text>
                     </View>
                   );
