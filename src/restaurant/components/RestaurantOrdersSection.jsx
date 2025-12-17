@@ -1,3 +1,10 @@
+const normalizeStatus = (value) =>
+  String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d");
+
 function RestaurantOrdersSection({
   texts,
   isFormVisible,
@@ -157,11 +164,18 @@ function RestaurantOrdersSection({
                     {texts.actions.edit}
                   </button>
                   {(() => {
-                    const normalizedStatus = String(order.status).toLowerCase();
-                    const canAccept = normalizedStatus === "chờ xác nhận";
-                    const canCancel =
-                      normalizedStatus !== "đã hoàn tất" &&
-                      normalizedStatus !== "đã hủy";
+                    const normalizedStatus = normalizeStatus(order.status);
+                    const canAccept =
+                      normalizedStatus.includes("dang cho") ||
+                      normalizedStatus.includes("cho xac nhan");
+                    const isCompleted =
+                      normalizedStatus.includes("hoan tat") ||
+                      normalizedStatus.includes("hoan thanh") ||
+                      normalizedStatus.includes("complete");
+                    const isCancelled =
+                      normalizedStatus.includes("huy") ||
+                      normalizedStatus.includes("cancel");
+                    const canCancel = !isCompleted && !isCancelled;
 
                     return (
                       <>

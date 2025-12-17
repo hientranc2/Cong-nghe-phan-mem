@@ -2,11 +2,23 @@ import { Fragment, useMemo, useState } from "react";
 import DroneDeliveryTracker from "../../components/DroneDeliveryTracker.jsx";
 
 const inferProgressFromStatus = (status) => {
-  const normalized = String(status || "").toLowerCase();
-  if (normalized.includes("hoàn")) return 1;
+  const normalized = String(status || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d");
+  if (
+    normalized.includes("hoan tat") ||
+    normalized.includes("hoan thanh") ||
+    normalized.includes("complete") ||
+    normalized.includes("done")
+  ) {
+    return 1;
+  }
   if (normalized.includes("giao")) return 0.38;
-  if (normalized.includes("chuẩn")) return 0.08;
-  if (normalized.includes("hoãn")) return 0.16;
+  if (normalized.includes("chuan")) return 0.08;
+  if (normalized.includes("tam hoan") || normalized.includes("hoan")) return 0.16;
+  if (normalized.includes("dang cho") || normalized.includes("cho xac nhan")) return 0.02;
   return 0.12;
 };
 
@@ -29,7 +41,6 @@ const normalizeStatus = (value) =>
 function AdminOrdersSection({
   orders,
   onEdit,
-  onAcceptOrder,
   onCancelOrder,
   emptyMessage,
   formatCurrency,
@@ -133,23 +144,11 @@ function AdminOrdersSection({
                         </button>
                         {(() => {
                           const normalizedStatus = normalizeStatus(order.status);
-                          const awaitingConfirmation = normalizedStatus.includes("cho xac nhan");
                           const isCompleted = normalizedStatus.includes("hoan tat");
                           const isCanceled = normalizedStatus.includes("huy");
 
                           return (
                             <>
-                              {awaitingConfirmation && (
-                                <button
-                                  type="button"
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    onAcceptOrder?.(order.id);
-                                  }}
-                                >
-                                  Nhận đơn
-                                </button>
-                              )}
                               {!isCompleted && !isCanceled && (
                                 <button
                                   type="button"

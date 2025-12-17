@@ -23,6 +23,25 @@ import {
   updateUser,
 } from "../../utils/api";
 
+const normalizeStatus = (value) =>
+  String(value ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d");
+
+const isActiveOrderStatus = (status) => {
+  const normalized = normalizeStatus(status);
+  return (
+    normalized.includes("dang cho") ||
+    normalized.includes("cho xac nhan") ||
+    normalized.includes("dang giao") ||
+    normalized.includes("dang chuan") ||
+    normalized.includes("chuan bi") ||
+    normalized.includes("dang xu ly")
+  );
+};
+
 const normalizeOrders = (orders = []) => {
   return orders.map((order, index) => {
     const base = order || {};
@@ -57,7 +76,7 @@ const normalizeOrders = (orders = []) => {
         base?.customer ||
         "Khach le",
       total,
-      status: status || "Dang xu ly",
+      status: status || "Đang chờ",
       restaurant: restaurantName,
       restaurantName,
       restaurantAddress:
@@ -155,7 +174,7 @@ const AdminDashboardScreen = ({ user, onBack }) => {
     id: "",
     customer: "",
     restaurant: "",
-    status: "Đang xử lý",
+    status: "Đang chờ",
     total: "",
   });
   const [restaurantFormMode, setRestaurantFormMode] = useState(null);
@@ -227,10 +246,7 @@ const AdminDashboardScreen = ({ user, onBack }) => {
   }, [refreshData]);
 
   const activeOrders = useMemo(
-    () =>
-      orders.filter((order) =>
-        String(order.status).toLowerCase().match(/giao|chuẩn|xác nhận/)
-      ),
+    () => orders.filter((order) => isActiveOrderStatus(order.status)),
     [orders]
   );
 
@@ -254,6 +270,7 @@ const AdminDashboardScreen = ({ user, onBack }) => {
   }, [orders]);
 
   const statusOptions = [
+    "Đang chờ",
     "Đang chuẩn bị",
     "Đang giao",
     "Hoàn tất",
@@ -268,7 +285,7 @@ const AdminDashboardScreen = ({ user, onBack }) => {
       id: order.id,
       customer: order.customer ?? "",
       restaurant: order.restaurant ?? "",
-      status: order.status ?? "Đang xử lý",
+      status: order.status ?? "Đang chờ",
       total: order.total ? String(order.total) : "",
     });
   };
@@ -279,7 +296,7 @@ const AdminDashboardScreen = ({ user, onBack }) => {
       id: "",
       customer: "",
       restaurant: "",
-      status: "Đang xử lý",
+      status: "Đang chờ",
       total: "",
     });
     setIsStatusMenuOpen(false);

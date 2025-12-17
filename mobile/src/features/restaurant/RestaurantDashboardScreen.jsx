@@ -19,6 +19,28 @@ import {
   updateOrder,
 } from "../../utils/api";
 
+const normalizeStatus = (value) =>
+  String(value ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d");
+
+const isPendingStatus = (status) => {
+  const normalized = normalizeStatus(status);
+  return normalized.includes("dang cho") || normalized.includes("cho xac nhan");
+};
+
+const isActiveStatus = (status) => {
+  const normalized = normalizeStatus(status);
+  return (
+    normalized.includes("giao") ||
+    normalized.includes("chuan") ||
+    normalized.includes("xac nhan") ||
+    normalized.includes("dang cho")
+  );
+};
+
 const normalizeOrders = (orders = []) =>
   orders.map((order, index) => {
     const total =
@@ -44,7 +66,7 @@ const normalizeOrders = (orders = []) =>
       restaurantName:
         order?.restaurantName || order?.restaurant?.name || order?.restaurant || "",
       total,
-      status: status || "Đang xử lý",
+      status: status || "Đang chờ",
       items: itemCount,
       address: order?.address || order?.deliveryAddress || "",
     };
@@ -79,7 +101,7 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
     customer: "",
     items: "1",
     total: "0",
-    status: "Đang xử lý",
+    status: "Đang chờ",
     address: "",
   });
   const categories = useMemo(
@@ -204,13 +226,30 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
   }, [currentRestaurant, orders]);
 
   const activeOrders = useMemo(
-    () =>
-      restaurantOrders.filter((order) =>
-        String(order.status).toLowerCase().match(/giao|chuẩn|xác nhận/)
-      ),
+    () => restaurantOrders.filter((order) => isActiveStatus(order.status)),
     [restaurantOrders]
   );
 
+  const handleAcceptOrder = async (order) => {
+    if (!order?.id) return;
+    const nextStatus = "Đang giao";
+
+    setOrders((prev) =>
+      prev.map((item) =>
+        item.id === order.id ? { ...item, status: nextStatus } : item
+      )
+    );
+
+    if (editingOrderId === order.id) {
+      setOrderForm((prev) => ({ ...prev, status: nextStatus }));
+    }
+
+    try {
+      await updateOrder(order.id, { status: nextStatus });
+    } catch (error) {
+      console.warn("Khong the nhan don hang", error);
+    }
+  };
  
 
   const tabs = [
@@ -368,7 +407,7 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
                       customer: "",
                       items: "1",
                       total: "0",
-                      status: "Đang xử lý",
+                      status: "Đang chờ",
                       address: "",
                     });
                     setEditingOrderId(null);
@@ -449,6 +488,11 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
                   {new Intl.NumberFormat("vi-VN").format(order.total)} đ
                 </Text>
                 <View style={styles.inlineActions}>
+                  {isPendingStatus(order.status) && (
+                    <TouchableOpacity onPress={() => handleAcceptOrder(order)}>
+                      <Text style={styles.link}>Nhận đơn</Text>
+                    </TouchableOpacity>
+                  )}
                   <TouchableOpacity
                     onPress={() => {
                       setActiveTab("orders");

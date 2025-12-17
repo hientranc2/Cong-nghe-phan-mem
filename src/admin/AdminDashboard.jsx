@@ -125,7 +125,7 @@ const EMPTY_FORMS = {
 
 const STATUS_OPTIONS = {
   drone: ["San sang", "Dang hoat dong", "Dang bao tri", "Tam dung", "Can sac"],
-  order: ["Cho xac nhan", "Dang chuan bi", "Dang giao", "Hoan tat", "Tam hoan", "Da huy"],
+  order: ["Đang chờ", "Dang chuan bi", "Dang giao", "Hoan tat", "Tam hoan", "Da huy"],
 };
 
 const CUSTOMER_TIERS = ["Tieu chuan", "Bac", "Vang", "Kim cuong"];
@@ -146,7 +146,11 @@ const drainBatteryAfterMission = (drone, missionLabel) => {
 };
 
 const normalizeStatusText = (value) =>
-  (value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  (value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/đ/g, "d");
 
 
 const selectDefaultDroneId = (drones = []) =>
@@ -178,7 +182,15 @@ const nextId = (prefix, existing) => {
 const isActiveOrderStatus = (status) => {
   const text = normalizeStatusText(status);
   const inactive = ["hoan tat", "hoan thanh", "done", "da giao", "huy", "cancel", "tam hoan"];
-  const active = ["dang giao", "dang chuan", "chuan bi", "dang xu ly", "dang hoat dong"];
+  const active = [
+    "dang cho",
+    "cho xac nhan",
+    "dang giao",
+    "dang chuan",
+    "chuan bi",
+    "dang xu ly",
+    "dang hoat dong",
+  ];
   if (inactive.some((kw) => text.includes(kw))) return false;
   if (active.some((kw) => text.includes(kw))) return true;
   return text.length > 0 && !inactive.some((kw) => text.includes(kw));
@@ -227,7 +239,7 @@ const normalizeAdminOrder = (order, index, drones) => {
       "Đang cập nhật",
     droneId: fallbackDroneId,
     total: totalValue,
-    status: order?.status || "Đang chuẩn bị",
+    status: order?.status || "Đang chờ",
     restaurantId,
     restaurantSlug,
     restaurantName,
@@ -705,10 +717,6 @@ function AdminDashboard({
     }
   };
 
-  const handleAcceptOrder = (orderId) => {
-    updateOrderStatus(orderId, "Đang chuẩn bị");
-  };
-
   const handleCancelOrder = (orderId) => {
     const shouldCancel =
       typeof window === "undefined"
@@ -911,7 +919,6 @@ function AdminDashboard({
           <AdminOrdersSection
             orders={filteredOrders}
             onEdit={(order) => handleOpenForm("order", "edit", order)}
-            onAcceptOrder={handleAcceptOrder}
             onCancelOrder={handleCancelOrder}
             emptyMessage={emptyMessage}
             formatCurrency={formatCurrency}
@@ -955,5 +962,3 @@ function AdminDashboard({
 }
 
 export default AdminDashboard;
-
-

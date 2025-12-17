@@ -10,7 +10,7 @@ import {
 
 import OrderCard from "../components/OrderCard.jsx";
 
-const ACTIVE_STATUS = "Đang giao";
+const ACTIVE_STATUS = "Đang chờ";
 const CANCELLED_STATUS = "Đã hủy";
 
 const getStatusColor = (status) =>

@@ -458,6 +458,12 @@ tbody tr:hover {
   color: #1d4ed8;
 }
 
+.status-dang-cho {
+  background: #fef9c3;
+  border-color: #fde68a;
+  color: #a16207;
+}
+
 .status-hoan-tat {
   background: #ecfeff;
   border-color: #a5f3fc;

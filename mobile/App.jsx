@@ -27,7 +27,7 @@ const SCREENS = {
 const HOME_TAB = "home";
 const ORDERS_TAB = "orders";
 
-const ACTIVE_STATUS = "Đang giao";
+const ACTIVE_STATUS = "Đang chờ";
 const CANCELLED_STATUS = "Đã hủy";
 const ACTIVE_STATUS_COLOR = "#f97316";
 const CANCELLED_STATUS_COLOR = "#ef4444";
@@ -346,7 +346,7 @@ export default function App() {
       }
 
       const enhancedOrder = {
-        status: "Chờ xác nhận",
+        status: "Đang chờ",
         total: order.subtotal ?? order.total ?? 0,
         itemsCount: countOrderItems(order.items),
         source: order.source ?? "mobile",

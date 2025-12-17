@@ -32,7 +32,7 @@ const DEFAULT_ORDERS = [
     customer: "Minh Quân",
     items: 4,
     total: 337000,
-    status: "Chờ xác nhận",
+    status: "Đang chờ",
     placedAt: "2024-05-27T19:05:00",
     address: "Empire City, Thủ Đức",
   },
@@ -74,7 +74,7 @@ const EMPTY_ORDER_FORM = {
   customer: "",
   items: "",
   total: "",
-  status: "Chờ xác nhận",
+  status: "Đang chờ",
   placedAt: "",
   address: "",
 };
@@ -83,6 +83,9 @@ const STATUS_VARIANTS = {
   "đang giao": "info",
   "chuẩn bị": "warning",
   "chờ xác nhận": "pending",
+  "đang chờ": "pending",
+  "dang cho": "pending",
+  "cho xac nhan": "pending",
   "đã hoàn tất": "success",
   "đã hủy": "danger",
   "tạm dừng": "danger",
@@ -97,6 +100,9 @@ const ACTIVE_ORDER_STATUSES = new Set([
   "đang giao",
   "chuẩn bị",
   "chờ xác nhận",
+  "đang chờ",
+  "dang cho",
+  "cho xac nhan",
   "đang xử lý",
 ]);
 
@@ -201,7 +207,7 @@ const normalizeOrder = (order, index) => {
     customer: customerName,
     items: resolveOrderItemCount(order),
     total: resolveOrderTotal(order),
-    status: order?.status || "Chờ xác nhận",
+    status: order?.status || "Đang chờ",
     placedAt: placedAt instanceof Date ? placedAt.toISOString() : placedAt,
     address: order?.address || order?.customer?.address || order?.destination || "",
     restaurantId: order?.restaurantId ?? null,
@@ -423,7 +429,7 @@ function RestaurantDashboard({
       address: texts.orders?.form?.address ?? "Địa chỉ giao hàng",
       statusOptions:
         texts.orders?.form?.statusOptions ?? [
-          "Chờ xác nhận",
+          "Đang chờ",
           "Chuẩn bị",
           "Đang giao",
           "Đã hoàn tất",
@@ -756,7 +762,7 @@ function RestaurantDashboard({
   };
 
   const handleAcceptOrder = (order) => {
-    updateOrderStatus(order, "Chuẩn bị");
+    updateOrderStatus(order, "Đang giao");
   };
 
   const handleCancelOrder = (order) => {

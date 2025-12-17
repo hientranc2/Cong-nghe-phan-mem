@@ -2080,6 +2080,7 @@ function App() {
       },
       id: `ORD-${Date.now()}`,
       confirmedAt: new Date().toISOString(),
+      status: "Đang chờ",
       ownerEmail,
     };
 
