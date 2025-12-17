@@ -175,7 +175,12 @@ function RestaurantOrdersSection({
                     const isCancelled =
                       normalizedStatus.includes("huy") ||
                       normalizedStatus.includes("cancel");
-                    const canCancel = !isCompleted && !isCancelled;
+                    const isInDelivery =
+                      normalizedStatus.includes("dang giao") ||
+                      normalizedStatus.includes("dang van chuyen") ||
+                      normalizedStatus.includes("in delivery") ||
+                      normalizedStatus.includes("in transit");
+                    const canCancel = !isCompleted && !isCancelled && !isInDelivery;
 
                     return (
                       <>

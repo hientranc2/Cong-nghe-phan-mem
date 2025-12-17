@@ -60,6 +60,13 @@ const DEFAULT_RATING = {
   ],
 };
 
+const normalizeStatusText = (value) =>
+  String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\u017d`/g, "d");
+
 const EMPTY_DISH_FORM = {
   name: "",
   price: "",
@@ -772,6 +779,16 @@ function RestaurantDashboard({
   };
 
   const handleCancelOrder = (order) => {
+    const normalizedStatus = normalizeStatusText(order?.status);
+    const isInDelivery =
+      normalizedStatus.includes("dang giao") ||
+      normalizedStatus.includes("dang van chuyen") ||
+      normalizedStatus.includes("in delivery") ||
+      normalizedStatus.includes("in transit");
+    if (isInDelivery) {
+      return;
+    }
+
     const message =
       ordersTexts.confirmCancel ?? "Bạn có chắc muốn hủy đơn hàng này?";
     const shouldCancel =
