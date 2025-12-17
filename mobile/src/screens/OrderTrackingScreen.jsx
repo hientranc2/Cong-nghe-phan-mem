@@ -195,7 +195,7 @@ const useGeocodedLocation = (query, fallbackCoords = null) => {
   return state;
 };
 
-const OrderTrackingScreen = ({ order, onBack, onGoHome }) => {
+const OrderTrackingScreen = ({ order, onBack, onGoHome, onComplete }) => {
   const derivedProgress = useMemo(() => calculateProgress(order), [order]);
   const [progressValue, setProgressValue] = useState(() =>
     clamp(derivedProgress, 0.01, 0.98)
@@ -205,6 +205,7 @@ const OrderTrackingScreen = ({ order, onBack, onGoHome }) => {
     twoThird: false,
     arrival: false,
   });
+  const completionRef = useRef(false);
 
   const restaurantName =
     order?.restaurantName ?? order?.restaurant?.name ?? "Nha hang";
@@ -241,6 +242,7 @@ const OrderTrackingScreen = ({ order, onBack, onGoHome }) => {
 
   useEffect(() => {
     milestonesRef.current = { oneThird: false, twoThird: false, arrival: false };
+    completionRef.current = false;
   }, [order?.id]);
 
   useEffect(() => {
@@ -485,7 +487,15 @@ const OrderTrackingScreen = ({ order, onBack, onGoHome }) => {
 
     if (ratio >= 0.995 && !milestones.arrival) {
       milestones.arrival = true;
-      Alert.alert("Drone đã tới", "Vui lòng nhận hàng ngay khi drone hạ cánh.");
+      Alert.alert("Drone ?? t?i", "Vui l?ng nh?n h?ng ngay khi drone h? c?nh.");
+      if (!completionRef.current && typeof onComplete === "function") {
+        completionRef.current = true;
+        try {
+          onComplete(order);
+        } catch (error) {
+          console.warn("onComplete tracking callback failed", error);
+        }
+      }
     }
   }, [distanceProgress]);
 
@@ -1046,5 +1056,3 @@ const styles = StyleSheet.create({
 });
 
 export default OrderTrackingScreen;
-
-

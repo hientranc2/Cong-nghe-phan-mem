@@ -236,6 +236,23 @@ const AdminDashboardScreen = ({ user, onBack }) => {
 
   const revenue = useMemo(() => calculateRevenue(orders), [orders]);
 
+  const revenueByRestaurant = useMemo(() => {
+    const map = new Map();
+
+    orders.forEach((order) => {
+      const name = order?.restaurantName || order?.restaurant || 'Nha hang';
+      const city = order?.restaurantAddress || order?.restaurantCity || order?.city || 'Dang cap nhat';
+      const total = Number(order?.total) || 0;
+      const existing = map.get(name) || { name, total: 0, count: 0, city };
+      existing.total += total;
+      existing.count += 1;
+      existing.city = existing.city || city;
+      map.set(name, existing);
+    });
+
+    return Array.from(map.values()).sort((a, b) => b.total - a.total);
+  }, [orders]);
+
   const statusOptions = [
     "Đang chuẩn bị",
     "Đang giao",
@@ -354,6 +371,26 @@ const AdminDashboardScreen = ({ user, onBack }) => {
 
   const handleCloseTracking = () => {
     setTrackingOrder(null);
+  };
+
+  const handleTrackingComplete = async (order) => {
+    const completedStatus = statusOptions.find((item) => item.toLowerCase().includes("ho")) || "Hoan tat";
+    const id = order?.id;
+    if (!id) return;
+
+    setOrders((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? { ...item, status: completedStatus, statusColor: "#16a34a" }
+          : item
+      )
+    );
+
+    try {
+      await updateOrder(id, { ...order, status: completedStatus });
+    } catch (error) {
+      console.warn("Khong the cap nhat trang thai hoan tat", error);
+    }
   };
 
   const handleStartCreateRestaurant = () => {
@@ -609,30 +646,70 @@ const AdminDashboardScreen = ({ user, onBack }) => {
       </View>
 
       {activeTab === "overview" && (
-        <View style={styles.cardGrid}>
-          <View style={[styles.card, styles.primaryCard]}>
-            <Text style={styles.cardLabel}>Tổng đơn</Text>
-            <Text style={styles.cardValue}>{orders.length}</Text>
-            <Text style={styles.cardHint}>{activeOrders.length} đang xử lý</Text>
+        <>
+          <View style={styles.cardGrid}>
+            <View style={[styles.card, styles.primaryCard]}>
+              <Text style={styles.cardLabel}>Tong don</Text>
+              <Text style={styles.cardValue}>{orders.length}</Text>
+              <Text style={styles.cardHint}>{activeOrders.length} dang xu ly</Text>
+            </View>
+            <View style={styles.card}>
+              <Text style={styles.cardLabel}>Doanh thu</Text>
+              <Text style={styles.cardValue}>
+                {new Intl.NumberFormat('vi-VN').format(revenue)} ?
+              </Text>
+              <Text style={styles.cardHint}>Tu web & mobile</Text>
+            </View>
+            <View style={styles.card}>
+              <Text style={styles.cardLabel}>Nha hang</Text>
+              <Text style={styles.cardValue}>{restaurants.length}</Text>
+              <Text style={styles.cardHint}>Dang hoat dong</Text>
+            </View>
+            <View style={styles.card}>
+              <Text style={styles.cardLabel}>Khach hang</Text>
+              <Text style={styles.cardValue}>{customerAccounts.length}</Text>
+              <Text style={styles.cardHint}>Dang ky web & mobile</Text>
+            </View>
           </View>
-          <View style={styles.card}>
-            <Text style={styles.cardLabel}>Doanh thu</Text>
-            <Text style={styles.cardValue}>
-              {new Intl.NumberFormat("vi-VN").format(revenue)} đ
-            </Text>
-            <Text style={styles.cardHint}>Từ web & mobile</Text>
-          </View>
-          <View style={styles.card}>
-            <Text style={styles.cardLabel}>Nhà hàng</Text>
-            <Text style={styles.cardValue}>{restaurants.length}</Text>
-            <Text style={styles.cardHint}>Đang hoạt động</Text>
-          </View>
-          <View style={styles.card}>
-            <Text style={styles.cardLabel}>Khách hàng</Text>
-            <Text style={styles.cardValue}>{customerAccounts.length}</Text>
-            <Text style={styles.cardHint}>Đăng ký web & mobile</Text>
-          </View>
-        </View>
+
+          {revenueByRestaurant.length > 0 ? (
+            <View style={[styles.section, styles.chartSection]}>
+              <View style={styles.sectionHeaderRow}>
+                <View>
+                  <Text style={styles.sectionTitle}>Doanh thu theo nha hang</Text>
+                  <Text style={styles.sectionSubTitle}>Moi cot la tong doanh thu va so don cua tung nha hang.</Text>
+                </View>
+              </View>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.chartList}
+              >
+                {revenueByRestaurant.map((item, index) => {
+                  const maxRevenue = revenueByRestaurant[0]?.total || 1;
+                  const height = Math.max(10, (item.total / maxRevenue) * 100);
+                  return (
+                    <View key={`${item.name}-${index}`} style={styles.chartItem}>
+                      <View style={styles.chartBarShell}>
+                        <View style={[styles.chartBar, { height: `${height}%` }]}>
+                          <Text style={styles.chartValue}>
+                            {new Intl.NumberFormat("vi-VN").format(item.total)} đ
+                          </Text>
+                        </View>
+                      </View>
+                      <Text style={styles.chartName} numberOfLines={1}>
+                        {item.name}
+                      </Text>
+                      <Text style={styles.chartMeta} numberOfLines={2}>
+                        {item.count} don ? {item.city}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          ) : null}
+        </>
       )}
 
       {activeTab === "orders" && (
@@ -1115,6 +1192,7 @@ const AdminDashboardScreen = ({ user, onBack }) => {
           order={trackingOrder}
           onBack={handleCloseTracking}
           onGoHome={handleCloseTracking}
+          onComplete={handleTrackingComplete}
         />
       </Modal>
     </View>
@@ -1254,6 +1332,11 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#7c2d12",
     marginBottom: 12,
+  },
+  sectionSubTitle: {
+    fontSize: 12,
+    color: "#a16207",
+    marginBottom: 8,
   },
   secondaryButton: {
     paddingHorizontal: 12,
@@ -1427,6 +1510,63 @@ const styles = StyleSheet.create({
   },
   ghostLabel: {
     color: "#c2410c",
+  },
+  chartSection: {
+    marginTop: 16,
+  },
+  chartList: {
+    paddingVertical: 8,
+    gap: 14,
+  },
+  chartItem: {
+    width: 120,
+    marginRight: 14,
+    alignItems: "center",
+    gap: 8,
+  },
+  chartBarShell: {
+    height: 180,
+    width: "100%",
+    borderRadius: 16,
+    backgroundColor: "#fff7ed",
+    borderWidth: 1,
+    borderColor: "#fed7aa",
+    justifyContent: "flex-end",
+    padding: 10,
+  },
+  chartBar: {
+    width: "100%",
+    borderRadius: 12,
+    backgroundColor: "#f97316",
+    justifyContent: "flex-end",
+    paddingBottom: 6,
+    alignItems: "center",
+    shadowColor: "#f97316",
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  chartValue: {
+    color: "#ffffff",
+    fontWeight: "700",
+    fontSize: 12,
+    backgroundColor: "#7c2d12",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+  chartName: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#7c2d12",
+    textAlign: "center",
+  },
+  chartMeta: {
+    fontSize: 12,
+    color: "#a16207",
+    textAlign: "center",
   },
 });
 
