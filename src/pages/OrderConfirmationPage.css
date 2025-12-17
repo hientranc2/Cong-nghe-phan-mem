@@ -301,7 +301,15 @@
   color: var(--text);
 }
 
-.order-btn:hover {
+.order-btn:disabled,
+.order-btn--disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  box-shadow: none;
+  transform: none;
+}
+
+.order-btn:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 14px 28px rgba(255, 90, 31, 0.2);
 }
@@ -400,4 +408,3 @@
     justify-content: center;
   }
 }
-

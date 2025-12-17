@@ -36,6 +36,22 @@ const formatDateTime = (value) => {
   }
 };
 
+const normalizeStatusText = (value) =>
+  String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+const isCancelledOrder = (order) => {
+  const status = order?.status?.label ?? order?.status ?? "";
+  const normalized = normalizeStatusText(status);
+  return (
+    normalized.includes("huy") ||
+    normalized.includes("cancel") ||
+    Boolean(order?.cancelledAt)
+  );
+};
+
 const OrderConfirmationScreen = ({ order, onBack, onTrackOrder, onViewOrders }) => {
   const summaryItems = order?.items ?? [];
   const productCount = useMemo(
@@ -46,6 +62,22 @@ const OrderConfirmationScreen = ({ order, onBack, onTrackOrder, onViewOrders }) 
       ),
     [summaryItems]
   );
+  const isTrackingDisabled = isCancelledOrder(order);
+
+  const handleTrackPress = () => {
+    if (isTrackingDisabled) {
+      return;
+    }
+
+    if (typeof onTrackOrder === "function") {
+      onTrackOrder();
+      return;
+    }
+
+    if (typeof onBack === "function") {
+      onBack();
+    }
+  };
 
   if (!order) {
     return (
@@ -96,10 +128,15 @@ const OrderConfirmationScreen = ({ order, onBack, onTrackOrder, onViewOrders }) 
             </Text>
           ) : (
             <View style={styles.summaryList}>
-              {summaryItems.map((item) => {
+              {summaryItems.map((item, index) => {
                 const itemTotal = Number(item.price ?? 0) * Number(item.quantity ?? 0);
+                const itemKey =
+                  item?.id ??
+                  item?.productId ??
+                  item?.product?.id ??
+                  `${item?.name ?? "item"}-${index}`;
                 return (
-                  <View key={item.id} style={styles.summaryRow}>
+                  <View key={itemKey} style={styles.summaryRow}>
                     <View style={styles.summaryInfo}>
                       <Text style={styles.summaryName}>{item.name}</Text>
                       <Text style={styles.summaryQuantity}>Số lượng: x{item.quantity}</Text>
@@ -164,9 +201,14 @@ const OrderConfirmationScreen = ({ order, onBack, onTrackOrder, onViewOrders }) 
 
       <View style={styles.footer}>
         <TouchableOpacity
-          style={[styles.secondaryButton, styles.secondaryButtonFullWidth]}
+          style={[
+            styles.secondaryButton,
+            styles.secondaryButtonFullWidth,
+            isTrackingDisabled && styles.secondaryButtonDisabled,
+          ]}
           activeOpacity={0.85}
-          onPress={onTrackOrder ?? onBack}
+          onPress={handleTrackPress}
+          disabled={isTrackingDisabled}
         >
           <Text style={styles.secondaryButtonLabel}>Theo dõi đơn hàng</Text>
         </TouchableOpacity>
@@ -367,6 +409,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 1,
     borderColor: "#f97316",
+  },
+  secondaryButtonDisabled: {
+    opacity: 0.5,
   },
   secondaryButtonLabel: {
     fontSize: 15,

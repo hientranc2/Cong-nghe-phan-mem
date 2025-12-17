@@ -11,7 +11,7 @@ import OrderTrackingScreen from "./src/screens/OrderTrackingScreen.jsx";
 import AdminDashboardScreen from "./src/features/admin/AdminDashboardScreen.jsx";
 import RestaurantDashboardScreen from "./src/features/restaurant/RestaurantDashboardScreen.jsx";
 import { CartProvider } from "./src/context/CartContext.jsx";
-import { createOrder, fetchCollection } from "./src/utils/api";
+import { createOrder, fetchCollection, updateOrder } from "./src/utils/api";
 
 const SCREENS = {
   home: "home",
@@ -410,6 +410,51 @@ export default function App() {
       }
 
       const orderDetails = order.details ?? order;
+
+      if (actionId === "cancel") {
+        const orderId = order.id ?? order.code ?? orderDetails?.id;
+        if (!orderId) {
+          return;
+        }
+
+        setOrders((previous) =>
+          previous.map((item) => {
+            if (!item) {
+              return item;
+            }
+
+            const matchesId =
+              item.id === orderId ||
+              item.code === orderId ||
+              item.details?.id === orderId;
+
+            if (!matchesId) {
+              return item;
+            }
+
+            const details = item.details ?? item;
+
+            return {
+              ...item,
+              status: CANCELLED_STATUS,
+              statusColor: CANCELLED_STATUS_COLOR,
+              details: {
+                ...details,
+                status: CANCELLED_STATUS,
+              },
+            };
+          })
+        );
+
+        updateOrder(orderId, {
+          status: CANCELLED_STATUS,
+          statusColor: CANCELLED_STATUS_COLOR,
+        }).catch((error) => {
+          console.warn("Khong the cap nhat trang thai huy don hang", error);
+        });
+
+        return;
+      }
 
       if (actionId === "track") {
         setLastOrder(orderDetails);

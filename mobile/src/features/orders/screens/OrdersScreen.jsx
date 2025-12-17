@@ -32,15 +32,17 @@ const isCancelledStatus = (status) =>
   typeof status === "string" && status.toLowerCase().includes("hủy");
 
 const buildActionsForStatus = (status) => {
-  if (status === CANCELLED_STATUS) {
-    return [];
-  }
-
-  return [
+  const actions = [
     { id: "cancel", label: "Hủy đơn hàng", variant: "secondary" },
     { id: "summary", label: "Xem tóm tắt", variant: "ghost" },
     { id: "track", label: "Theo dõi hành trình", variant: "primary" },
   ];
+
+  if (status === CANCELLED_STATUS) {
+    return actions.filter((action) => action.id === "summary");
+  }
+
+  return actions;
 };
 
 const normalizeOrders = (incomingOrders) =>

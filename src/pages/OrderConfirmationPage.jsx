@@ -2,6 +2,22 @@ import { useEffect, useMemo, useState } from "react";
 import MapPreview from "../components/MapPreview.jsx";
 import "./OrderConfirmationPage.css";
 
+const normalizeStatusText = (value) =>
+  String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+const isCancelledOrder = (order) => {
+  const status = order?.status?.label ?? order?.status ?? "";
+  const normalized = normalizeStatusText(status);
+  return (
+    normalized.includes("huy") ||
+    normalized.includes("cancel") ||
+    Boolean(order?.cancelledAt)
+  );
+};
+
 function OrderConfirmationPage({
   pendingOrder = null,
   receipt = null,
@@ -160,6 +176,7 @@ function OrderConfirmationPage({
   const confirmedAtText = receipt?.confirmedAt
     ? new Date(receipt.confirmedAt).toLocaleString()
     : new Date().toLocaleString();
+  const canTrackOrder = !isCancelledOrder(activeOrder);
 
   return (
     <main className="order-confirmation-page" aria-labelledby="order-confirmation-heading">
@@ -260,8 +277,15 @@ function OrderConfirmationPage({
               </div>
               <button
                 type="button"
-                className="order-btn order-btn--primary"
-                onClick={() => onViewTracking()}
+                className={`order-btn order-btn--primary${
+                  canTrackOrder ? "" : " order-btn--disabled"
+                }`}
+                onClick={() => {
+                  if (canTrackOrder) {
+                    onViewTracking();
+                  }
+                }}
+                disabled={!canTrackOrder}
               >
                 {trackingButtonLabel}
               </button>

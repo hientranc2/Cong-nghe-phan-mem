@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import MapView, { Marker } from "react-native-maps";
 
 import { useCart } from "../context/CartContext.jsx";
 
@@ -35,6 +36,64 @@ const formatCurrency = (value) => {
   }
 };
 
+const DEFAULT_PREVIEW_COORD = { latitude: 10.776492, longitude: 106.700414 };
+const NOMINATIM_BASE =
+  "https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=vn&q=";
+const geocodeCache = new Map();
+
+const normalizeCoords = (value, fallback = null) => {
+  const lat = Number(value?.latitude ?? value?.lat);
+  const lng = Number(value?.longitude ?? value?.lng ?? value?.lon);
+  if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+    return { latitude: lat, longitude: lng };
+  }
+  return fallback;
+};
+
+const appendCountry = (query = "") => {
+  const normalized = query.toLowerCase();
+  if (normalized.includes("viet nam") || normalized.includes("vietnam")) {
+    return query;
+  }
+  return `${query}, Viet Nam`;
+};
+
+const geocodeAddress = async (query, signal) => {
+  const scopedQuery = appendCountry(query);
+
+  if (geocodeCache.has(scopedQuery)) {
+    return geocodeCache.get(scopedQuery);
+  }
+
+  const response = await fetch(
+    `${NOMINATIM_BASE}${encodeURIComponent(scopedQuery)}`,
+    {
+      headers: {
+        "Accept-Language": "vi",
+        "User-Agent": "fco-mobile-checkout/1.0",
+      },
+      signal,
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Geocoding request failed");
+  }
+
+  const results = await response.json();
+  const [first] = results ?? [];
+  const coords = normalizeCoords(
+    { latitude: first?.lat, longitude: first?.lon },
+    null
+  );
+
+  if (coords) {
+    geocodeCache.set(scopedQuery, coords);
+  }
+
+  return coords;
+};
+
 const CheckoutScreen = ({ onBack, user, onOrderPlaced }) => {
   const { items, subtotal, clearCart } = useCart();
   const [selectedPayment, setSelectedPayment] = useState(PAYMENT_METHODS[0].id);
@@ -52,6 +111,19 @@ const CheckoutScreen = ({ onBack, user, onOrderPlaced }) => {
     () => deliveryAddress.trim(),
     [deliveryAddress]
   );
+  const [mapCoord, setMapCoord] = useState(DEFAULT_PREVIEW_COORD);
+  const [mapStatus, setMapStatus] = useState("idle");
+  const [mapError, setMapError] = useState("");
+
+  const mapRegion = useMemo(
+    () => ({
+      latitude: mapCoord?.latitude ?? DEFAULT_PREVIEW_COORD.latitude,
+      longitude: mapCoord?.longitude ?? DEFAULT_PREVIEW_COORD.longitude,
+      latitudeDelta: 0.01,
+      longitudeDelta: 0.01,
+    }),
+    [mapCoord]
+  );
 
   const hasItems = items.length > 0;
   const hasCustomerName = trimmedCustomerName.length > 0;
@@ -64,6 +136,46 @@ const CheckoutScreen = ({ onBack, user, onOrderPlaced }) => {
   const showNameError = formSubmitted && !hasCustomerName;
   const showPhoneError = formSubmitted && !hasCustomerPhone;
   const showAddressError = formSubmitted && !hasDeliveryAddress;
+
+  useEffect(() => {
+    if (!trimmedDeliveryAddress) {
+      setMapStatus("idle");
+      setMapError("");
+      setMapCoord(DEFAULT_PREVIEW_COORD);
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    setMapStatus("loading");
+    setMapError("");
+
+    const timer = setTimeout(() => {
+      geocodeAddress(trimmedDeliveryAddress, controller.signal)
+        .then((coords) => {
+          if (!coords || controller.signal.aborted) {
+            if (!controller.signal.aborted) {
+              setMapStatus("error");
+              setMapError("Khong tim thay dia chi tren ban do.");
+            }
+            return;
+          }
+          setMapCoord(coords);
+          setMapStatus("success");
+        })
+        .catch((error) => {
+          if (error?.name === "AbortError") {
+            return;
+          }
+          setMapStatus("error");
+          setMapError("Khong the dinh vi dia chi.");
+        });
+    }, 500);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [trimmedDeliveryAddress]);
 
   const handlePlaceOrder = () => {
     setFormSubmitted(true);
@@ -211,6 +323,40 @@ const CheckoutScreen = ({ onBack, user, onOrderPlaced }) => {
           {showAddressError ? (
             <Text style={styles.errorText}>Vui lòng nhập địa chỉ giao hàng</Text>
           ) : null}
+          <View style={styles.mapCard}>
+            <Text style={styles.mapTitle}>Ban do giao hang</Text>
+            <View style={styles.mapWrapper}>
+              <MapView
+                style={styles.mapPreview}
+                region={mapRegion}
+                scrollEnabled={false}
+                rotateEnabled={false}
+                pitchEnabled={false}
+                loadingEnabled
+              >
+                <Marker
+                  coordinate={mapCoord ?? DEFAULT_PREVIEW_COORD}
+                  title="Dia chi giao hang"
+                  description={trimmedDeliveryAddress || "Dia chi mac dinh"}
+                />
+              </MapView>
+            </View>
+            <Text
+              style={[
+                styles.mapStatus,
+                mapStatus === "error" && styles.mapStatusError,
+              ]}
+              numberOfLines={2}
+            >
+              {mapError
+                ? mapError
+                : mapStatus === "loading"
+                ? "Dang dinh vi dia chi giao hang..."
+                : mapStatus === "success"
+                ? "Ban do da cap nhat theo dia chi vua nhap."
+                : "Nhap dia chi de xem vi tri giao hang."}
+            </Text>
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -390,6 +536,37 @@ const styles = StyleSheet.create({
     minHeight: 88,
     textAlignVertical: "top",
   },
+  mapCard: {
+    backgroundColor: "#fff7ed",
+    borderRadius: 16,
+    padding: 12,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: "#fed7aa",
+  },
+  mapTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#9a3412",
+  },
+  mapWrapper: {
+    borderRadius: 14,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    backgroundColor: "#f8fafc",
+  },
+  mapPreview: {
+    width: "100%",
+    height: 180,
+  },
+  mapStatus: {
+    fontSize: 12,
+    color: "#6b6b75",
+  },
+  mapStatusError: {
+    color: "#dc2626",
+  },
   paymentOption: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -486,6 +663,3 @@ const styles = StyleSheet.create({
 });
 
 export default CheckoutScreen;
-
-
-
