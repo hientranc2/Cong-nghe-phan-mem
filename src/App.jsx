@@ -26,6 +26,7 @@ import {
   deleteMenuItem,
   deleteOrder,
   deleteRestaurant,
+  fetchCollection,
   fetchAllData,
   fetchDrones,
   fetchOrders,
@@ -85,6 +86,8 @@ const withRestaurantDefaults = (restaurant, fallbackImage = heroBackground) => {
 const USERS_STORAGE_KEY = "fcoUsers";
 const CURRENT_USER_STORAGE_KEY = "fcoCurrentUser";
 const ORDER_HISTORY_STORAGE_KEY = "fcoOrderHistory";
+const ORDER_POLL_INTERVAL = 5000;
+const CATALOG_POLL_INTERVAL = 20000;
 const buildMenuRestaurantIndex = (restaurants = []) => {
   const map = new Map();
 
@@ -1399,12 +1402,32 @@ function App() {
   };
 
   const syncUpdatedOrder = async (order) => {
-    upsertOrderState(order);
+    const existing =
+      adminOrders.find((entry) => entry.id === order.id) ||
+      orderHistory.find((entry) => entry.id === order.id) ||
+      null;
+    const payload = { ...(existing ?? {}), ...order };
+
+    if (
+      existing?.customer &&
+      typeof existing.customer === "object" &&
+      typeof order.customer === "string"
+    ) {
+      payload.customer = existing.customer;
+    }
+    if (!payload.ownerEmail && existing?.ownerEmail) {
+      payload.ownerEmail = existing.ownerEmail;
+    }
+    if (!payload.userId && existing?.userId) {
+      payload.userId = existing.userId;
+    }
+
+    upsertOrderState(payload);
 
     if (!order?.id) return;
 
     try {
-      const saved = await updateOrder(order.id, order);
+      const saved = await updateOrder(order.id, payload);
       if (saved) {
         upsertOrderState(saved);
       }
@@ -1424,6 +1447,89 @@ function App() {
       console.error("Không thể xóa đơn hàng trên json-server", error);
     }
   };
+
+  const refreshOrdersFromServer = useCallback(async () => {
+    try {
+      const orders = await fetchOrders();
+      if (!Array.isArray(orders)) return;
+
+      setAdminOrders(orders);
+      setOrderHistory(orders);
+      setPendingOrder((prev) => {
+        if (!prev?.id) return prev;
+        const match = orders.find((order) => order.id === prev.id);
+        return match ? { ...prev, ...match } : prev;
+      });
+      setRecentReceipt((prev) => {
+        if (!prev?.id) return prev;
+        const match = orders.find((order) => order.id === prev.id);
+        return match ? { ...prev, ...match } : prev;
+      });
+    } catch (error) {
+      console.error("KhA'ng th ¯Ÿ t §œi Ž`’­n hAÿng t ¯® server", error);
+    }
+  }, []);
+
+  const refreshCatalogFromServer = useCallback(async () => {
+    try {
+      const [remoteCategories, remoteMenuItems, remoteRestaurants] =
+        await Promise.all([
+          fetchCollection("categories").catch(() => null),
+          fetchCollection("menuItems").catch(() => null),
+          fetchCollection("restaurants").catch(() => null),
+        ]);
+
+      if (Array.isArray(remoteCategories) && remoteCategories.length > 0) {
+        setCategories(remoteCategories);
+      }
+
+      if (Array.isArray(remoteMenuItems) && remoteMenuItems.length > 0) {
+        setMenuItemList(remoteMenuItems.map(normalizeMenuItemForClient));
+      }
+
+      if (Array.isArray(remoteRestaurants) && remoteRestaurants.length > 0) {
+        setRestaurantList(
+          remoteRestaurants.map((restaurant) => withRestaurantDefaults(restaurant))
+        );
+      }
+    } catch (error) {
+      console.error("KhA'ng th ¯Ÿ t §œi d ¯_ li ¯Øu t ¯® server", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    const pollOrders = () => {
+      if (!active) return;
+      refreshOrdersFromServer();
+    };
+
+    pollOrders();
+    const interval = setInterval(pollOrders, ORDER_POLL_INTERVAL);
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [refreshOrdersFromServer]);
+
+  useEffect(() => {
+    let active = true;
+
+    const pollCatalog = () => {
+      if (!active) return;
+      refreshCatalogFromServer();
+    };
+
+    pollCatalog();
+    const interval = setInterval(pollCatalog, CATALOG_POLL_INTERVAL);
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [refreshCatalogFromServer]);
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);

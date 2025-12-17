@@ -158,9 +158,11 @@ const RestaurantDashboardScreen = ({ user, onBack }) => {
     };
 
     loadData();
+    const interval = setInterval(loadData, 5000);
 
     return () => {
       active = false;
+      clearInterval(interval);
     };
   }, []);
 

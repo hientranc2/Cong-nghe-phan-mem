@@ -237,7 +237,7 @@ const AdminDashboardScreen = ({ user, onBack }) => {
     const cleanup = refreshData();
     const interval = setInterval(() => {
       refreshData();
-    }, 15000);
+    }, 5000);
 
     return () => {
       if (cleanup) cleanup();

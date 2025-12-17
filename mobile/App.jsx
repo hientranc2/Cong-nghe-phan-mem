@@ -26,6 +26,7 @@ const SCREENS = {
 
 const HOME_TAB = "home";
 const ORDERS_TAB = "orders";
+const ORDER_POLL_INTERVAL = 5000;
 
 const ACTIVE_STATUS = "Đang chờ";
 const CANCELLED_STATUS = "Đã hủy";
@@ -251,15 +252,24 @@ export default function App() {
 
         const hydrated = serverOrders.map(buildOrderViewModel);
         setOrders(hydrated);
+        setLastOrder((prev) => {
+          if (!prev?.id) return prev;
+          const match = serverOrders.find(
+            (order) => order?.id === prev.id || order?.code === prev.id
+          );
+          return match ? { ...prev, ...match } : prev;
+        });
       } catch (error) {
         console.error("Không thể đồng bộ đơn hàng từ API", error);
       }
     };
 
     loadOrders();
+    const interval = setInterval(loadOrders, ORDER_POLL_INTERVAL);
 
     return () => {
       active = false;
+      clearInterval(interval);
     };
   }, []);
 

@@ -7,7 +7,13 @@ const SORT_OPTIONS = [
   { value: "name-desc", label: "Tên Z → A" },
 ];
 
-function normalizeRestaurantKey(order = {}, restaurantIndex = new Map()) {
+const normalizeName = (value) => String(value ?? "").trim().toLowerCase();
+
+function normalizeRestaurantKey(
+  order = {},
+  restaurantIndex = new Map(),
+  nameIndex = new Map()
+) {
   const directId = order.restaurantId || order.restaurantSlug;
   if (directId && restaurantIndex.has(directId)) return directId;
 
@@ -15,24 +21,33 @@ function normalizeRestaurantKey(order = {}, restaurantIndex = new Map()) {
     return order.restaurantSlug;
   }
 
-  if (order.restaurantId) return order.restaurantId;
-  if (order.restaurantSlug) return order.restaurantSlug;
-  if (order.restaurantName) return order.restaurantName;
-  return "Khác";
-}
+  const normalizedName = normalizeName(order.restaurantName);
+  if (normalizedName && nameIndex.has(normalizedName)) {
+    return nameIndex.get(normalizedName);
+  }
 
+  if (order.restaurantId && restaurantIndex.has(order.restaurantId)) {
+    return order.restaurantId;
+  }
+
+  return null;
+}
 function RevenueByRestaurantChart({ restaurants, orders, formatCurrency }) {
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("revenue-desc");
 
-  const restaurantIndex = useMemo(() => {
-    const map = new Map();
-    restaurants.forEach((restaurant) => {
-      if (restaurant.id) map.set(restaurant.id, restaurant);
-      if (restaurant.slug) map.set(restaurant.slug, restaurant);
-    });
-    return map;
-  }, [restaurants]);
+  const { restaurantIndex, restaurantNameIndex } = useMemo(() => {
+  const map = new Map();
+  const nameMap = new Map();
+  restaurants.forEach((restaurant) => {
+    if (restaurant.id) map.set(restaurant.id, restaurant);
+    if (restaurant.slug) map.set(restaurant.slug, restaurant);
+    if (restaurant.name) {
+      nameMap.set(normalizeName(restaurant.name), restaurant.id);
+    }
+  });
+  return { restaurantIndex: map, restaurantNameIndex: nameMap };
+}, [restaurants]);
 
   const revenueStats = useMemo(() => {
     const totals = new Map();
@@ -51,7 +66,9 @@ function RevenueByRestaurantChart({ restaurants, orders, formatCurrency }) {
       const amount = Number(order.total || 0);
       if (!Number.isFinite(amount)) return;
 
-      const key = normalizeRestaurantKey(order, restaurantIndex);
+      const key = normalizeRestaurantKey(order, restaurantIndex, restaurantNameIndex);
+      if (!key) return;
+
       const matchedRestaurant = restaurantIndex.get(key) || null;
 
       const current = totals.get(key) || {
@@ -79,7 +96,7 @@ function RevenueByRestaurantChart({ restaurants, orders, formatCurrency }) {
     });
 
     return Array.from(totals.values());
-  }, [orders, restaurants, restaurantIndex]);
+  }, [orders, restaurants, restaurantIndex, restaurantNameIndex]);
 
   const filteredStats = useMemo(() => {
     const term = query.trim().toLowerCase();
