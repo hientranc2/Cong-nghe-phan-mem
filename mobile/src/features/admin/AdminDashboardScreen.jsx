@@ -99,13 +99,6 @@ const normalizeOrders = (orders = []) => {
 const calculateRevenue = (orders = []) =>
   orders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
 
-const hasMobileSource = (source) => {
-  if (!source) return false;
-  return String(source).toLowerCase().includes("mobile");
-};
-
-const isMobileOrder = (order) => hasMobileSource(order?.source);
-
 const formatDate = (value) => {
   if (!value) return "Vừa đăng ký";
 
@@ -332,7 +325,6 @@ const AdminDashboardScreen = ({ user, onBack }) => {
     const map = new Map();
     const restaurantIndex = new Map();
     const restaurantNameIndex = new Map();
-    const filteredOrders = orders.filter((order) => !isMobileOrder(order));
 
     restaurants.forEach((restaurant) => {
       if (restaurant?.id) restaurantIndex.set(restaurant.id, restaurant);
@@ -342,7 +334,7 @@ const AdminDashboardScreen = ({ user, onBack }) => {
       }
     });
 
-    filteredOrders.forEach((order) => {
+    orders.forEach((order) => {
       const amount = Number(order?.total || 0);
       if (!Number.isFinite(amount)) return;
 
