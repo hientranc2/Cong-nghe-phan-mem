@@ -17,10 +17,14 @@ import {
   deleteOrder,
   deleteRestaurant,
   deleteUser,
+  deleteDrone,
+  fetchDrones,
   fetchCollection,
   updateOrder,
   updateRestaurant,
   updateUser,
+  createDrone,
+  updateDrone,
 } from "../../utils/api";
 
 const normalizeStatus = (value) =>
@@ -95,6 +99,13 @@ const normalizeOrders = (orders = []) => {
 const calculateRevenue = (orders = []) =>
   orders.reduce((sum, order) => sum + (Number(order.total) || 0), 0);
 
+const hasMobileSource = (source) => {
+  if (!source) return false;
+  return String(source).toLowerCase().includes("mobile");
+};
+
+const isMobileOrder = (order) => hasMobileSource(order?.source);
+
 const formatDate = (value) => {
   if (!value) return "Vừa đăng ký";
 
@@ -147,6 +158,20 @@ const normalizeRestaurantPayload = (restaurant = {}) => {
   };
 };
 
+const normalizeDronePayload = (drone = {}) => {
+  const normalizedId = drone?.id?.trim() || `dr-${Date.now()}`;
+  const normalizedName = drone?.name?.trim() || `Drone ${normalizedId}`;
+  const parsedBattery = Number(drone?.battery ?? 100);
+
+  return {
+    id: normalizedId,
+    name: normalizedName,
+    status: drone?.status?.trim() || "Sẵn sàng",
+    battery: Number.isFinite(parsedBattery) ? Math.max(0, Math.min(100, parsedBattery)) : 100,
+    lastMission: drone?.lastMission?.trim() || "Chờ nhiệm vụ",
+  };
+};
+
 const normalizeCustomerPayload = (customer = {}) => {
   const normalizedId = customer?.id?.trim() || `kh-${Date.now()}`;
   const safeName = customer?.fullName?.trim() || customer?.name?.trim();
@@ -165,10 +190,47 @@ const normalizeCustomerPayload = (customer = {}) => {
   };
 };
 
+const findRestaurantFromOrderItems = (items = []) => {
+  if (!Array.isArray(items)) {
+    return {};
+  }
+
+  for (const item of items) {
+    if (!item) continue;
+
+    const candidates = [
+      item.restaurantId,
+      item.restaurantSlug,
+      item.restaurant?.id,
+      item.restaurant?.slug,
+      item.restaurant?.name,
+      item.vendor,
+      item.restaurantName,
+    ];
+
+    const matched = candidates.find(
+      (value) => typeof value === "string" && value.trim()
+    );
+
+    if (matched) {
+      return { id: matched };
+    }
+
+    if (item.restaurant?.slug || item.restaurant?.id) {
+      return {
+        id: item.restaurant.slug || item.restaurant.id,
+      };
+    }
+  }
+
+  return {};
+};
+
 const AdminDashboardScreen = ({ user, onBack }) => {
   const [orders, setOrders] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
   const [users, setUsers] = useState([]);
+  const [drones, setDrones] = useState([]);
   const [activeTab, setActiveTab] = useState("overview");
   const [editingOrderId, setEditingOrderId] = useState(null);
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
@@ -201,18 +263,29 @@ const AdminDashboardScreen = ({ user, onBack }) => {
   });
   const [isSavingCustomer, setIsSavingCustomer] = useState(false);
   const [trackingOrder, setTrackingOrder] = useState(null);
+  const [droneFormMode, setDroneFormMode] = useState(null);
+  const [droneForm, setDroneForm] = useState({
+    id: "",
+    name: "",
+    status: "Sẵn sàng",
+    battery: "",
+    lastMission: "",
+  });
+  const [isSavingDrone, setIsSavingDrone] = useState(false);
+  const [isDroneStatusMenuOpen, setIsDroneStatusMenuOpen] = useState(false);
 
   const refreshData = useCallback(() => {
     let active = true;
 
     const loadData = async () => {
       try {
-        const [orderResponse, restaurantResponse, userResponse] =
-          await Promise.all([
-            fetchCollection("orders").catch(() => []),
-            fetchCollection("restaurants").catch(() => []),
-            fetchCollection("users").catch(() => []),
-          ]);
+      const [orderResponse, restaurantResponse, userResponse, droneResponse] =
+        await Promise.all([
+          fetchCollection("orders").catch(() => []),
+          fetchCollection("restaurants").catch(() => []),
+          fetchCollection("users").catch(() => []),
+          fetchDrones().catch(() => []),
+        ]);
 
         if (!active) return;
 
@@ -223,6 +296,7 @@ const AdminDashboardScreen = ({ user, onBack }) => {
           Array.isArray(restaurantResponse) ? restaurantResponse : []
         );
         setUsers(Array.isArray(userResponse) ? userResponse : []);
+        setDrones(Array.isArray(droneResponse) ? droneResponse : []);
       } catch (error) {
         console.warn("Không thể đồng bộ dữ liệu quản trị trên mobile", error);
       }
@@ -258,6 +332,7 @@ const AdminDashboardScreen = ({ user, onBack }) => {
     const map = new Map();
     const restaurantIndex = new Map();
     const restaurantNameIndex = new Map();
+    const filteredOrders = orders.filter((order) => !isMobileOrder(order));
 
     restaurants.forEach((restaurant) => {
       if (restaurant?.id) restaurantIndex.set(restaurant.id, restaurant);
@@ -267,7 +342,7 @@ const AdminDashboardScreen = ({ user, onBack }) => {
       }
     });
 
-    orders.forEach((order) => {
+    filteredOrders.forEach((order) => {
       const amount = Number(order?.total || 0);
       if (!Number.isFinite(amount)) return;
 
@@ -321,6 +396,125 @@ const AdminDashboardScreen = ({ user, onBack }) => {
     "Tạm hoãn",
     "Đang xử lý",
   ];
+
+  const droneStatusOptions = [
+    "Sẵn sàng",
+    "Đang hoạt động",
+    "Đang bảo trì",
+    "Tạm dừng",
+    "Cần sạc",
+  ];
+
+  const handleStartCreateDrone = () => {
+    setDroneFormMode("create");
+    setDroneForm({
+      id: "",
+      name: "",
+      status: "Sẵn sàng",
+      battery: "",
+      lastMission: "",
+    });
+    setIsDroneStatusMenuOpen(false);
+  };
+
+  const handleEditDrone = (drone) => {
+    if (!drone) return;
+    setDroneFormMode("edit");
+    setDroneForm({
+      id: drone.id ?? "",
+      name: drone.name ?? "",
+      status: drone.status ?? "Sẵn sàng",
+      battery: drone.battery != null ? String(drone.battery) : "",
+      lastMission: drone.lastMission ?? "",
+    });
+    setIsDroneStatusMenuOpen(false);
+  };
+
+  const resetDroneForm = () => {
+    setDroneFormMode(null);
+    setDroneForm({
+      id: "",
+      name: "",
+      status: "Sẵn sàng",
+      battery: "",
+      lastMission: "",
+    });
+    setIsDroneStatusMenuOpen(false);
+  };
+
+  const upsertDroneState = (payload) => {
+    const normalized = normalizeDronePayload(payload);
+    setDrones((prev) => {
+      const exists = prev.some((entry) => entry.id === normalized.id);
+      return exists
+        ? prev.map((entry) =>
+            entry.id === normalized.id ? { ...entry, ...normalized } : entry
+          )
+        : [...prev, normalized];
+    });
+  };
+
+  const handleSaveDrone = async () => {
+    if (!droneForm.name.trim()) {
+      Alert.alert("Thiếu thông tin", "Vui lòng nhập tên drone.");
+      return;
+    }
+
+    const payload = normalizeDronePayload({
+      ...droneForm,
+      battery: Number(droneForm.battery || 0),
+    });
+
+    setIsSavingDrone(true);
+
+    try {
+      if (droneFormMode === "edit" && payload.id) {
+        const saved =
+          (await updateDrone(payload.id, payload).catch(() => null)) ?? payload;
+        upsertDroneState(saved);
+      } else {
+        const tempId = payload.id || `dr-${Date.now()}`;
+        upsertDroneState({ ...payload, id: tempId });
+        const saved =
+          (await createDrone({ ...payload, id: tempId }).catch(() => null)) ??
+          null;
+        if (saved) {
+          upsertDroneState(saved);
+        }
+      }
+
+      resetDroneForm();
+      refreshData();
+    } catch (error) {
+      console.warn("Không thể lưu drone", error);
+    } finally {
+      setIsSavingDrone(false);
+    }
+  };
+
+  const handleDeleteDrone = (droneId) => {
+    Alert.alert("Xóa drone", "Bạn có chắc muốn xóa drone này?", [
+      { text: "Hủy", style: "cancel" },
+      {
+        text: "Xóa",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteDrone(droneId);
+          } catch (error) {
+            console.warn("Không thể xóa drone", error);
+          }
+
+          setDrones((prev) => prev.filter((drone) => drone.id !== droneId));
+          if (droneForm.id === droneId) {
+            resetDroneForm();
+          }
+
+          refreshData();
+        },
+      },
+    ]);
+  };
 
   const handleEditOrder = (order) => {
     setEditingOrderId(order.id);
@@ -669,6 +863,7 @@ const AdminDashboardScreen = ({ user, onBack }) => {
   const tabs = [
     { key: "overview", label: "Tổng quan" },
     { key: "orders", label: "Đơn hàng" },
+    { key: "fleet", label: "Đội bay" },
     { key: "restaurants", label: "Nhà hàng" },
     { key: "customers", label: "Khách hàng" },
   ];
@@ -891,6 +1086,173 @@ const AdminDashboardScreen = ({ user, onBack }) => {
                 <TouchableOpacity onPress={() => handleDeleteOrder(order.id)}>
                   <Text style={[styles.link, styles.dangerLink]}>Xóa</Text>
                   </TouchableOpacity>
+                </View>
+              </View>
+            ))
+          )}
+        </View>
+      )}
+
+      {activeTab === "fleet" && (
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Đội bay</Text>
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={handleStartCreateDrone}
+            >
+              <Text style={styles.secondaryButtonLabel}>+ Thêm drone</Text>
+            </TouchableOpacity>
+          </View>
+
+          {droneFormMode && (
+            <View style={[styles.section, styles.formCard]}>
+              <Text style={styles.formTitle}>
+                {droneFormMode === "edit"
+                  ? `Chỉnh sửa ${droneForm.name || droneForm.id}`
+                  : "Tạo drone mới"}
+              </Text>
+
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Mã (tùy chọn)</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="dr-01"
+                  value={droneForm.id}
+                  onChangeText={(text) =>
+                    setDroneForm((prev) => ({ ...prev, id: text }))
+                  }
+                />
+              </View>
+
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Tên drone</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Aquila X1"
+                  value={droneForm.name}
+                  onChangeText={(text) =>
+                    setDroneForm((prev) => ({ ...prev, name: text }))
+                  }
+                />
+              </View>
+
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Trạng thái</Text>
+                <View>
+                  <TouchableOpacity
+                    style={[styles.input, styles.selectInput]}
+                    onPress={() =>
+                      setIsDroneStatusMenuOpen((prev) => !prev)
+                    }
+                  >
+                    <Text style={styles.selectValue}>{droneForm.status}</Text>
+                    <Text style={styles.chevron}>⌄</Text>
+                  </TouchableOpacity>
+                  {isDroneStatusMenuOpen && (
+                    <View style={styles.selectMenu}>
+                      {droneStatusOptions.map((status) => (
+                        <TouchableOpacity
+                          key={status}
+                          style={styles.selectOption}
+                          onPress={() => {
+                            setDroneForm((prev) => ({ ...prev, status }));
+                            setIsDroneStatusMenuOpen(false);
+                          }}
+                        >
+                          <Text
+                            style={[
+                              styles.optionLabel,
+                              droneForm.status === status &&
+                                styles.selectedOption,
+                            ]}
+                          >
+                            {status}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              </View>
+
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Pin (%)</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="82"
+                  keyboardType="numeric"
+                  value={droneForm.battery}
+                  onChangeText={(text) =>
+                    setDroneForm((prev) => ({ ...prev, battery: text }))
+                  }
+                />
+              </View>
+
+              <View style={styles.formField}>
+                <Text style={styles.formLabel}>Nhiệm vụ gần nhất</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Giao cà phê Quận 1"
+                  value={droneForm.lastMission}
+                  onChangeText={(text) =>
+                    setDroneForm((prev) => ({ ...prev, lastMission: text }))
+                  }
+                />
+              </View>
+
+              <View style={styles.formActions}>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.ghostButton]}
+                  onPress={resetDroneForm}
+                  disabled={isSavingDrone}
+                >
+                  <Text style={[styles.actionButtonLabel, styles.ghostLabel]}>
+                    Hủy
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={handleSaveDrone}
+                  disabled={isSavingDrone}
+                >
+                  <Text style={styles.actionButtonLabel}>
+                    {isSavingDrone ? "Đang lưu..." : "Lưu"}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {drones.length === 0 ? (
+            <Text style={styles.emptyText}>Chưa có drone nào.</Text>
+          ) : (
+            drones.map((drone) => (
+              <View key={drone.id} style={styles.listItem}>
+                <View style={styles.listTextGroup}>
+                  <Text style={styles.itemTitle}>{drone.name}</Text>
+                  <Text style={styles.itemSubtitle}>{drone.id}</Text>
+                  <Text style={styles.itemSubtitle}>
+                    {drone.lastMission || "Chưa có nhiệm vụ"}
+                  </Text>
+                </View>
+                <View style={styles.listSideActions}>
+                  <View style={[styles.tag, styles.secondaryTag]}>
+                    <Text style={[styles.tagLabel, styles.secondaryTagLabel]}>
+                      {drone.status}
+                    </Text>
+                  </View>
+                  <Text style={styles.itemValue}>{drone.battery || 0}% Pin</Text>
+                  <View style={styles.inlineActions}>
+                    <TouchableOpacity onPress={() => handleEditDrone(drone)}>
+                      <Text style={styles.link}>Sửa</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleDeleteDrone(drone.id)}
+                    >
+                      <Text style={[styles.link, styles.dangerLink]}>Xóa</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             ))

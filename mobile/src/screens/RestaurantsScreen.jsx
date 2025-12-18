@@ -34,6 +34,26 @@ const normalizeMenuItem = (item) => ({
   restaurantSlug: item?.restaurantSlug ?? null,
 });
 
+const augmentMenuItem = (item, restaurant) => {
+  if (!item) {
+    return item;
+  }
+
+  return {
+    ...item,
+    restaurantId:
+      item.restaurantId || restaurant?.id || restaurant?.slug || null,
+    restaurantSlug: item.restaurantSlug || restaurant?.slug || restaurant?.id || null,
+    restaurantName: item.restaurantName || restaurant?.name || restaurant?.badge || null,
+    restaurantAddress:
+      item.restaurantAddress ||
+      restaurant?.address ||
+      restaurant?.city ||
+      restaurant?.location ||
+      null,
+  };
+};
+
 const formatCurrency = (value) =>
   `${(Number(value) || 0).toLocaleString("vi-VN")} đ`;
 

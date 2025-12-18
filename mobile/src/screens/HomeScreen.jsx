@@ -15,6 +15,7 @@ import OrdersScreen from "../features/orders/screens/OrdersScreen.jsx";
 
 import { bestSellers as staticBestSellers } from "../data/homepage";
 import { menuCategories, menuItems } from "../data/menu";
+import fallbackDb from "../data/db.json";
 import { fetchCollection } from "../utils/api";
 
 const HOME_TAB = "home";
@@ -41,6 +42,80 @@ const normalizeTab = (tabId) => {
   return HOME_TAB;
 };
 
+const buildRestaurantLookup = (restaurants = []) => {
+  const lookup = {
+    byMenuItem: new Map(),
+    byId: new Map(),
+    bySlug: new Map(),
+  };
+
+  restaurants.forEach((restaurant) => {
+    if (!restaurant) return;
+
+    if (restaurant.id) {
+      lookup.byId.set(restaurant.id, restaurant);
+    }
+
+    if (restaurant.slug) {
+      lookup.bySlug.set(restaurant.slug, restaurant);
+    }
+
+    const menuItemIds = Array.isArray(restaurant.menuItemIds)
+      ? restaurant.menuItemIds
+      : [];
+    menuItemIds.forEach((menuItemId) => {
+      if (menuItemId) {
+        lookup.byMenuItem.set(menuItemId, restaurant);
+      }
+    });
+  });
+
+  return lookup;
+};
+
+const attachRestaurantMeta = (
+  menuItem = {},
+  lookup = {
+    byMenuItem: new Map(),
+    byId: new Map(),
+    bySlug: new Map(),
+  }
+) => {
+  const restaurant =
+    lookup.byMenuItem.get(menuItem.id) ||
+    lookup.byId.get(menuItem.restaurantId ?? "") ||
+    lookup.bySlug.get(menuItem.restaurantSlug ?? "") ||
+    null;
+
+  const fallbackAddress =
+    restaurant?.address || restaurant?.city || restaurant?.location || null;
+
+  return {
+    ...menuItem,
+    image: menuItem.image ?? menuItem.img ?? menuItem.photo ?? null,
+    restaurantId: menuItem.restaurantId || restaurant?.id || restaurant?.slug || null,
+    restaurantSlug:
+      menuItem.restaurantSlug || restaurant?.slug || restaurant?.id || null,
+    restaurantName:
+      menuItem.restaurantName || restaurant?.name || restaurant?.badge || null,
+    restaurantAddress:
+      menuItem.restaurantAddress ??
+      fallbackAddress ??
+      null,
+  };
+};
+
+const FALLBACK_RESTAURANTS = Array.isArray(fallbackDb?.restaurants)
+  ? fallbackDb.restaurants
+  : [];
+const FALLBACK_RESTAURANT_LOOKUP = buildRestaurantLookup(FALLBACK_RESTAURANTS);
+const INITIAL_MENU_DATA = menuItems.map((item) =>
+  attachRestaurantMeta(item, FALLBACK_RESTAURANT_LOOKUP)
+);
+const INITIAL_BEST_SELLERS = staticBestSellers.map((item) =>
+  attachRestaurantMeta(item, FALLBACK_RESTAURANT_LOOKUP)
+);
+
 const HomeScreen = ({
   onPressLogin,
   user,
@@ -59,10 +134,10 @@ const HomeScreen = ({
     productName: "",
     quantity: 0,
   });
-  const [menuData, setMenuData] = useState(menuItems);
+  const [menuData, setMenuData] = useState(INITIAL_MENU_DATA);
   const [categories, setCategories] = useState(menuCategories);
   const [bestSellerProducts, setBestSellerProducts] = useState(
-    staticBestSellers
+    INITIAL_BEST_SELLERS
   );
   const { addToCart } = useCart();
 
@@ -128,9 +203,10 @@ const HomeScreen = ({
 
     const syncMenu = async () => {
       try {
-        const [categoryResponse, menuResponse] = await Promise.all([
+        const [categoryResponse, menuResponse, restaurantResponse] = await Promise.all([
           fetchCollection("categories").catch(() => null),
           fetchCollection("menuItems"),
+          fetchCollection("restaurants").catch(() => null),
         ]);
 
         if (!active) return;
@@ -139,11 +215,15 @@ const HomeScreen = ({
           setCategories(categoryResponse);
         }
 
+        const restaurants = Array.isArray(restaurantResponse)
+          ? restaurantResponse
+          : [];
+        const restaurantLookup = buildRestaurantLookup(restaurants);
+
         if (Array.isArray(menuResponse) && menuResponse.length > 0) {
-          const normalized = menuResponse.map((item) => ({
-            ...item,
-            image: item.image ?? item.img ?? item.photo,
-          }));
+          const normalized = menuResponse.map((item) =>
+            attachRestaurantMeta(item, restaurantLookup)
+          );
           setMenuData(normalized);
 
           const highlighted = normalized
@@ -278,4 +358,3 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
-

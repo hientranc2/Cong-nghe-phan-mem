@@ -216,12 +216,19 @@ const CheckoutScreen = ({ onBack, user, onOrderPlaced }) => {
       return;
     }
 
-    const orderItems = items.map((item) => ({
-      id: item?.product?.id,
-      name: item?.product?.name,
-      price: Number(item?.product?.price ?? 0),
-      quantity: item?.quantity ?? 0,
-    }));
+    const orderItems = items.map((item) => {
+      const product = item?.product ?? {};
+      return {
+        id: product.id,
+        name: product.name,
+        price: Number(product.price ?? 0),
+        quantity: item?.quantity ?? 0,
+        restaurantId: product.restaurantId ?? null,
+        restaurantSlug: product.restaurantSlug ?? null,
+        restaurantName: product.restaurantName ?? null,
+        restaurantAddress: product.restaurantAddress ?? null,
+      };
+    });
     const now = new Date();
     const estimatedDelivery = new Date(now.getTime() + 45 * 60 * 1000);
     const paymentMethod = PAYMENT_METHODS.find(

@@ -826,5 +826,28 @@
       "restaurantSlug": "taco-hub"
     }
   ],
-  "orders": []
+  "orders": [],
+  "drones": [
+    {
+      "id": "dr-01",
+      "name": "Aquila X1",
+      "status": "Đang hoạt động",
+      "battery": 82,
+      "lastMission": "Giao cà phê quận 1"
+    },
+    {
+      "id": "dr-02",
+      "name": "Falcon V2",
+      "status": "Đang bảo trì",
+      "battery": 45,
+      "lastMission": "Đang kiểm tra cảm biến"
+    },
+    {
+      "id": "dr-03",
+      "name": "Orion S",
+      "status": "Sẵn sàng",
+      "battery": 98,
+      "lastMission": "Chờ nhiệm vụ"
+    }
+  ]
 }

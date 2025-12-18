@@ -49,6 +49,7 @@ const FALLBACK_COLLECTIONS = {
   restaurants: fallbackDb.restaurants ?? [],
   users: fallbackDb.users ?? [],
   orders: fallbackDb.orders ?? [],
+  drones: fallbackDb.drones ?? [],
 };
 
 const parseJSON = async (response) => {
@@ -161,3 +162,11 @@ export const createUser = async (payload) => postJSON("users", payload);
 export const updateUser = async (id, payload) => patchJSON("users", id, payload);
 
 export const deleteUser = async (id) => deleteJSON("users", id);
+
+export const fetchDrones = async () => fetchCollection("drones");
+
+export const createDrone = async (payload) => postJSON("drones", payload);
+
+export const updateDrone = async (id, payload) => patchJSON("drones", id, payload);
+
+export const deleteDrone = async (id) => deleteJSON("drones", id);
